@@ -4,7 +4,7 @@
  * Copyright (c) 2020 Quentin Marciset. All rights reserved.
  */
 
-package com.qmarciset.androidmobiledatasync
+package com.qmarciset.androidmobiledatasync.model
 
 // For now, the tableName field is only useful for debugging, printing tableName
 data class GlobalStampWithTable(val tableName: String, val globalStamp: Int)
