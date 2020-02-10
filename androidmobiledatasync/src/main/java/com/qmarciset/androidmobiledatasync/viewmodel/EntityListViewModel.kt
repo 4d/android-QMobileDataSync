@@ -83,13 +83,8 @@ abstract class EntityListViewModel<T>(
         restRepository.getMoreRecentEntities(predicate) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let {
-                    Timber.d("getDataAlt: going to handleData()")
+                    Timber.d("getData: going to handleData()")
                     decodeGlobalStamp(it) { entities ->
-                        //                        decodeAndInsertEntityList(entities)
-
-                        // Todo : déplacer ci-dessous avant decodeAndInsert
-
-                        // Todo : zipper les résultats ici avec observable, insérer tout d'un coup
 
                         val receivedGlobalStamp = entities?.__GlobalStamp ?: 0
 

@@ -22,6 +22,7 @@ class DataSync(
 
     companion object {
         var NUMBER_OF_REQUEST_MAX_LIMIT = 0
+        const val MAX_FACTOR_OF_SUCCESSIVE_SYNC = 3
     }
 
     private var nbToReceive = 0
@@ -32,7 +33,7 @@ class DataSync(
         val received = AtomicInteger(0)
         var requestPerformed = 0
         nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * 3
+        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * MAX_FACTOR_OF_SUCCESSIVE_SYNC
 
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
@@ -53,7 +54,10 @@ class DataSync(
 
         val observer = Observer<GlobalStampWithTable> { globalStampWithTable ->
             if (!viewModelStillInitializing) {
-                Timber.d("new globalStamps for table ${globalStampWithTable.tableName}, globalStamp value = ${globalStampWithTable.globalStamp}")
+                Timber.d(
+                    "new globalStamps for table ${globalStampWithTable.tableName}, " +
+                            "globalStamp value = ${globalStampWithTable.globalStamp}"
+                )
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
@@ -76,13 +80,15 @@ class DataSync(
                     }
 
                     if (!isAtLeastOneToSync) {
-                        Timber.d("!isAtLeastOneToSync")
+                        Timber.d("isAtLeastOneToSync = $isAtLeastOneToSync")
+                        Timber.d("Synchronization performed, all tables are up-to-date")
                         liveDataMerger.removeObservers(activity)
                         authInfoHelper.globalStamp = maxGlobalStamp
                         for (dataSyncViewModelIsToSync in entityViewModelIsToSyncList) {
                             // notify data are synced
                             dataSyncViewModelIsToSync.vm.dataSynchronized.postValue(
-                                DataSyncState.SYNCHRONIZED)
+                                DataSyncState.SYNCHRONIZED
+                            )
                         }
                     } else {
                         Timber.d("isAtLeastOneToSync true")
@@ -110,11 +116,17 @@ class DataSync(
     private fun sync(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
 
         nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * 3
+        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * MAX_FACTOR_OF_SUCCESSIVE_SYNC
 
         for (dataSyncViewModelIsToSync in entityViewModelIsToSyncList) {
+
             dataSyncViewModelIsToSync.vm.dataSynchronized.postValue(DataSyncState.SYNCHRONIZING)
-            Timber.d("sync : tableName = ${dataSyncViewModelIsToSync.vm.dao.tableName}, istoSync : ${dataSyncViewModelIsToSync.isToSync}")
+
+            Timber.d(
+                "Sync : tableName = ${dataSyncViewModelIsToSync.vm.dao.tableName}, " +
+                        "isToSync : ${dataSyncViewModelIsToSync.isToSync}"
+            )
+
             if (dataSyncViewModelIsToSync.isToSync) {
                 dataSyncViewModelIsToSync.isToSync = false
                 dataSyncViewModelIsToSync.vm.getData {
