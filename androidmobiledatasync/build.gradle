@@ -12,25 +12,19 @@ apply from: "https://raw.githubusercontent.com/JakeWharton/SdkSearch/master/grad
 dependencies {
 
     // AndroidMobile libraries
-    implementation project(':androidmobileapi')
-    implementation project(':androidmobiledatastore')
-//    implementation(AndroidMobileLibs.androidmobileapi) { changing = true }
-//    implementation(AndroidMobileLibs.androidmobiledatastore) { changing = true }
+//    implementation project(':androidmobileapi')
+//    implementation project(':androidmobiledatastore')
+    implementation(AndroidMobileLibs.androidmobileapi) { changing = true }
+    implementation(AndroidMobileLibs.androidmobiledatastore) { changing = true }
 
     // Common
     implementation Libs.androidx_appcompat
-    implementation Libs.androidx_constraintlayout
-    implementation Libs.androidx_core
-    implementation Libs.androidx_preference_ktx
-    implementation Libs.androidx_recyclerview
     implementation Libs.kotlin_stdlib
 
-    // Navigation
-    implementation Libs.androidx_navigation_fragment
-    implementation Libs.androidx_navigation_ui
+    // Lifecycle
+    implementation Libs.lifecycle_extensions
 
     // Utils
-    implementation Libs.material
     implementation Libs.okhttp
     implementation Libs.retrofit_converter_gson
     implementation Libs.rxjava
