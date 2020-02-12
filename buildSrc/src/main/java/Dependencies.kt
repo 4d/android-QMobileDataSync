@@ -12,6 +12,7 @@ object Versions {
     val androidmobiledatastore = "0.0.1"
 
     val android_gradle_plugin = "3.5.2"
+    val arch_core = "2.1.0"
     val artifactory = "4.13.0"
     val atsl_junit = "1.1.1"
     val junit = "4.13"
@@ -67,17 +68,18 @@ object Libs {
     val timber = "com.jakewharton.timber:timber:${Versions.timber}"
 
     // Testing
+    val androidx_core_testing = "androidx.arch.core:core-testing:${Versions.arch_core}"
+    val androidx_junit = "androidx.test.ext:junit:${Versions.atsl_junit}"
     val junit = "junit:junit:${Versions.junit}"
+    val mockito = "org.mockito:mockito-core:${Versions.mockito}"
+    val robolectric = "org.robolectric:robolectric:${Versions.robolectric}"
 
     // For AndroidMobileAPI
-    val androidx_junit = "androidx.test.ext:junit:${Versions.atsl_junit}"
     val androidx_preference_ktx = "androidx.preference:preference-ktx:${Versions.preference}"
-    val mockito = "org.mockito:mockito-core:${Versions.mockito}"
     val okhttp_logging_interceptor = "com.squareup.okhttp3:logging-interceptor:${Versions.okhttp}"
     val okhttp_mockwebserver = "com.squareup.okhttp3:mockwebserver:${Versions.okhttp}"
     val retrofit = "com.squareup.retrofit2:retrofit:${Versions.retrofit}"
     val retrofit_adapter_rxjava2 = "com.squareup.retrofit2:adapter-rxjava2:${Versions.retrofit}"
-    val robolectric = "org.robolectric:robolectric:${Versions.robolectric}"
     val rxandroid = "io.reactivex.rxjava2:rxandroid:${Versions.rx_android}"
 
     // For AndroidMobileDataStore

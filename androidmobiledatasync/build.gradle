@@ -31,7 +31,11 @@ dependencies {
     implementation Libs.timber
 
     // Testing
+    testImplementation Libs.androidx_core_testing
+    testImplementation Libs.androidx_junit
     testImplementation Libs.junit
+    testImplementation Libs.mockito
+    testImplementation Libs.robolectric
 }
 
 def libraryGroupId = 'com.qmarciset.androidmobiledatasync'
