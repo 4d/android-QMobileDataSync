@@ -6,6 +6,7 @@
 
 package com.qmarciset.androidmobiledatasync.model
 
+import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
 
-data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync: Boolean)
+data class EntityViewModelIsToSync(val vm: EntityListViewModel<EntityModel>, var isToSync: Boolean)
