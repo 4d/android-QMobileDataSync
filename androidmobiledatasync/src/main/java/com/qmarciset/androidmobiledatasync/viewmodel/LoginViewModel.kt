@@ -66,7 +66,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 response?.let {
                     val responseBody = response.body()
                     val json = responseBody?.string()
-                    val authResponse: AuthResponse? = Gson().parseJsonToType<AuthResponse>(json)
+                    val authResponse: AuthResponse? = Gson().parseJsonToType(json)
                     authResponse?.let {
                         // Fill SharedPreferences with response details
                         if (authInfoHelper.handleLoginInfo(authResponse)) {

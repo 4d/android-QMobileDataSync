@@ -137,7 +137,7 @@ open class EntityListViewModel<T>(
     }
 
     private fun decodeEntityList(entities: Entities?) {
-        val entityList: List<T>? = gson.parseJsonToType<List<T>>(entities?.__ENTITIES)
+        val entityList: List<T>? = gson.parseJsonToType(entities?.__ENTITIES)
         entityList?.let {
             for (item in entityList) {
                 val itemJson = gson.toJson(item)
