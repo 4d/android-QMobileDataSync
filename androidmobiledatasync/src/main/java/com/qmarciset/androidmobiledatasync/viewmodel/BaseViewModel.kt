@@ -22,9 +22,9 @@ import com.qmarciset.androidmobiledatastore.repository.RoomRepository
  */
 abstract class BaseViewModel<T>(
     application: Application,
+    tableName: String,
     appDatabase: AppDatabaseInterface,
-    apiService: ApiService,
-    tableName: String
+    apiService: ApiService
 ) : AndroidViewModel(application) {
 
     /**

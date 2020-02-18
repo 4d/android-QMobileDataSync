@@ -12,16 +12,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
+import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
 import timber.log.Timber
 
 open class EntityViewModel<T>(
     application: Application,
-    appDatabase: AppDatabaseInterface,
-    apiService: ApiService,
+    tableName: String,
     id: String,
-    tableName: String
+    appDatabase: AppDatabaseInterface,
+    apiService: ApiService
 ) :
-    BaseViewModel<T>(application, appDatabase, apiService, tableName) {
+    BaseViewModel<T>(application, tableName, appDatabase, apiService) {
 
     init {
         Timber.i("EntityViewModel initializing...")
@@ -35,19 +36,20 @@ open class EntityViewModel<T>(
 
     class EntityViewModelFactory(
         private val application: Application,
+        private val tableName: String,
+        private val id: String,
         private val appDatabase: AppDatabaseInterface,
         private val apiService: ApiService,
-        private val id: String,
-        private val tableName: String
+        private val fromTableForViewModel: FromTableForViewModel
     ) : ViewModelProvider.NewInstanceFactory() {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return EntityViewModel<T>(
+            return fromTableForViewModel.entityViewModelFromTable(
                 application,
-                appDatabase,
-                apiService,
+                tableName,
                 id,
-                tableName
+                appDatabase,
+                apiService
             ) as T
         }
     }

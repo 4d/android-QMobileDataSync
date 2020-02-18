@@ -25,14 +25,14 @@ import okhttp3.ResponseBody
 import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
-abstract class EntityListViewModel<T>(
+open class EntityListViewModel<T>(
     application: Application,
+    tableName: String,
     appDatabase: AppDatabaseInterface,
     apiService: ApiService,
-    tableName: String,
     private val fromTableForViewModel: FromTableForViewModel
 ) :
-    BaseViewModel<T>(application, appDatabase, apiService, tableName) {
+    BaseViewModel<T>(application, tableName, appDatabase, apiService) {
 
     init {
         Timber.i("EntityListViewModel initializing...")
@@ -159,16 +159,16 @@ abstract class EntityListViewModel<T>(
 
     class EntityListViewModelFactory(
         private val application: Application,
+        private val tableName: String,
         private val appDatabase: AppDatabaseInterface,
         private val apiService: ApiService,
-        private val tableName: String,
         private val fromTableForViewModel: FromTableForViewModel
     ) : ViewModelProvider.NewInstanceFactory() {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return fromTableForViewModel.entityListViewModelFromTable<T>(
-                tableName,
+            return fromTableForViewModel.entityListViewModelFromTable(
                 application,
+                tableName,
                 appDatabase,
                 apiService,
                 fromTableForViewModel
