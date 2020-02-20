@@ -50,7 +50,7 @@ open class EntityListViewModel<T>(
 
     open val dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
-    val globalStamp = MutableLiveData<Int>().apply { value = authInfoHelper.globalStamp }
+    open val globalStamp = MutableLiveData<Int>().apply { value = authInfoHelper.globalStamp }
 
     val dataSynchronized =
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
@@ -142,7 +142,7 @@ open class EntityListViewModel<T>(
             for (item in entityList) {
                 val itemJson = gson.toJson(item)
                 val entity: EntityModel? =
-                    fromTableForViewModel.parseEntityFromTable(dao.tableName, itemJson.toString())
+                    fromTableForViewModel.parseEntityFromTable(getAssociatedTableName(), itemJson.toString())
                 entity.let {
                     this.insert(it as EntityModel)
                 }

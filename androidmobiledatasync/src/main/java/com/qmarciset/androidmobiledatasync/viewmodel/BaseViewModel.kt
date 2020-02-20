@@ -22,10 +22,12 @@ import com.qmarciset.androidmobiledatastore.repository.RoomRepository
  */
 abstract class BaseViewModel<T>(
     application: Application,
-    tableName: String,
+    private val tableName: String,
     appDatabase: AppDatabaseInterface,
     apiService: ApiService
 ) : AndroidViewModel(application) {
+
+    open fun getAssociatedTableName(): String = tableName
 
     /**
      * DAO

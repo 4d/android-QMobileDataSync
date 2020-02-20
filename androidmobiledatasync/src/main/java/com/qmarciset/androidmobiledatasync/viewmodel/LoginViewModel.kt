@@ -42,11 +42,6 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     val emailValid = MutableLiveData<Boolean>().apply { value = false }
 
     val authenticationState: MutableLiveData<AuthenticationState> by lazy {
-//        val initialState =
-//            if (authInfoHelper.sessionToken.isEmpty())
-//                AuthenticationState.UNAUTHENTICATED
-//            else
-//                AuthenticationState.AUTHENTICATED
         MutableLiveData<AuthenticationState>(AuthenticationState.UNAUTHENTICATED)
     }
 
