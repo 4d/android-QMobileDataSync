@@ -89,7 +89,11 @@ open class EntityListViewModel<T>(
                         val receivedGlobalStamp = entities?.__GlobalStamp ?: 0
 
                         globalStamp.postValue(receivedGlobalStamp)
-//                        globalStamp.postValue(260)
+                        // For test purposes
+//                        if (getAssociatedTableName() == "Service")
+//                             globalStamp.postValue(248)
+//                        else
+//                            globalStamp.postValue(245)
 
                         if (receivedGlobalStamp > authInfoHelper.globalStamp) {
                             onResult(true)
@@ -154,6 +158,8 @@ open class EntityListViewModel<T>(
      * Returns predicate for requests with __GlobalStamp
      */
     private fun buildGlobalStampPredicate(globalStamp: Int): String {
+        // For test purposes
+//        return "\"__GlobalStamp > $globalStamp AND __GlobalStamp < 245\""
         return "\"__GlobalStamp > $globalStamp\""
     }
 

@@ -27,7 +27,7 @@ open class DataSync(
 
     private var nbToReceive = 0
 
-    private lateinit var liveDataMerger: MediatorLiveData<GlobalStampWithTable>
+    private lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
 
     fun setObserver(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
 
@@ -39,24 +39,30 @@ open class DataSync(
 
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
-        liveDataMerger = MediatorLiveData()
+        mediatorLiveDataList = mutableListOf()
 
-        // merge LiveData
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
-            liveDataMerger.addSource(entityViewModelIsToSync.vm.globalStamp) {
+            val mediatorLiveData = MediatorLiveData<GlobalStampWithTable>()
+            mediatorLiveData.addSource(entityViewModelIsToSync.vm.globalStamp) {
                 if (it != null) {
-                    liveDataMerger.value =
+                    mediatorLiveData.value =
                         GlobalStampWithTable(
                             entityViewModelIsToSync.vm.getAssociatedTableName(),
                             it
                         )
                 }
             }
+            mediatorLiveDataList.add(mediatorLiveData)
         }
 
         val globalStampObserver = Observer<GlobalStampWithTable> { globalStampWithTable ->
+
+            Timber.d("[globalStampObserver] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+
+            for (entityViewModelIsToSync in entityViewModelIsToSyncList)
+                Timber.d("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+
             if (!viewModelStillInitializing) {
-                Timber.d("[globalStampObserver] [Table : ${globalStampWithTable.tableName}, value : ${globalStampWithTable.globalStamp}]")
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
@@ -64,11 +70,15 @@ open class DataSync(
                 if (received.incrementAndGet() == nbToReceive) {
 
                     // Get the max globalStamp between received ones, and stored one
-                    val maxGlobalStamp = getMaxGlobalStamp(receivedSyncedTableGS, authInfoHelper.globalStamp)
+                    val maxGlobalStamp =
+                        getMaxGlobalStamp(receivedSyncedTableGS, authInfoHelper.globalStamp)
+                    Timber.d("maxGlobalStamp = $maxGlobalStamp")
 
-                    val isAtLeastOneToSync = checkIfAtLeastOneTableToSync(maxGlobalStamp, entityViewModelIsToSyncList)
+                    val isAtLeastOneToSync =
+                        checkIfAtLeastOneTableToSync(maxGlobalStamp, entityViewModelIsToSyncList)
 
                     if (isAtLeastOneToSync) {
+                        Timber.d("isAtLeastOneToSync true")
                         received.set(0)
                         requestPerformed++
                         if (requestPerformed <= NUMBER_OF_REQUEST_MAX_LIMIT)
@@ -89,10 +99,15 @@ open class DataSync(
         }
 
         // observe merged LiveData
-        liveDataMerger.observe(activity, globalStampObserver)
+        for (mediatorLiveData in mediatorLiveDataList) {
+            mediatorLiveData.observe(activity, globalStampObserver)
+        }
     }
 
-    fun checkIfAtLeastOneTableToSync(maxGlobalStamp: Int, entityViewModelIsToSyncList: List<EntityViewModelIsToSync>): Boolean {
+    fun checkIfAtLeastOneTableToSync(
+        maxGlobalStamp: Int,
+        entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
+    ): Boolean {
         var isAtLeastOneToSync = false
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
             val vmGs = entityViewModelIsToSync.vm.globalStamp.value ?: 0
@@ -105,11 +120,20 @@ open class DataSync(
         return isAtLeastOneToSync
     }
 
-    fun getMaxGlobalStamp(receivedSyncedTableGS: List<GlobalStampWithTable>, authInfoHelperGlobalStamp: Int): Int = maxOf(receivedSyncedTableGS.map { it.globalStamp }.maxBy { it } ?: 0, authInfoHelperGlobalStamp)
+    fun getMaxGlobalStamp(
+        receivedSyncedTableGS: List<GlobalStampWithTable>,
+        authInfoHelperGlobalStamp: Int
+    ): Int = maxOf(receivedSyncedTableGS.map { it.globalStamp }.maxBy { it } ?: 0,
+        authInfoHelperGlobalStamp)
 
-    private fun validateSynchronization(maxGlobalStamp: Int, entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
+    private fun validateSynchronization(
+        maxGlobalStamp: Int,
+        entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
+    ) {
         Timber.d("Synchronization performed, all tables are up-to-date")
-        liveDataMerger.removeObservers(activity)
+        for (mediatorLiveData in mediatorLiveDataList) {
+            mediatorLiveData.removeObservers(activity)
+        }
         authInfoHelper.globalStamp = maxGlobalStamp
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
             // notify data are synced
@@ -128,10 +152,7 @@ open class DataSync(
 
             entityViewModelIsToSync.vm.dataSynchronized.postValue(DataSyncState.SYNCHRONIZING)
 
-            Timber.d(
-                "Sync : tableName = ${entityViewModelIsToSync.vm.getAssociatedTableName()}, " +
-                        "isToSync : ${entityViewModelIsToSync.isToSync}"
-            )
+            Timber.d("Sync : tableName = ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}")
 
             if (entityViewModelIsToSync.isToSync) {
                 entityViewModelIsToSync.isToSync = false
