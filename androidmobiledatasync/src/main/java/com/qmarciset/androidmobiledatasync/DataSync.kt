@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
 import com.qmarciset.androidmobiledatasync.model.EntityViewModelIsToSync
 import com.qmarciset.androidmobiledatasync.model.GlobalStampWithTable
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import timber.log.Timber
 
@@ -31,9 +32,9 @@ open class DataSync(
 
     fun setObserver(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
 
-        var viewModelStillInitializing = true
+        val viewModelStillInitializing = AtomicBoolean(true)
         val received = AtomicInteger(0)
-        var requestPerformed = 0
+        val requestPerformed = AtomicInteger(0)
         nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
         NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
 
@@ -62,7 +63,7 @@ open class DataSync(
             for (entityViewModelIsToSync in entityViewModelIsToSyncList)
                 Timber.d("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
 
-            if (!viewModelStillInitializing) {
+            if (!viewModelStillInitializing.get()) {
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
@@ -79,19 +80,23 @@ open class DataSync(
 
                     if (isAtLeastOneToSync) {
                         Timber.d("isAtLeastOneToSync true")
-                        received.set(0)
-                        requestPerformed++
-                        if (requestPerformed <= NUMBER_OF_REQUEST_MAX_LIMIT)
+                        if (canPerformNewSync(
+                                received,
+                                requestPerformed,
+                                NUMBER_OF_REQUEST_MAX_LIMIT
+                            )
+                        ) {
                             sync(entityViewModelIsToSyncList)
+                        } else {
+                            Timber.d("Number of request max limit has been reached")
+                        }
                     } else {
                         validateSynchronization(maxGlobalStamp, entityViewModelIsToSyncList)
                     }
                 }
             } else {
-                Timber.d("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
-                if (received.incrementAndGet() == nbToReceive) {
-                    viewModelStillInitializing = false
-                    received.set(0)
+
+                if (canStartSync(received, nbToReceive, viewModelStillInitializing)) {
                     // first sync
                     sync(entityViewModelIsToSyncList)
                 }
@@ -102,6 +107,30 @@ open class DataSync(
         for (mediatorLiveData in mediatorLiveDataList) {
             mediatorLiveData.observe(activity, globalStampObserver)
         }
+    }
+
+    fun canStartSync(
+        received: AtomicInteger,
+        nbToReceive: Int,
+        viewModelStillInitializing: AtomicBoolean
+    ): Boolean {
+        println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
+        if (received.incrementAndGet() == nbToReceive) {
+            viewModelStillInitializing.set(false)
+            received.set(0)
+            return true
+        }
+        return false
+    }
+
+    fun canPerformNewSync(
+        received: AtomicInteger,
+        requestPerformed: AtomicInteger,
+        NUMBER_OF_REQUEST_MAX_LIMIT: Int
+    ): Boolean {
+        received.set(0)
+        requestPerformed.incrementAndGet()
+        return requestPerformed.get() <= NUMBER_OF_REQUEST_MAX_LIMIT
     }
 
     fun checkIfAtLeastOneTableToSync(

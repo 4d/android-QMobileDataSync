@@ -16,8 +16,10 @@ import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobiledatasync.model.EntityViewModelIsToSync
 import com.qmarciset.androidmobiledatasync.model.GlobalStampWithTable
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.assertEquals
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -67,7 +69,7 @@ class DataSyncUnitTest {
 
     // GlobalStamp observer
     private lateinit var globalStampObserver: Observer<GlobalStampWithTable>
-    private var nbToReceive = 0
+    //    private var nbToReceive = 0
     private val sharedPreferencesGlobalStamp = 120
     private lateinit var entityViewModelIsToSyncList: MutableList<EntityViewModelIsToSync>
 
@@ -151,26 +153,17 @@ class DataSyncUnitTest {
     @Test
     fun testDataSyncCoreObserver() {
 
-        // Mock ViewModel globalStamp's LiveData
-        Mockito.`when`(entityListViewModelEmployee.globalStamp).thenReturn(sourceIntEmployee)
-        Mockito.`when`(entityListViewModelService.globalStamp).thenReturn(sourceIntService)
-        Mockito.`when`(entityListViewModelOffice.globalStamp).thenReturn(sourceIntOffice)
+        mockForDataSync()
 
-        // Mock ViewModel tableName
-        Mockito.`when`(entityListViewModelEmployee.getAssociatedTableName())
-            .thenReturn(EMPLOYEE_TABLE)
-        Mockito.`when`(entityListViewModelService.getAssociatedTableName())
-            .thenReturn(SERVICE_TABLE)
-        Mockito.`when`(entityListViewModelOffice.getAssociatedTableName()).thenReturn(OFFICE_TABLE)
-
-        var viewModelStillInitializing = true
-        var requestPerformed = 0
+        val viewModelStillInitializing = AtomicBoolean(true)
+        val requestPerformed = AtomicInteger(0)
         val received = AtomicInteger(0)
-        nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
+        // nbToReceive is atomic to avoid an other test to change its value
+        val nbToReceive = AtomicInteger(entityViewModelIsToSyncList.filter { it.isToSync }.size)
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
 
-        assertEquals(3, nbToReceive)
+        assertEquals(3, nbToReceive.get())
 
         globalStampObserver = Observer { globalStampWithTable ->
 
@@ -179,12 +172,12 @@ class DataSyncUnitTest {
             for (entityViewModelIsToSync in entityViewModelIsToSyncList)
                 println("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
 
-            if (!viewModelStillInitializing) {
+            if (!viewModelStillInitializing.get()) {
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
                 println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
-                if (received.incrementAndGet() == nbToReceive) {
+                if (received.incrementAndGet() == nbToReceive.get()) {
 
                     val maxGlobalStamp = dataSync.getMaxGlobalStamp(
                         receivedSyncedTableGS,
@@ -199,36 +192,34 @@ class DataSyncUnitTest {
 
                     if (isAtLeastOneToSync) {
                         println("isAtLeastOneToSync true")
-                        received.set(0)
-                        requestPerformed++
-                        if (requestPerformed <= NUMBER_OF_REQUEST_MAX_LIMIT) {
+                        if (dataSync.canPerformNewSync(
+                                received,
+                                requestPerformed,
+                                NUMBER_OF_REQUEST_MAX_LIMIT
+                            )
+                        ) {
                             println("requestPerformed = $requestPerformed")
-                            if (requestPerformed == 1) {
-                                assertEquals(123, entityListViewModelEmployee.globalStamp.value)
-                                assertEquals(124, entityListViewModelService.globalStamp.value)
-                                assertEquals(256, entityListViewModelOffice.globalStamp.value)
-                                sync(2)
+                            if (requestPerformed.get() == 1) {
+                                sync(2, nbToReceive)
                             } else {
-                                assertEquals(256, entityListViewModelEmployee.globalStamp.value)
-                                assertEquals(260, entityListViewModelService.globalStamp.value)
-                                assertEquals(256, entityListViewModelOffice.globalStamp.value)
-                                sync(3)
+                                sync(3, nbToReceive)
                             }
                         }
                     } else {
                         println("Synchronization performed, all tables are up-to-date")
-                        assertEquals(260, entityListViewModelEmployee.globalStamp.value)
-                        assertEquals(260, entityListViewModelService.globalStamp.value)
-                        assertEquals(260, entityListViewModelOffice.globalStamp.value)
+                        assertSuccess()
                     }
                 }
             } else {
-                println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
-                if (received.incrementAndGet() == nbToReceive) {
-                    viewModelStillInitializing = false
-                    received.set(0)
+
+                if (dataSync.canStartSync(
+                        received,
+                        nbToReceive.get(),
+                        viewModelStillInitializing
+                    )
+                ) {
                     // first sync
-                    sync(1)
+                    sync(1, nbToReceive)
                 }
             }
         }
@@ -243,9 +234,91 @@ class DataSyncUnitTest {
         sourceIntOffice.postValue(0)
     }
 
-    private fun sync(iteration: Int) {
-        nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+    @Test
+    fun testNumberOfRequestMaxLimit() {
+
+        mockForDataSync()
+
+        val viewModelStillInitializing = AtomicBoolean(true)
+        val requestPerformed = AtomicInteger(0)
+        val received = AtomicInteger(0)
+        // nbToReceive is atomic to avoid an other test to change its value
+        val nbToReceive = AtomicInteger(entityViewModelIsToSyncList.filter { it.isToSync }.size)
+        val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
+        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+
+        assertEquals(3, nbToReceive.get())
+
+        globalStampObserver = Observer { globalStampWithTable ->
+
+            println("[globalStampObserver] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+
+            for (entityViewModelIsToSync in entityViewModelIsToSyncList)
+                println("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+
+            if (!viewModelStillInitializing.get()) {
+
+                receivedSyncedTableGS.add(globalStampWithTable)
+
+                println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
+                if (received.incrementAndGet() == nbToReceive.get()) {
+
+                    val maxGlobalStamp = dataSync.getMaxGlobalStamp(
+                        receivedSyncedTableGS,
+                        authInfoHelper.globalStamp
+                    )
+                    println("maxGlobalStamp = $maxGlobalStamp")
+
+                    val isAtLeastOneToSync = dataSync.checkIfAtLeastOneTableToSync(
+                        maxGlobalStamp,
+                        entityViewModelIsToSyncList
+                    )
+
+                    if (isAtLeastOneToSync) {
+                        println("isAtLeastOneToSync true")
+                        if (dataSync.canPerformNewSync(
+                                received,
+                                requestPerformed,
+                                NUMBER_OF_REQUEST_MAX_LIMIT
+                            )
+                        ) {
+                            println("requestPerformed = $requestPerformed")
+                            syncToInfiniteAndBeyond(nbToReceive, maxGlobalStamp)
+                        } else {
+                            println("Number of request max limit has been reached")
+                        }
+                    } else {
+                        println("Synchronization performed, all tables are up-to-date")
+                        fail()
+                    }
+                }
+            } else {
+
+                if (dataSync.canStartSync(
+                        received,
+                        nbToReceive.get(),
+                        viewModelStillInitializing
+                    )
+                ) {
+                    // first sync
+                    syncToInfiniteAndBeyond(nbToReceive, authInfoHelper.globalStamp)
+                }
+            }
+        }
+
+        liveDataMergerEmployee.observeForever(globalStampObserver)
+        liveDataMergerService.observeForever(globalStampObserver)
+        liveDataMergerOffice.observeForever(globalStampObserver)
+
+        // Simulates LiveData initialization
+        sourceIntEmployee.postValue(0)
+        sourceIntService.postValue(0)
+        sourceIntOffice.postValue(0)
+    }
+
+    private fun sync(iteration: Int, nbToReceive: AtomicInteger) {
+        nbToReceive.set(entityViewModelIsToSyncList.filter { it.isToSync }.size)
+        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
 
         assertLiveData(iteration)
 
@@ -264,6 +337,26 @@ class DataSyncUnitTest {
                     3 -> mutableListOf(260, 260, 260)
                     else -> mutableListOf()
                 }
+                emitGlobalStamp(entityViewModelIsToSync, globalStampList)
+            }
+        }
+    }
+
+    private fun syncToInfiniteAndBeyond(nbToReceive: AtomicInteger, maxGlobalStamp: Int) {
+        nbToReceive.set(entityViewModelIsToSyncList.filter { it.isToSync }.size)
+        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+
+        var globalStampList: MutableList<Int>
+
+        for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+
+            println("Sync : tableName = ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}")
+
+            if (entityViewModelIsToSync.isToSync) {
+                entityViewModelIsToSync.isToSync = false
+
+                globalStampList =
+                    mutableListOf(maxGlobalStamp + 1, maxGlobalStamp + 2, maxGlobalStamp + 3)
                 emitGlobalStamp(entityViewModelIsToSync, globalStampList)
             }
         }
@@ -313,6 +406,22 @@ class DataSyncUnitTest {
                 sourceIntOffice.postValue(globalStampList[2])
             }
         }
+    }
+
+    private fun mockForDataSync() {
+        // Mock ViewModel globalStamp's LiveData
+        Mockito.`when`(entityListViewModelEmployee.globalStamp).thenReturn(sourceIntEmployee)
+        Mockito.`when`(entityListViewModelService.globalStamp).thenReturn(sourceIntService)
+        Mockito.`when`(entityListViewModelOffice.globalStamp).thenReturn(sourceIntOffice)
+
+        // Mock ViewModel tableName
+        Mockito.`when`(entityListViewModelEmployee.getAssociatedTableName())
+            .thenReturn(EMPLOYEE_TABLE)
+        Mockito.`when`(entityListViewModelService.getAssociatedTableName())
+            .thenReturn(SERVICE_TABLE)
+        Mockito.`when`(entityListViewModelOffice.getAssociatedTableName()).thenReturn(OFFICE_TABLE)
+
+        Mockito.`when`(authInfoHelper.globalStamp).thenReturn(sharedPreferencesGlobalStamp)
     }
 }
 
