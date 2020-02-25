@@ -12,7 +12,6 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
-import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobiledatasync.model.EntityViewModelIsToSync
 import com.qmarciset.androidmobiledatasync.model.GlobalStampWithTable
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
@@ -32,7 +31,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.P])
-class DataSyncUnitTest {
+class DataSyncTest {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -424,29 +423,3 @@ class DataSyncUnitTest {
         Mockito.`when`(authInfoHelper.globalStamp).thenReturn(sharedPreferencesGlobalStamp)
     }
 }
-
-// Sample tables for synchronization
-
-class Employee(
-    override val __KEY: String,
-    override val __STAMP: Int? = null,
-    override val __GlobalStamp: Int? = null,
-    override val __TIMESTAMP: String? = null,
-    override val __entityModel: String? = null
-) : EntityModel
-
-class Service(
-    override val __KEY: String,
-    override val __STAMP: Int? = null,
-    override val __GlobalStamp: Int? = null,
-    override val __TIMESTAMP: String? = null,
-    override val __entityModel: String? = null
-) : EntityModel
-
-class Office(
-    override val __KEY: String,
-    override val __STAMP: Int? = null,
-    override val __GlobalStamp: Int? = null,
-    override val __TIMESTAMP: String? = null,
-    override val __entityModel: String? = null
-) : EntityModel

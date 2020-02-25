@@ -14,8 +14,6 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.gson.Gson
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
 import com.qmarciset.androidmobileapi.auth.AuthenticationState
-import com.qmarciset.androidmobileapi.auth.buildAuthRequestBody
-import com.qmarciset.androidmobileapi.auth.handleLoginInfo
 import com.qmarciset.androidmobileapi.model.auth.AuthResponse
 import com.qmarciset.androidmobileapi.network.LoginApiService
 import com.qmarciset.androidmobileapi.repository.AuthRepository
