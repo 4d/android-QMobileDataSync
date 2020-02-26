@@ -49,9 +49,4 @@ abstract class BaseViewModel<T>(
      */
 
     val toastMessage = MutableLiveData<String>()
-
-    override fun onCleared() {
-        super.onCleared()
-        restRepository.disposable.dispose()
-    }
 }

@@ -35,7 +35,7 @@ open class EntityListViewModel<T>(
     BaseViewModel<T>(application, tableName, appDatabase, apiService) {
 
     init {
-        Timber.i("EntityListViewModel initializing...")
+        Timber.i("EntityListViewModel initializing... $tableName")
     }
 
     private val authInfoHelper = AuthInfoHelper(application.applicationContext)
@@ -54,6 +54,7 @@ open class EntityListViewModel<T>(
 
     val dataSynchronized =
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
+//    val dataSynchronized: MutableLiveData<DataSyncState> by lazy { MutableLiveData<DataSyncState>(DataSyncState.UNSYNCHRONIZED) }
 
     fun delete(item: EntityModel) {
         roomRepository.delete(item as T)
@@ -78,12 +79,11 @@ open class EntityListViewModel<T>(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
         val predicate = buildGlobalStampPredicate(globalStamp.value ?: authInfoHelper.globalStamp)
-        Timber.d("predicate = $predicate")
+        Timber.d("Performing data request, with predicate $predicate")
 
         restRepository.getMoreRecentEntities(predicate) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let {
-                    Timber.d("getData: going to handleData()")
                     decodeGlobalStamp(it) { entities ->
 
                         val receivedGlobalStamp = entities?.__GlobalStamp ?: 0
@@ -146,7 +146,10 @@ open class EntityListViewModel<T>(
             for (item in entityList) {
                 val itemJson = gson.toJson(item)
                 val entity: EntityModel? =
-                    fromTableForViewModel.parseEntityFromTable(getAssociatedTableName(), itemJson.toString())
+                    fromTableForViewModel.parseEntityFromTable(
+                        getAssociatedTableName(),
+                        itemJson.toString()
+                    )
                 entity.let {
                     this.insert(it as EntityModel)
                 }
@@ -172,13 +175,37 @@ open class EntityListViewModel<T>(
     ) : ViewModelProvider.NewInstanceFactory() {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return fromTableForViewModel.entityListViewModelFromTable(
-                application,
-                tableName,
-                appDatabase,
-                apiService,
-                fromTableForViewModel
-            ) as T
+
+            val key = tableName + VIEWMODEL_BASENAME
+
+            return if (viewModelMap.containsKey(key)) {
+                viewModelMap[key] as T
+            } else {
+                addViewModel(
+                    key, fromTableForViewModel.entityListViewModelFromTable(
+                        application,
+                        tableName,
+                        appDatabase,
+                        apiService,
+                        fromTableForViewModel
+                    )
+                )
+                viewModelMap[key] as T
+            }
+        }
+
+        companion object {
+
+            const val VIEWMODEL_BASENAME = "EntityListViewModel"
+
+            // The HashMap is here to ensure that fragments use the same viewModel instance which
+            // the activity already created. Without this HashMap, I experienced unwanted behaviour
+            // such as creation of a new viewModel instance every time we land on the fragment view
+            val viewModelMap = HashMap<String, ViewModel>()
+
+            fun addViewModel(key: String, viewModel: ViewModel) {
+                viewModelMap[key] = viewModel
+            }
         }
     }
 }

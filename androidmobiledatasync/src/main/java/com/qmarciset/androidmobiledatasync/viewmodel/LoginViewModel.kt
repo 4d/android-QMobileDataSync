@@ -95,6 +95,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     override fun onCleared() {
         super.onCleared()
         authRepository.disposable.dispose()
+        Timber.e("ON CLEARED")
     }
 
     class LoginViewModelFactory(

@@ -22,7 +22,7 @@ open class DataSync(
 ) {
 
     companion object {
-        var NUMBER_OF_REQUEST_MAX_LIMIT = 0
+        var numberOfRequestMaxLimit = 0
         const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
     }
 
@@ -36,7 +36,7 @@ open class DataSync(
         val received = AtomicInteger(0)
         val requestPerformed = AtomicInteger(0)
         nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
 
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
@@ -58,37 +58,39 @@ open class DataSync(
 
         val globalStampObserver = Observer<GlobalStampWithTable> { globalStampWithTable ->
 
-            Timber.d("[globalStampObserver] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+            Timber.d("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+            Timber.d("Current globalStamps list :")
 
-            for (entityViewModelIsToSync in entityViewModelIsToSyncList)
-                Timber.d("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+            for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+                Timber.d(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+            }
 
+            Timber.d("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
             if (!viewModelStillInitializing.get()) {
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
-                Timber.d("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
                 if (received.incrementAndGet() == nbToReceive) {
 
                     // Get the max globalStamp between received ones, and stored one
                     val maxGlobalStamp =
                         getMaxGlobalStamp(receivedSyncedTableGS, authInfoHelper.globalStamp)
-                    Timber.d("maxGlobalStamp = $maxGlobalStamp")
+                    Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
 
                     val isAtLeastOneToSync =
                         checkIfAtLeastOneTableToSync(maxGlobalStamp, entityViewModelIsToSyncList)
 
                     if (isAtLeastOneToSync) {
-                        Timber.d("isAtLeastOneToSync true")
+                        Timber.d("[There is at least one table that requires data synchronization]")
                         if (canPerformNewSync(
                                 received,
                                 requestPerformed,
-                                NUMBER_OF_REQUEST_MAX_LIMIT
+                                numberOfRequestMaxLimit
                             )
                         ) {
                             sync(entityViewModelIsToSyncList)
                         } else {
-                            Timber.d("Number of request max limit has been reached")
+                            Timber.e("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
                         }
                     } else {
                         validateSynchronization(maxGlobalStamp, entityViewModelIsToSyncList)
@@ -114,7 +116,6 @@ open class DataSync(
         nbToReceive: Int,
         viewModelStillInitializing: AtomicBoolean
     ): Boolean {
-        println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
         if (received.incrementAndGet() == nbToReceive) {
             viewModelStillInitializing.set(false)
             received.set(0)
@@ -126,11 +127,11 @@ open class DataSync(
     fun canPerformNewSync(
         received: AtomicInteger,
         requestPerformed: AtomicInteger,
-        NUMBER_OF_REQUEST_MAX_LIMIT: Int
+        numberOfRequestMaxLimit: Int
     ): Boolean {
         received.set(0)
         requestPerformed.incrementAndGet()
-        return requestPerformed.get() <= NUMBER_OF_REQUEST_MAX_LIMIT
+        return requestPerformed.get() <= numberOfRequestMaxLimit
     }
 
     fun checkIfAtLeastOneTableToSync(
@@ -145,7 +146,6 @@ open class DataSync(
                 isAtLeastOneToSync = true
             }
         }
-        Timber.d("isAtLeastOneToSync = $isAtLeastOneToSync")
         return isAtLeastOneToSync
     }
 
@@ -159,7 +159,7 @@ open class DataSync(
         maxGlobalStamp: Int,
         entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
     ) {
-        Timber.d("Synchronization performed, all tables are up-to-date")
+        Timber.i("[Synchronization performed, all tables are up-to-date]")
         for (mediatorLiveData in mediatorLiveDataList) {
             mediatorLiveData.removeObservers(activity)
         }
@@ -175,13 +175,13 @@ open class DataSync(
     private fun sync(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
 
         nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
 
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
 
             entityViewModelIsToSync.vm.dataSynchronized.postValue(DataSyncState.SYNCHRONIZING)
 
-            Timber.d("Sync : tableName = ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}")
+            Timber.d("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
 
             if (entityViewModelIsToSync.isToSync) {
                 entityViewModelIsToSync.isToSync = false
