@@ -22,21 +22,20 @@ open class DataSync(
 ) {
 
     companion object {
-        var numberOfRequestMaxLimit = 0
         const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
     }
 
     private var nbToReceive = 0
+    private var numberOfRequestMaxLimit = 0
 
     private lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
 
-    fun setObserver(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
+    fun setObserver(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>, alreadyRefreshedTable: String?) {
 
         val viewModelStillInitializing = AtomicBoolean(true)
         val received = AtomicInteger(0)
         val requestPerformed = AtomicInteger(0)
-        nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
 
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
@@ -58,15 +57,24 @@ open class DataSync(
 
         val globalStampObserver = Observer<GlobalStampWithTable> { globalStampWithTable ->
 
-            Timber.d("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
-            Timber.d("Current globalStamps list :")
-
-            for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
-                Timber.d(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
-            }
-
-            Timber.d("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
             if (!viewModelStillInitializing.get()) {
+
+                // For a forced data synchronization, we want to ignore the observation of the
+                // received globalStamp for this table. It is well saved in the viewModel, but we
+                // don't want to treat its reception here.
+                if (globalStampWithTable.tableName == alreadyRefreshedTable) {
+                    Timber.d("[Ignoring received observable for Table : ${globalStampWithTable.tableName} with GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                    return@Observer
+                }
+
+                Timber.d("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                Timber.d("Current globalStamps list :")
+
+                for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+                    Timber.d(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+                }
+
+                Timber.d("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
@@ -97,8 +105,9 @@ open class DataSync(
                     }
                 }
             } else {
-
-                if (canStartSync(received, nbToReceive, viewModelStillInitializing)) {
+                Timber.d("[INITIALIZING] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                Timber.d("[GlobalStamps received for initializing : ${received.get() + 1}/${nbToReceiveForInitializing.get()}]")
+                if (canStartSync(received, nbToReceiveForInitializing, viewModelStillInitializing)) {
                     // first sync
                     sync(entityViewModelIsToSyncList)
                 }
@@ -113,10 +122,10 @@ open class DataSync(
 
     fun canStartSync(
         received: AtomicInteger,
-        nbToReceive: Int,
+        nbToReceiveForInitializing: AtomicInteger,
         viewModelStillInitializing: AtomicBoolean
     ): Boolean {
-        if (received.incrementAndGet() == nbToReceive) {
+        if (received.incrementAndGet() == nbToReceiveForInitializing.get()) {
             viewModelStillInitializing.set(false)
             received.set(0)
             return true

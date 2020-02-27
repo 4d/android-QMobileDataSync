@@ -56,20 +56,20 @@ open class EntityListViewModel<T>(
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
 //    val dataSynchronized: MutableLiveData<DataSyncState> by lazy { MutableLiveData<DataSyncState>(DataSyncState.UNSYNCHRONIZED) }
 
-    fun delete(item: EntityModel) {
-        roomRepository.delete(item as T)
-    }
-
-    fun deleteAll() {
-        roomRepository.deleteAll()
-    }
-
     fun insert(item: EntityModel) {
         roomRepository.insert(item as T)
     }
 
     fun insertAll(items: List<EntityModel>) {
         roomRepository.insertAll(items as List<T>)
+    }
+
+    fun delete(item: EntityModel) {
+        roomRepository.delete(item as T)
+    }
+
+    fun deleteAll() {
+        roomRepository.deleteAll()
     }
 
     /**
@@ -97,12 +97,12 @@ open class EntityListViewModel<T>(
 
                         if (receivedGlobalStamp > authInfoHelper.globalStamp) {
                             onResult(true)
+                        } else {
+                            onResult(false)
                         }
-
                         decodeEntityList(entities)
                     }
                 }
-                onResult(false)
             } else {
                 RequestErrorHelper.handleError(error)
                 onResult(false)

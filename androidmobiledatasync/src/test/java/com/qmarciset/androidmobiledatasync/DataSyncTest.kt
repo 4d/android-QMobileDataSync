@@ -37,7 +37,6 @@ class DataSyncTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     companion object {
-        var NUMBER_OF_REQUEST_MAX_LIMIT = 0
         const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
 
         const val EMPLOYEE_TABLE = "Employee"
@@ -154,26 +153,29 @@ class DataSyncTest {
 
         mockForDataSync()
 
+        // We use multiple Atomic variables to avoid their values to be changed by another test
+
         val viewModelStillInitializing = AtomicBoolean(true)
         val requestPerformed = AtomicInteger(0)
         val received = AtomicInteger(0)
-        // nbToReceive is atomic to avoid an other test to change its value
         val nbToReceive = AtomicInteger(entityViewModelIsToSyncList.filter { it.isToSync }.size)
+        val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        val numberOfRequestMaxLimit = AtomicInteger(0)
 
         assertEquals(3, nbToReceive.get())
 
         globalStampObserver = Observer { globalStampWithTable ->
 
-            println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
-            println("Current globalStamps list :")
-
-            for (entityViewModelIsToSync in entityViewModelIsToSyncList)
-                println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
-
-            println("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
             if (!viewModelStillInitializing.get()) {
+
+                println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                println("Current globalStamps list :")
+
+                for (entityViewModelIsToSync in entityViewModelIsToSyncList)
+                    println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+
+                println("[GlobalStamps received : ${received.get() + 1}/${nbToReceive.get()}]")
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
@@ -195,14 +197,14 @@ class DataSyncTest {
                         if (dataSync.canPerformNewSync(
                                 received,
                                 requestPerformed,
-                                NUMBER_OF_REQUEST_MAX_LIMIT
+                                numberOfRequestMaxLimit.get()
                             )
                         ) {
                             println("[requestPerformed : $requestPerformed]")
                             if (requestPerformed.get() == 1) {
-                                sync(2, nbToReceive)
+                                sync(2, nbToReceive, numberOfRequestMaxLimit)
                             } else {
-                                sync(3, nbToReceive)
+                                sync(3, nbToReceive, numberOfRequestMaxLimit)
                             }
                         }
                     } else {
@@ -211,15 +213,16 @@ class DataSyncTest {
                     }
                 }
             } else {
-
+                println("[INITIALIZING] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                println("[GlobalStamps received for initializing : ${received.get() + 1}/${nbToReceiveForInitializing.get()}]")
                 if (dataSync.canStartSync(
                         received,
-                        nbToReceive.get(),
+                        nbToReceiveForInitializing,
                         viewModelStillInitializing
                     )
                 ) {
                     // first sync
-                    sync(1, nbToReceive)
+                    sync(1, nbToReceive, numberOfRequestMaxLimit)
                 }
             }
         }
@@ -239,26 +242,29 @@ class DataSyncTest {
 
         mockForDataSync()
 
+        // We use multiple Atomic variables to avoid their values to be changed by another test
+
         val viewModelStillInitializing = AtomicBoolean(true)
         val requestPerformed = AtomicInteger(0)
         val received = AtomicInteger(0)
-        // nbToReceive is atomic to avoid an other test to change its value
         val nbToReceive = AtomicInteger(entityViewModelIsToSyncList.filter { it.isToSync }.size)
+        val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        val numberOfRequestMaxLimit = AtomicInteger(0)
 
         assertEquals(3, nbToReceive.get())
 
         globalStampObserver = Observer { globalStampWithTable ->
 
-            println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
-            println("Current globalStamps list :")
-
-            for (entityViewModelIsToSync in entityViewModelIsToSyncList)
-                println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
-
-            println("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
             if (!viewModelStillInitializing.get()) {
+
+                println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                println("Current globalStamps list :")
+
+                for (entityViewModelIsToSync in entityViewModelIsToSyncList)
+                    println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+
+                println("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
@@ -280,11 +286,11 @@ class DataSyncTest {
                         if (dataSync.canPerformNewSync(
                                 received,
                                 requestPerformed,
-                                NUMBER_OF_REQUEST_MAX_LIMIT
+                                numberOfRequestMaxLimit.get()
                             )
                         ) {
                             println("[requestPerformed : $requestPerformed]")
-                            syncToInfiniteAndBeyond(nbToReceive, maxGlobalStamp)
+                            syncToInfiniteAndBeyond(nbToReceive, maxGlobalStamp, numberOfRequestMaxLimit)
                         } else {
                             println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
                         }
@@ -294,15 +300,16 @@ class DataSyncTest {
                     }
                 }
             } else {
-
+                println("[INITIALIZING] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                println("[GlobalStamps received for initializing : ${received.get() + 1}/${nbToReceiveForInitializing.get()}]")
                 if (dataSync.canStartSync(
                         received,
-                        nbToReceive.get(),
+                        nbToReceiveForInitializing,
                         viewModelStillInitializing
                     )
                 ) {
                     // first sync
-                    syncToInfiniteAndBeyond(nbToReceive, authInfoHelper.globalStamp)
+                    syncToInfiniteAndBeyond(nbToReceive, authInfoHelper.globalStamp, numberOfRequestMaxLimit)
                 }
             }
         }
@@ -317,9 +324,10 @@ class DataSyncTest {
         sourceIntOffice.postValue(0)
     }
 
-    private fun sync(iteration: Int, nbToReceive: AtomicInteger) {
+    private fun sync(iteration: Int, nbToReceive: AtomicInteger, numberOfRequestMaxLimit: AtomicInteger) {
+
         nbToReceive.set(entityViewModelIsToSyncList.filter { it.isToSync }.size)
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        numberOfRequestMaxLimit.set(nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC)
 
         assertLiveData(iteration)
 
@@ -343,9 +351,9 @@ class DataSyncTest {
         }
     }
 
-    private fun syncToInfiniteAndBeyond(nbToReceive: AtomicInteger, maxGlobalStamp: Int) {
+    private fun syncToInfiniteAndBeyond(nbToReceive: AtomicInteger, maxGlobalStamp: Int, numberOfRequestMaxLimit: AtomicInteger) {
         nbToReceive.set(entityViewModelIsToSyncList.filter { it.isToSync }.size)
-        NUMBER_OF_REQUEST_MAX_LIMIT = nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+        numberOfRequestMaxLimit.set(nbToReceive.get() * FACTOR_OF_MAX_SUCCESSIVE_SYNC)
 
         var globalStampList: MutableList<Int>
 
@@ -395,15 +403,15 @@ class DataSyncTest {
     ) {
         when (entityViewModelIsToSync.vm.getAssociatedTableName()) {
             EMPLOYEE_TABLE -> {
-                println(" -> table Employee, emitting value ${globalStampList[0]}")
+                println(" -> Table Employee, emitting value ${globalStampList[0]}")
                 sourceIntEmployee.postValue(globalStampList[0])
             }
             SERVICE_TABLE -> {
-                println(" -> table Service, emitting value ${globalStampList[1]}")
+                println(" -> Table Service, emitting value ${globalStampList[1]}")
                 sourceIntService.postValue(globalStampList[1])
             }
             OFFICE_TABLE -> {
-                println(" -> table Office, emitting value ${globalStampList[2]}")
+                println(" -> Table Office, emitting value ${globalStampList[2]}")
                 sourceIntOffice.postValue(globalStampList[2])
             }
         }
