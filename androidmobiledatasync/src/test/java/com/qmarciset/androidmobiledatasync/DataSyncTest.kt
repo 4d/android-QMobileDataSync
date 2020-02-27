@@ -166,23 +166,24 @@ class DataSyncTest {
 
         globalStampObserver = Observer { globalStampWithTable ->
 
-            println("[globalStampObserver] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+            println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+            println("Current globalStamps list :")
 
             for (entityViewModelIsToSync in entityViewModelIsToSyncList)
-                println("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+                println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
 
+            println("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
             if (!viewModelStillInitializing.get()) {
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
-                println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
                 if (received.incrementAndGet() == nbToReceive.get()) {
 
                     val maxGlobalStamp = dataSync.getMaxGlobalStamp(
                         receivedSyncedTableGS,
                         authInfoHelper.globalStamp
                     )
-                    println("maxGlobalStamp = $maxGlobalStamp")
+                    println("[maxGlobalStamp = $maxGlobalStamp]")
 
                     val isAtLeastOneToSync = dataSync.checkIfAtLeastOneTableToSync(
                         maxGlobalStamp,
@@ -190,14 +191,14 @@ class DataSyncTest {
                     )
 
                     if (isAtLeastOneToSync) {
-                        println("isAtLeastOneToSync true")
+                        println("[There is at least one table that requires data synchronization]")
                         if (dataSync.canPerformNewSync(
                                 received,
                                 requestPerformed,
                                 NUMBER_OF_REQUEST_MAX_LIMIT
                             )
                         ) {
-                            println("requestPerformed = $requestPerformed")
+                            println("[requestPerformed : $requestPerformed]")
                             if (requestPerformed.get() == 1) {
                                 sync(2, nbToReceive)
                             } else {
@@ -205,7 +206,7 @@ class DataSyncTest {
                             }
                         }
                     } else {
-                        println("Synchronization performed, all tables are up-to-date")
+                        println("[Synchronization performed, all tables are up-to-date]")
                         assertSuccess()
                     }
                 }
@@ -250,23 +251,24 @@ class DataSyncTest {
 
         globalStampObserver = Observer { globalStampWithTable ->
 
-            println("[globalStampObserver] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+            println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+            println("Current globalStamps list :")
 
             for (entityViewModelIsToSync in entityViewModelIsToSyncList)
-                println("[Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+                println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
 
+            println("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
             if (!viewModelStillInitializing.get()) {
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
-                println("nbToReceive = $nbToReceive, received = ${received.get() + 1}")
                 if (received.incrementAndGet() == nbToReceive.get()) {
 
                     val maxGlobalStamp = dataSync.getMaxGlobalStamp(
                         receivedSyncedTableGS,
                         authInfoHelper.globalStamp
                     )
-                    println("maxGlobalStamp = $maxGlobalStamp")
+                    println("[maxGlobalStamp = $maxGlobalStamp]")
 
                     val isAtLeastOneToSync = dataSync.checkIfAtLeastOneTableToSync(
                         maxGlobalStamp,
@@ -274,20 +276,20 @@ class DataSyncTest {
                     )
 
                     if (isAtLeastOneToSync) {
-                        println("isAtLeastOneToSync true")
+                        println("[There is at least one table that requires data synchronization]")
                         if (dataSync.canPerformNewSync(
                                 received,
                                 requestPerformed,
                                 NUMBER_OF_REQUEST_MAX_LIMIT
                             )
                         ) {
-                            println("requestPerformed = $requestPerformed")
+                            println("[requestPerformed : $requestPerformed]")
                             syncToInfiniteAndBeyond(nbToReceive, maxGlobalStamp)
                         } else {
-                            println("Number of request max limit has been reached")
+                            println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
                         }
                     } else {
-                        println("Synchronization performed, all tables are up-to-date")
+                        println("[Synchronization performed, all tables are up-to-date]")
                         fail()
                     }
                 }
@@ -325,7 +327,7 @@ class DataSyncTest {
 
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
 
-            println("Sync : tableName = ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}")
+            println("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
 
             if (entityViewModelIsToSync.isToSync) {
                 entityViewModelIsToSync.isToSync = false
@@ -349,7 +351,7 @@ class DataSyncTest {
 
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
 
-            println("Sync : tableName = ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}")
+            println("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
 
             if (entityViewModelIsToSync.isToSync) {
                 entityViewModelIsToSync.isToSync = false
@@ -393,15 +395,15 @@ class DataSyncTest {
     ) {
         when (entityViewModelIsToSync.vm.getAssociatedTableName()) {
             EMPLOYEE_TABLE -> {
-                println("table Employee, emitting value ${globalStampList[0]}")
+                println(" -> table Employee, emitting value ${globalStampList[0]}")
                 sourceIntEmployee.postValue(globalStampList[0])
             }
             SERVICE_TABLE -> {
-                println("table Service, emitting value ${globalStampList[1]}")
+                println(" -> table Service, emitting value ${globalStampList[1]}")
                 sourceIntService.postValue(globalStampList[1])
             }
             OFFICE_TABLE -> {
-                println("table Office, emitting value ${globalStampList[2]}")
+                println(" -> table Office, emitting value ${globalStampList[2]}")
                 sourceIntOffice.postValue(globalStampList[2])
             }
         }
