@@ -39,21 +39,7 @@ open class DataSync(
 
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
-        mediatorLiveDataList = mutableListOf()
-
-        for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
-            val mediatorLiveData = MediatorLiveData<GlobalStampWithTable>()
-            mediatorLiveData.addSource(entityViewModelIsToSync.vm.globalStamp) {
-                if (it != null) {
-                    mediatorLiveData.value =
-                        GlobalStampWithTable(
-                            entityViewModelIsToSync.vm.getAssociatedTableName(),
-                            it
-                        )
-                }
-            }
-            mediatorLiveDataList.add(mediatorLiveData)
-        }
+        setupMediatorLiveData(entityViewModelIsToSyncList)
 
         val globalStampObserver = Observer<GlobalStampWithTable> { globalStampWithTable ->
 
@@ -120,6 +106,26 @@ open class DataSync(
         }
     }
 
+    open fun setupMediatorLiveData(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>): List<MediatorLiveData<GlobalStampWithTable>> {
+
+        mediatorLiveDataList = mutableListOf()
+
+        for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+            val mediatorLiveData = MediatorLiveData<GlobalStampWithTable>()
+            mediatorLiveData.addSource(entityViewModelIsToSync.vm.globalStamp) {
+                if (it != null) {
+                    mediatorLiveData.value =
+                        GlobalStampWithTable(
+                            entityViewModelIsToSync.vm.getAssociatedTableName(),
+                            it
+                        )
+                }
+            }
+            mediatorLiveDataList.add(mediatorLiveData)
+        }
+        return mediatorLiveDataList
+    }
+
     fun canStartSync(
         received: AtomicInteger,
         nbToReceiveForInitializing: AtomicInteger,
@@ -181,22 +187,35 @@ open class DataSync(
         }
     }
 
-    private fun sync(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
+    private var defaultSyncClosure: (EntityViewModelIsToSync) -> Unit = { entityViewModelIsToSync ->
+        entityViewModelIsToSync.sync()
+    }
+    // For unit tests
+    var syncClosure: (EntityViewModelIsToSync) -> Unit = defaultSyncClosure
 
-        nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
-        numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+//    @Synchronized
+    private fun sync(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
+        this.nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
+        this.numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
+
+        entityViewModelIsToSyncList.forEach { syncClosure(it) }
 
         for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+            syncClosure(entityViewModelIsToSync)
+        }
+    }
+}
 
-            entityViewModelIsToSync.vm.dataSynchronized.postValue(DataSyncState.SYNCHRONIZING)
+fun EntityViewModelIsToSync.sync() {
 
-            Timber.d("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+    this.vm.dataSynchronized.postValue(DataSyncState.SYNCHRONIZING)
 
-            if (entityViewModelIsToSync.isToSync) {
-                entityViewModelIsToSync.isToSync = false
-                entityViewModelIsToSync.vm.getData {
-                }
-            }
+    Timber.d("[Sync] [Table : ${this.vm.getAssociatedTableName()}, isToSync : ${this.isToSync}]")
+
+    if (this.isToSync) {
+        this.isToSync = false
+        this.vm.getData {
+            Timber.v("Requesting data for ${vm.getAssociatedTableName()}")
         }
     }
 }

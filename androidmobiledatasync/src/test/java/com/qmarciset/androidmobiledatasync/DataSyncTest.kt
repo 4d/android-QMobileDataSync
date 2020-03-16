@@ -23,6 +23,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyList
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -313,6 +314,47 @@ class DataSyncTest {
                 }
             }
         }
+
+        liveDataMergerEmployee.observeForever(globalStampObserver)
+        liveDataMergerService.observeForever(globalStampObserver)
+        liveDataMergerOffice.observeForever(globalStampObserver)
+
+        // Simulates LiveData initialization
+        sourceIntEmployee.postValue(0)
+        sourceIntService.postValue(0)
+        sourceIntOffice.postValue(0)
+    }
+
+    @Test
+    fun newtestwithclosure() {
+
+        mockForDataSync()
+        val mediatorList = mutableListOf<MediatorLiveData<GlobalStampWithTable>>()
+        mediatorList.add(liveDataMergerEmployee)
+        mediatorList.add(liveDataMergerService)
+        mediatorList.add(liveDataMergerOffice)
+
+        Mockito.`when`(dataSync.setupMediatorLiveData(anyList())).thenReturn(mediatorList)
+
+        // We use multiple Atomic variables to avoid their values to be changed by another test
+
+        val viewModelStillInitializing = AtomicBoolean(true)
+        val requestPerformed = AtomicInteger(0)
+        val received = AtomicInteger(0)
+        val nbToReceive = AtomicInteger(entityViewModelIsToSyncList.filter { it.isToSync }.size)
+        val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
+        val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
+        val numberOfRequestMaxLimit = AtomicInteger(0)
+
+        assertEquals(3, nbToReceive.get())
+
+        val myclosure: (EntityViewModelIsToSync) -> Unit = { entityViewModelIsToSync ->
+            println()
+        }
+
+        dataSync.syncClosure = myclosure
+
+        dataSync.setObserver(entityViewModelIsToSyncList, null)
 
         liveDataMergerEmployee.observeForever(globalStampObserver)
         liveDataMergerService.observeForever(globalStampObserver)
