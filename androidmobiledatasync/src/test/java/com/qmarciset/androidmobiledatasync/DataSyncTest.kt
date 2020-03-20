@@ -7,6 +7,7 @@
 package com.qmarciset.androidmobiledatasync
 
 import android.os.Build
+import androidx.appcompat.app.AppCompatActivity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
@@ -23,7 +24,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.anyList
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -55,6 +55,14 @@ class DataSyncTest {
     lateinit var dataSync: DataSync
     @Mock
     lateinit var authInfoHelper: AuthInfoHelper
+
+    private lateinit var dataSyncAlt: DataSync
+
+    @Mock
+    lateinit var activity: AppCompatActivity
+
+
+    var iteration = 1
 
     // MutableLiveData for mocked ViewModels
     private lateinit var sourceIntEmployee: MutableLiveData<Int>
@@ -135,21 +143,23 @@ class DataSyncTest {
     @Test
     fun testMediatorLiveData() {
 
-        sourceIntEmployee.value = 123
-        sourceIntService.value = 456
-        sourceIntOffice.value = 789
+        val testValueSet = listOf(123, 456, 789)
 
-        assertEquals(123, liveDataMergerEmployee.value?.globalStamp)
+        sourceIntEmployee.value = testValueSet[0]
+        sourceIntService.value = testValueSet[1]
+        sourceIntOffice.value = testValueSet[2]
+
+        assertEquals(testValueSet[0], liveDataMergerEmployee.value?.globalStamp)
         assertEquals(EMPLOYEE_TABLE, liveDataMergerEmployee.value?.tableName)
 
-        assertEquals(456, liveDataMergerService.value?.globalStamp)
+        assertEquals(testValueSet[1], liveDataMergerService.value?.globalStamp)
         assertEquals(SERVICE_TABLE, liveDataMergerService.value?.tableName)
 
-        assertEquals(789, liveDataMergerOffice.value?.globalStamp)
+        assertEquals(testValueSet[2], liveDataMergerOffice.value?.globalStamp)
         assertEquals(OFFICE_TABLE, liveDataMergerOffice.value?.tableName)
     }
 
-    @Test
+//    @Test
     fun testDataSyncCoreObserver() {
 
         mockForDataSync()
@@ -207,6 +217,9 @@ class DataSyncTest {
                             } else {
                                 sync(3, nbToReceive, numberOfRequestMaxLimit)
                             }
+                        } else {
+                            println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+                            fail()
                         }
                     } else {
                         println("[Synchronization performed, all tables are up-to-date]")
@@ -238,7 +251,7 @@ class DataSyncTest {
         sourceIntOffice.postValue(0)
     }
 
-    @Test
+//    @Test
     fun testNumberOfRequestMaxLimit() {
 
         mockForDataSync()
@@ -326,44 +339,140 @@ class DataSyncTest {
     }
 
     @Test
-    fun newtestwithclosure() {
+    fun testDataSyncCoreObserverTwo() {
+
+        dataSyncAlt = DataSync(activity, authInfoHelper)
 
         mockForDataSync()
-        val mediatorList = mutableListOf<MediatorLiveData<GlobalStampWithTable>>()
-        mediatorList.add(liveDataMergerEmployee)
-        mediatorList.add(liveDataMergerService)
-        mediatorList.add(liveDataMergerOffice)
 
-        Mockito.`when`(dataSync.setupMediatorLiveData(anyList())).thenReturn(mediatorList)
+        val mediatorClosure: (List<EntityViewModelIsToSync>) -> Unit = { }
 
-        // We use multiple Atomic variables to avoid their values to be changed by another test
-
-        val viewModelStillInitializing = AtomicBoolean(true)
-        val requestPerformed = AtomicInteger(0)
-        val received = AtomicInteger(0)
-        val nbToReceive = AtomicInteger(entityViewModelIsToSyncList.filter { it.isToSync }.size)
-        val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
-        val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
-        val numberOfRequestMaxLimit = AtomicInteger(0)
-
-        assertEquals(3, nbToReceive.get())
-
-        val myclosure: (EntityViewModelIsToSync) -> Unit = { entityViewModelIsToSync ->
-            println()
+        val syncClosure: (EntityViewModelIsToSync) -> Unit = { entityViewModelIsToSync ->
+            reducedSync(entityViewModelIsToSync)
         }
 
-        dataSync.syncClosure = myclosure
+        val mergedLiveDataClosure: (Observer<GlobalStampWithTable>) -> Unit = { globalStampObserver ->
+            liveDataMergerEmployee.observeForever(dataSyncAlt.globalStampObserver)
+            liveDataMergerService.observeForever(dataSyncAlt.globalStampObserver)
+            liveDataMergerOffice.observeForever(dataSyncAlt.globalStampObserver)
+        }
 
-        dataSync.setObserver(entityViewModelIsToSyncList, null)
+        val successClosure: (Int, List<EntityViewModelIsToSync>) -> Unit = { maxGlobalStamp, entityViewModelIsToSyncList ->
+            println("[Synchronization performed, all tables are up-to-date]")
+            removeObservers()
+            assertSuccess()
+        }
 
-        liveDataMergerEmployee.observeForever(globalStampObserver)
-        liveDataMergerService.observeForever(globalStampObserver)
-        liveDataMergerOffice.observeForever(globalStampObserver)
+        val failureClosure: (List<EntityViewModelIsToSync>) -> Unit = { entityViewModelIsToSyncList ->
+            println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+            removeObservers()
+            fail()
+        }
+
+        dataSyncAlt.mediatorClosure = mediatorClosure
+        dataSyncAlt.syncClosure = syncClosure
+        dataSyncAlt.mergedLiveDataClosure = mergedLiveDataClosure
+        dataSyncAlt.successClosure = successClosure
+        dataSyncAlt.failureClosure = failureClosure
+
+        dataSyncAlt.setObserver(entityViewModelIsToSyncList, null)
 
         // Simulates LiveData initialization
-        sourceIntEmployee.postValue(0)
-        sourceIntService.postValue(0)
-        sourceIntOffice.postValue(0)
+        sourceIntEmployee.postValue(globalStampValue_0)
+        sourceIntService.postValue(globalStampValue_0)
+        sourceIntOffice.postValue(globalStampValue_0)
+    }
+
+    @Test
+    fun testNumberOfRequestMaxLimitTwo() {
+
+        dataSyncAlt = DataSync(activity, authInfoHelper)
+
+        mockForDataSync()
+
+        val mediatorClosure: (List<EntityViewModelIsToSync>) -> Unit = { }
+
+        val syncClosure: (EntityViewModelIsToSync) -> Unit = { entityViewModelIsToSync ->
+            reducedSyncToInfiniteAndBeyond(entityViewModelIsToSync)
+        }
+
+        val mergedLiveDataClosure: (Observer<GlobalStampWithTable>) -> Unit = { globalStampObserver ->
+            liveDataMergerEmployee.observeForever(dataSyncAlt.globalStampObserver)
+            liveDataMergerService.observeForever(dataSyncAlt.globalStampObserver)
+            liveDataMergerOffice.observeForever(dataSyncAlt.globalStampObserver)
+        }
+
+        val successClosure: (Int, List<EntityViewModelIsToSync>) -> Unit = { maxGlobalStamp, entityViewModelIsToSyncList ->
+            println("[Synchronization performed, all tables are up-to-date]")
+            removeObservers()
+            fail()
+        }
+
+        val failureClosure: (List<EntityViewModelIsToSync>) -> Unit = { entityViewModelIsToSyncList ->
+            println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+            removeObservers()
+        }
+
+        dataSyncAlt.mediatorClosure = mediatorClosure
+        dataSyncAlt.syncClosure = syncClosure
+        dataSyncAlt.mergedLiveDataClosure = mergedLiveDataClosure
+        dataSyncAlt.successClosure = successClosure
+        dataSyncAlt.failureClosure = failureClosure
+
+        dataSyncAlt.setObserver(entityViewModelIsToSyncList, null)
+
+        // Simulates LiveData initialization
+        sourceIntEmployee.postValue(globalStampValue_0)
+        sourceIntService.postValue(globalStampValue_0)
+        sourceIntOffice.postValue(globalStampValue_0)
+    }
+
+    lateinit var globalStampList: MutableList<Int>
+
+    private fun removeObservers() {
+        liveDataMergerEmployee.removeObserver(dataSyncAlt.globalStampObserver)
+        liveDataMergerService.removeObserver(dataSyncAlt.globalStampObserver)
+        liveDataMergerOffice.removeObserver(dataSyncAlt.globalStampObserver)
+    }
+
+    private fun reducedSync(entityViewModelIsToSync: EntityViewModelIsToSync) {
+        println("[reducedSync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+
+        if (entityViewModelIsToSync.isToSync) {
+            entityViewModelIsToSync.isToSync = false
+
+            if (dataSyncAlt.received.get() == 0)
+                assertLiveData(iteration)
+
+            globalStampList = when (iteration) {
+                1 -> globalStampValueSet_1.toMutableList()
+                2 -> globalStampValueSet_2.toMutableList()
+                3 -> globalStampValueSet_3.toMutableList()
+                else -> mutableListOf()
+            }
+
+            if (dataSyncAlt.received.get() + 1 == dataSyncAlt.nbToReceive) {
+                iteration++
+            }
+
+            emitGlobalStamp(entityViewModelIsToSync, globalStampList)
+        }
+    }
+
+    private fun reducedSyncToInfiniteAndBeyond(entityViewModelIsToSync: EntityViewModelIsToSync) {
+        println("[reducedSync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+
+        if (entityViewModelIsToSync.isToSync) {
+            entityViewModelIsToSync.isToSync = false
+
+            globalStampList = mutableListOf(dataSyncAlt.maxGlobalStamp + 1, dataSyncAlt.maxGlobalStamp + 2, dataSyncAlt.maxGlobalStamp + 3)
+
+            if (dataSyncAlt.received.get() + 1 == dataSyncAlt.nbToReceive) {
+                iteration++
+            }
+
+            emitGlobalStamp(entityViewModelIsToSync, globalStampList)
+        }
     }
 
     private fun sync(iteration: Int, nbToReceive: AtomicInteger, numberOfRequestMaxLimit: AtomicInteger) {
@@ -383,9 +492,9 @@ class DataSyncTest {
                 entityViewModelIsToSync.isToSync = false
 
                 globalStampList = when (iteration) {
-                    1 -> mutableListOf(123, 124, 256)
-                    2 -> mutableListOf(256, 260, 256)
-                    3 -> mutableListOf(260, 260, 260)
+                    1 -> globalStampValueSet_1.toMutableList()
+                    2 -> globalStampValueSet_2.toMutableList()
+                    3 -> globalStampValueSet_3.toMutableList()
                     else -> mutableListOf()
                 }
                 emitGlobalStamp(entityViewModelIsToSync, globalStampList)
@@ -416,27 +525,27 @@ class DataSyncTest {
     private fun assertLiveData(iteration: Int) {
         when (iteration) {
             1 -> {
-                assertEquals(0, entityListViewModelEmployee.globalStamp.value)
-                assertEquals(0, entityListViewModelService.globalStamp.value)
-                assertEquals(0, entityListViewModelOffice.globalStamp.value)
+                assertEquals(globalStampValue_0, entityListViewModelEmployee.globalStamp.value)
+                assertEquals(globalStampValue_0, entityListViewModelService.globalStamp.value)
+                assertEquals(globalStampValue_0, entityListViewModelOffice.globalStamp.value)
             }
             2 -> {
-                assertEquals(123, entityListViewModelEmployee.globalStamp.value)
-                assertEquals(124, entityListViewModelService.globalStamp.value)
-                assertEquals(256, entityListViewModelOffice.globalStamp.value)
+                assertEquals(globalStampValueSet_1[0], entityListViewModelEmployee.globalStamp.value)
+                assertEquals(globalStampValueSet_1[1], entityListViewModelService.globalStamp.value)
+                assertEquals(globalStampValueSet_1[2], entityListViewModelOffice.globalStamp.value)
             }
             3 -> {
-                assertEquals(256, entityListViewModelEmployee.globalStamp.value)
-                assertEquals(260, entityListViewModelService.globalStamp.value)
-                assertEquals(256, entityListViewModelOffice.globalStamp.value)
+                assertEquals(globalStampValueSet_2[0], entityListViewModelEmployee.globalStamp.value)
+                assertEquals(globalStampValueSet_2[1], entityListViewModelService.globalStamp.value)
+                assertEquals(globalStampValueSet_2[2], entityListViewModelOffice.globalStamp.value)
             }
         }
     }
 
     private fun assertSuccess() {
-        assertEquals(260, entityListViewModelEmployee.globalStamp.value)
-        assertEquals(260, entityListViewModelService.globalStamp.value)
-        assertEquals(260, entityListViewModelOffice.globalStamp.value)
+        assertEquals(globalStampValueSet_3[0], entityListViewModelEmployee.globalStamp.value)
+        assertEquals(globalStampValueSet_3[1], entityListViewModelService.globalStamp.value)
+        assertEquals(globalStampValueSet_3[2], entityListViewModelOffice.globalStamp.value)
     }
 
     private fun emitGlobalStamp(

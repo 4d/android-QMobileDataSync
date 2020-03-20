@@ -15,6 +15,7 @@ import com.qmarciset.androidmobiledatasync.model.GlobalStampWithTable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import timber.log.Timber
+import kotlin.math.max
 
 open class DataSync(
     private val activity: AppCompatActivity,
@@ -25,24 +26,30 @@ open class DataSync(
         const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
     }
 
-    private var nbToReceive = 0
+    var nbToReceive = 0
     private var numberOfRequestMaxLimit = 0
 
-    private lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
+    open lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
+
+    open lateinit var globalStampObserver: Observer<GlobalStampWithTable>
+
+    open lateinit var received: AtomicInteger
+
+    open var maxGlobalStamp = 0
 
     fun setObserver(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>, alreadyRefreshedTable: String?) {
 
         val viewModelStillInitializing = AtomicBoolean(true)
-        val received = AtomicInteger(0)
+        received = AtomicInteger(0)
         val requestPerformed = AtomicInteger(0)
         val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
 
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
-        setupMediatorLiveData(entityViewModelIsToSyncList)
+//        setupMediatorLiveData(entityViewModelIsToSyncList)
+        mediatorClosure(entityViewModelIsToSyncList)
 
-        val globalStampObserver = Observer<GlobalStampWithTable> { globalStampWithTable ->
-
+        globalStampObserver = Observer<GlobalStampWithTable> { globalStampWithTable ->
             if (!viewModelStillInitializing.get()) {
 
                 // For a forced data synchronization, we want to ignore the observation of the
@@ -50,32 +57,39 @@ open class DataSync(
                 // don't want to treat its reception here.
                 if (globalStampWithTable.tableName == alreadyRefreshedTable) {
                     Timber.d("[Ignoring received observable for Table : ${globalStampWithTable.tableName} with GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                    println("[Ignoring received observable for Table : ${globalStampWithTable.tableName} with GlobalStamp : ${globalStampWithTable.globalStamp}]")
                     return@Observer
                 }
 
                 Timber.d("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
                 Timber.d("Current globalStamps list :")
+                println("[NEW] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+                println("Current globalStamps list :")
 
                 for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
                     Timber.d(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
+                    println(" - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}")
                 }
 
                 Timber.d("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
+                println("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
 
                 receivedSyncedTableGS.add(globalStampWithTable)
 
                 if (received.incrementAndGet() == nbToReceive) {
 
                     // Get the max globalStamp between received ones, and stored one
-                    val maxGlobalStamp =
+                    maxGlobalStamp =
                         getMaxGlobalStamp(receivedSyncedTableGS, authInfoHelper.globalStamp)
                     Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
+                    println("[maxGlobalStamp = $maxGlobalStamp]")
 
                     val isAtLeastOneToSync =
                         checkIfAtLeastOneTableToSync(maxGlobalStamp, entityViewModelIsToSyncList)
 
                     if (isAtLeastOneToSync) {
                         Timber.d("[There is at least one table that requires data synchronization]")
+                        println("[There is at least one table that requires data synchronization]")
                         if (canPerformNewSync(
                                 received,
                                 requestPerformed,
@@ -84,15 +98,17 @@ open class DataSync(
                         ) {
                             sync(entityViewModelIsToSyncList)
                         } else {
-                            Timber.e("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+                            failureClosure(entityViewModelIsToSyncList)
                         }
                     } else {
-                        validateSynchronization(maxGlobalStamp, entityViewModelIsToSyncList)
+                        successClosure(maxGlobalStamp, entityViewModelIsToSyncList)
                     }
                 }
             } else {
                 Timber.d("[INITIALIZING] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
                 Timber.d("[GlobalStamps received for initializing : ${received.get() + 1}/${nbToReceiveForInitializing.get()}]")
+//                println("[INITIALIZING] [Table : ${globalStampWithTable.tableName}, GlobalStamp : ${globalStampWithTable.globalStamp}]")
+//                println("[GlobalStamps received for initializing : ${received.get() + 1}/${nbToReceiveForInitializing.get()}]")
                 if (canStartSync(received, nbToReceiveForInitializing, viewModelStillInitializing)) {
                     // first sync
                     sync(entityViewModelIsToSyncList)
@@ -101,10 +117,30 @@ open class DataSync(
         }
 
         // observe merged LiveData
+        mergedLiveDataClosure(globalStampObserver)
+//        observeMergedLiveData(globalStampObserver)
+//        for (mediatorLiveData in mediatorLiveDataList) {
+//            mediatorLiveData.observe(activity, globalStampObserver)
+//        }
+    }
+
+    private var defaultMergeLiveDataClosure: (Observer<GlobalStampWithTable>) -> Unit = { globalStampObserver ->
+        observeMergedLiveData(globalStampObserver)
+    }
+
+    var mergedLiveDataClosure: (Observer<GlobalStampWithTable>) -> Unit = defaultMergeLiveDataClosure
+
+    open fun observeMergedLiveData(globalStampObserver: Observer<GlobalStampWithTable>) {
         for (mediatorLiveData in mediatorLiveDataList) {
             mediatorLiveData.observe(activity, globalStampObserver)
         }
     }
+
+    private var defaultMediatorClosure: (List<EntityViewModelIsToSync>) -> Unit = { entityViewModelIsToSyncList ->
+        setupMediatorLiveData(entityViewModelIsToSyncList)
+    }
+
+    var mediatorClosure: (List<EntityViewModelIsToSync>) -> Unit = defaultMediatorClosure
 
     open fun setupMediatorLiveData(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>): List<MediatorLiveData<GlobalStampWithTable>> {
 
@@ -170,11 +206,34 @@ open class DataSync(
     ): Int = maxOf(receivedSyncedTableGS.map { it.globalStamp }.maxBy { it } ?: 0,
         authInfoHelperGlobalStamp)
 
+    private var defaultSuccessClosure: (Int, List<EntityViewModelIsToSync>) -> Unit = { maxGlobalStamp, entityViewModelIsToSyncList ->
+        validateSynchronization(maxGlobalStamp, entityViewModelIsToSyncList)
+    }
+
+    var successClosure: (Int, List<EntityViewModelIsToSync>) -> Unit = defaultSuccessClosure
+
+    private var defaultFailureClosure: (List<EntityViewModelIsToSync>) -> Unit = { entityViewModelIsToSyncList ->
+        Timber.e("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+        println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+        for (mediatorLiveData in mediatorLiveDataList) {
+            mediatorLiveData.removeObservers(activity)
+        }
+        for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+            // notify data are synced
+            entityViewModelIsToSync.vm.dataSynchronized.postValue(
+                DataSyncState.UNSYNCHRONIZED
+            )
+        }
+    }
+
+    var failureClosure: (List<EntityViewModelIsToSync>) -> Unit = defaultFailureClosure
+
     private fun validateSynchronization(
         maxGlobalStamp: Int,
         entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
     ) {
         Timber.i("[Synchronization performed, all tables are up-to-date]")
+        println("[Synchronization performed, all tables are up-to-date]")
         for (mediatorLiveData in mediatorLiveDataList) {
             mediatorLiveData.removeObservers(activity)
         }
@@ -198,10 +257,10 @@ open class DataSync(
         this.nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
         this.numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
 
-        entityViewModelIsToSyncList.forEach { syncClosure(it) }
+        val syncRequiredList = entityViewModelIsToSyncList.filter { it.isToSync }
 
-        for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
-            syncClosure(entityViewModelIsToSync)
+        for (syncRequired in syncRequiredList) {
+            syncClosure(syncRequired)
         }
     }
 }

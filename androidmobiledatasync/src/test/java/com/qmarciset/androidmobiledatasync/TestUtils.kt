@@ -33,3 +33,8 @@ class Office(
     override val __TIMESTAMP: String? = null,
     override val __entityModel: String? = null
 ) : EntityModel
+
+const val globalStampValue_0 = 0
+val globalStampValueSet_1 = listOf(123, 124, 256)
+val globalStampValueSet_2 = listOf(256, 260, 256)
+val globalStampValueSet_3 = listOf(260, 260, 260)
