@@ -34,6 +34,7 @@ class Office(
     override val __entityModel: String? = null
 ) : EntityModel
 
+// Sample data sets
 const val globalStampValue_0 = 0
 val globalStampValueSet_1 = listOf(123, 124, 256)
 val globalStampValueSet_2 = listOf(256, 260, 256)
