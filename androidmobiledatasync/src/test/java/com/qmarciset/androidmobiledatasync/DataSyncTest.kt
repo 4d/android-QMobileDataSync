@@ -36,8 +36,6 @@ class DataSyncTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     companion object {
-        const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
-
         const val EMPLOYEE_TABLE = "Employee"
         const val SERVICE_TABLE = "Service"
         const val OFFICE_TABLE = "Office"
@@ -62,9 +60,8 @@ class DataSyncTest {
     private lateinit var liveDataMergerOffice: MediatorLiveData<GlobalStampWithTable>
 
     // Custom closures
-    private lateinit var setupMediatorLiveDataClosure: (List<EntityViewModelIsToSync>) -> Unit
+    private lateinit var setupObservableClosure: (List<EntityViewModelIsToSync>, Observer<GlobalStampWithTable>) -> Unit
     private lateinit var syncClosure: (EntityViewModelIsToSync) -> Unit
-    private lateinit var observeMergedLiveDataClosure: (Observer<GlobalStampWithTable>) -> Unit
     private lateinit var successfulSyncClosure: (Int, List<EntityViewModelIsToSync>) -> Unit
     private lateinit var unsuccessfulSyncClosure: (List<EntityViewModelIsToSync>) -> Unit
 
@@ -113,35 +110,27 @@ class DataSyncTest {
 
         mockForDataSync()
 
-        setupMediatorLiveDataClosure = { }
+        setupObservableClosure = { _, _ ->
+            observeMergedLiveData()
+        }
 
         syncClosure = { entityViewModelIsToSync ->
             sync(entityViewModelIsToSync)
         }
 
-        observeMergedLiveDataClosure = { globalStampObserver ->
-            liveDataMergerEmployee.observeForever(dataSync.globalStampObserver)
-            liveDataMergerService.observeForever(dataSync.globalStampObserver)
-            liveDataMergerOffice.observeForever(dataSync.globalStampObserver)
-        }
-
-        successfulSyncClosure = { maxGlobalStamp, entityViewModelIsToSyncList ->
+        successfulSyncClosure = { _, _ ->
             println("[Synchronization performed, all tables are up-to-date]")
             removeObservers()
             assertSuccess()
         }
 
-        unsuccessfulSyncClosure = { entityViewModelIsToSyncList ->
+        unsuccessfulSyncClosure = { _ ->
             println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
             removeObservers()
             fail()
         }
 
-        dataSync.setupMediatorLiveDataClosure = setupMediatorLiveDataClosure
-        dataSync.syncClosure = syncClosure
-        dataSync.observeMergedLiveDataClosure = observeMergedLiveDataClosure
-        dataSync.successfulSyncClosure = successfulSyncClosure
-        dataSync.unsuccessfulSyncClosure = unsuccessfulSyncClosure
+        setClosures()
 
         dataSync.setObserver(entityViewModelIsToSyncList, null)
 
@@ -155,34 +144,27 @@ class DataSyncTest {
 
         mockForDataSync()
 
-        setupMediatorLiveDataClosure = { }
+        setupObservableClosure = { _, _ ->
+            observeMergedLiveData()
+        }
 
         syncClosure = { entityViewModelIsToSync ->
             syncToInfiniteAndBeyond(entityViewModelIsToSync)
         }
 
-        observeMergedLiveDataClosure = { globalStampObserver ->
-            liveDataMergerEmployee.observeForever(dataSync.globalStampObserver)
-            liveDataMergerService.observeForever(dataSync.globalStampObserver)
-            liveDataMergerOffice.observeForever(dataSync.globalStampObserver)
-        }
-
-        successfulSyncClosure = { maxGlobalStamp, entityViewModelIsToSyncList ->
+        successfulSyncClosure = { _, _ ->
             println("[Synchronization performed, all tables are up-to-date]")
             removeObservers()
             fail()
         }
 
-        unsuccessfulSyncClosure = { entityViewModelIsToSyncList ->
+        unsuccessfulSyncClosure = { _ ->
             println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
+            assertEquals(8, iteration)
             removeObservers()
         }
 
-        dataSync.setupMediatorLiveDataClosure = setupMediatorLiveDataClosure
-        dataSync.observeMergedLiveDataClosure = observeMergedLiveDataClosure
-        dataSync.syncClosure = syncClosure
-        dataSync.successfulSyncClosure = successfulSyncClosure
-        dataSync.unsuccessfulSyncClosure = unsuccessfulSyncClosure
+        setClosures()
 
         dataSync.setObserver(entityViewModelIsToSyncList, null)
 
@@ -263,6 +245,19 @@ class DataSyncTest {
         Mockito.`when`(authInfoHelper.globalStamp).thenReturn(sharedPreferencesGlobalStamp)
     }
 
+    private fun observeMergedLiveData() {
+        liveDataMergerEmployee.observeForever(dataSync.globalStampObserver)
+        liveDataMergerService.observeForever(dataSync.globalStampObserver)
+        liveDataMergerOffice.observeForever(dataSync.globalStampObserver)
+    }
+
+    private fun setClosures() {
+        dataSync.setupObservableClosure = setupObservableClosure
+        dataSync.syncClosure = syncClosure
+        dataSync.successfulSyncClosure = successfulSyncClosure
+        dataSync.unsuccessfulSyncClosure = unsuccessfulSyncClosure
+    }
+
     private fun simulateLiveDataInitialization() {
         sourceIntEmployee.postValue(globalStampValue_0)
         sourceIntService.postValue(globalStampValue_0)
@@ -276,7 +271,7 @@ class DataSyncTest {
     }
 
     private fun sync(entityViewModelIsToSync: EntityViewModelIsToSync) {
-        println("[reducedSync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+        println("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
 
         if (entityViewModelIsToSync.isToSync) {
             entityViewModelIsToSync.isToSync = false
@@ -300,7 +295,7 @@ class DataSyncTest {
     }
 
     private fun syncToInfiniteAndBeyond(entityViewModelIsToSync: EntityViewModelIsToSync) {
-        println("[reducedSync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+        println("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
 
         if (entityViewModelIsToSync.isToSync) {
             entityViewModelIsToSync.isToSync = false
@@ -357,15 +352,15 @@ class DataSyncTest {
     ) {
         when (entityViewModelIsToSync.vm.getAssociatedTableName()) {
             EMPLOYEE_TABLE -> {
-                println(" -> Table Employee, emitting value ${globalStampList[0]}")
+                println(" -> Table $EMPLOYEE_TABLE, emitting value ${globalStampList[0]}")
                 sourceIntEmployee.postValue(globalStampList[0])
             }
             SERVICE_TABLE -> {
-                println(" -> Table Service, emitting value ${globalStampList[1]}")
+                println(" -> Table $SERVICE_TABLE, emitting value ${globalStampList[1]}")
                 sourceIntService.postValue(globalStampList[1])
             }
             OFFICE_TABLE -> {
-                println(" -> Table Office, emitting value ${globalStampList[2]}")
+                println(" -> Table $OFFICE_TABLE, emitting value ${globalStampList[2]}")
                 sourceIntOffice.postValue(globalStampList[2])
             }
         }

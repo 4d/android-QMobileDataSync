@@ -31,8 +31,7 @@ open class EntityListViewModel<T>(
     appDatabase: AppDatabaseInterface,
     apiService: ApiService,
     private val fromTableForViewModel: FromTableForViewModel
-) :
-    BaseViewModel<T>(application, tableName, appDatabase, apiService) {
+) : BaseViewModel<T>(application, tableName, appDatabase, apiService) {
 
     init {
         Timber.i("EntityListViewModel initializing... $tableName")
@@ -54,7 +53,9 @@ open class EntityListViewModel<T>(
 
     val dataSynchronized =
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
-//    val dataSynchronized: MutableLiveData<DataSyncState> by lazy { MutableLiveData<DataSyncState>(DataSyncState.UNSYNCHRONIZED) }
+//    val dataSynchronized: MutableLiveData<DataSyncState> by lazy {
+//        MutableLiveData<DataSyncState>(DataSyncState.UNSYNCHRONIZED)
+//    }
 
     fun insert(item: EntityModel) {
         roomRepository.insert(item as T)

@@ -25,7 +25,9 @@ fun EntityViewModelIsToSync.sync() {
     }
 }
 
-fun List<EntityViewModelIsToSync>.createMediatorLiveData(mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>) {
+fun List<EntityViewModelIsToSync>.createMediatorLiveData(
+    mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
+) {
     for (entityViewModelIsToSync in this) {
         val mediatorLiveData = entityViewModelIsToSync.createMediatorLiveData()
         mediatorLiveDataList.add(mediatorLiveData)
@@ -37,11 +39,7 @@ fun EntityViewModelIsToSync.createMediatorLiveData(): MediatorLiveData<GlobalSta
     val mediatorLiveData = MediatorLiveData<GlobalStampWithTable>()
     mediatorLiveData.addSource(this.vm.globalStamp) {
         if (it != null) {
-            mediatorLiveData.value =
-                GlobalStampWithTable(
-                    this.vm.getAssociatedTableName(),
-                    it
-                )
+            mediatorLiveData.value = GlobalStampWithTable(this.vm.getAssociatedTableName(), it)
         }
     }
     return mediatorLiveData

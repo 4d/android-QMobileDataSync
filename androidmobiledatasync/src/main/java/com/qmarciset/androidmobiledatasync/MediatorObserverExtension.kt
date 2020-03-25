@@ -17,7 +17,10 @@ fun MutableList<MediatorLiveData<GlobalStampWithTable>>.removeObservers(activity
     }
 }
 
-fun MutableList<MediatorLiveData<GlobalStampWithTable>>.setObservers(activity: AppCompatActivity, globalStampObserver: Observer<GlobalStampWithTable>) {
+fun MutableList<MediatorLiveData<GlobalStampWithTable>>.setObservers(
+    activity: AppCompatActivity,
+    globalStampObserver: Observer<GlobalStampWithTable>
+) {
     for (mediatorLiveData in this) {
         mediatorLiveData.observe(activity, globalStampObserver)
     }
