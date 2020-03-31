@@ -13,8 +13,6 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.qmarciset.androidmobileapi.connectivity.NetworkState
 import com.qmarciset.androidmobileapi.connectivity.NetworkStateMonitor
 import com.qmarciset.androidmobileapi.connectivity.ServerAccessibility
@@ -56,18 +54,5 @@ open class ConnectivityViewModel(application: Application, connectivityManager: 
     override fun onCleared() {
         super.onCleared()
         serverAccessibility.disposable.dispose()
-    }
-
-    class ConnectivityViewModelFactory(
-        private val application: Application,
-        private val connectivityManager: ConnectivityManager
-    ) : ViewModelProvider.NewInstanceFactory() {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return ConnectivityViewModel(
-                application,
-                connectivityManager
-            ) as T
-        }
     }
 }

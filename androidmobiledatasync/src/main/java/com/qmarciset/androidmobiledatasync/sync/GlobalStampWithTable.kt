@@ -1,15 +1,17 @@
 /*
- * Created by Quentin Marciset on 24/3/2020.
+ * Created by Quentin Marciset on 31/3/2020.
  * 4D SAS
  * Copyright (c) 2020 Quentin Marciset. All rights reserved.
  */
 
-package com.qmarciset.androidmobiledatasync
+package com.qmarciset.androidmobiledatasync.sync
 
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
-import com.qmarciset.androidmobiledatasync.model.GlobalStampWithTable
+
+// For now, the tableName field is only useful for debugging, printing tableName
+data class GlobalStampWithTable(val tableName: String, val globalStamp: Int)
 
 fun MutableList<MediatorLiveData<GlobalStampWithTable>>.removeObservers(activity: AppCompatActivity) {
     for (mediatorLiveData in this) {

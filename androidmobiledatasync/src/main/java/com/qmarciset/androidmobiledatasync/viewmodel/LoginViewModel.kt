@@ -9,8 +9,6 @@ package com.qmarciset.androidmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.google.gson.Gson
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
 import com.qmarciset.androidmobileapi.auth.AuthenticationState
@@ -95,19 +93,5 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     override fun onCleared() {
         super.onCleared()
         authRepository.disposable.dispose()
-        Timber.e("ON CLEARED")
-    }
-
-    class LoginViewModelFactory(
-        private val application: Application,
-        private val apiService: LoginApiService
-    ) : ViewModelProvider.NewInstanceFactory() {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-            return LoginViewModel(
-                application,
-                apiService
-            ) as T
-        }
     }
 }

@@ -4,7 +4,7 @@
  * Copyright (c) 2020 Quentin Marciset. All rights reserved.
  */
 
-package com.qmarciset.androidmobiledatasync
+package com.qmarciset.androidmobiledatasync.sync
 
 enum class DataSyncState {
     SYNCHRONIZED, UNSYNCHRONIZED, SYNCHRONIZING

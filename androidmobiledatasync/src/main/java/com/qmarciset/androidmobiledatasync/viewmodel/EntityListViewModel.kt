@@ -9,19 +9,17 @@ package com.qmarciset.androidmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.google.gson.Gson
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
+import com.qmarciset.androidmobileapi.model.entity.DeletedRecord
 import com.qmarciset.androidmobileapi.model.entity.Entities
 import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobileapi.utils.RequestErrorHelper
 import com.qmarciset.androidmobileapi.utils.parseJsonToType
 import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
-import com.qmarciset.androidmobiledatasync.DataSyncState
+import com.qmarciset.androidmobiledatasync.sync.DataSyncState
 import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
-import okhttp3.ResponseBody
 import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
@@ -53,9 +51,10 @@ open class EntityListViewModel<T>(
 
     val dataSynchronized =
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
-//    val dataSynchronized: MutableLiveData<DataSyncState> by lazy {
-//        MutableLiveData<DataSyncState>(DataSyncState.UNSYNCHRONIZED)
-//    }
+
+    /**
+     * Room database
+     */
 
     fun insert(item: EntityModel) {
         roomRepository.insert(item as T)
@@ -67,6 +66,10 @@ open class EntityListViewModel<T>(
 
     fun delete(item: EntityModel) {
         roomRepository.delete(item as T)
+    }
+
+    fun deleteOne(id: String) {
+        roomRepository.deleteOne(id)
     }
 
     fun deleteAll() {
@@ -82,10 +85,10 @@ open class EntityListViewModel<T>(
         val predicate = buildGlobalStampPredicate(globalStamp.value ?: authInfoHelper.globalStamp)
         Timber.d("Performing data request, with predicate $predicate")
 
-        restRepository.getMoreRecentEntities(predicate) { isSuccess, response, error ->
+        restRepository.getMoreRecentEntities(predicate = predicate) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let {
-                    decodeGlobalStamp(it) { entities ->
+                    Entities.decodeEntities(gson, it) { entities ->
 
                         val receivedGlobalStamp = entities?.__GlobalStamp ?: 0
 
@@ -101,7 +104,7 @@ open class EntityListViewModel<T>(
                         } else {
                             onResult(false)
                         }
-                        decodeEntityList(entities)
+                        decodeEntityModel(entities)
                     }
                 }
             } else {
@@ -120,7 +123,7 @@ open class EntityListViewModel<T>(
             dataLoading.value = false
             if (isSuccess) {
                 response?.body()?.let {
-                    decodeGlobalStamp(it) { entities -> decodeEntityList(entities) }
+                    Entities.decodeEntities(gson, it) { entities -> decodeEntityModel(entities) }
                 }
             } else {
                 toastMessage.postValue("try_refresh_data")
@@ -129,19 +132,15 @@ open class EntityListViewModel<T>(
         }
     }
 
-    /**
-     * Retrieves data from response and insert it in database
-     */
-    private fun decodeGlobalStamp(
-        responseBody: ResponseBody,
-        onResult: (entities: Entities?) -> Unit
+    fun getDeletedRecords(
+        onResult: (deletedRecordList: List<DeletedRecord>) -> Unit
     ) {
-        val json = responseBody.string()
-        val entities = gson.parseJsonToType<Entities>(json)
-        onResult(entities)
+        DeletedRecord.getDeletedRecords(gson, restRepository, authInfoHelper) { deletedRecordList ->
+            onResult(deletedRecordList)
+        }
     }
 
-    private fun decodeEntityList(entities: Entities?) {
+    private fun decodeEntityModel(entities: Entities?) {
         val entityList: List<T>? = gson.parseJsonToType(entities?.__ENTITIES)
         entityList?.let {
             for (item in entityList) {
@@ -164,49 +163,6 @@ open class EntityListViewModel<T>(
     private fun buildGlobalStampPredicate(globalStamp: Int): String {
         // For test purposes
 //        return "\"__GlobalStamp > $globalStamp AND __GlobalStamp < 245\""
-        return "\"__GlobalStamp > $globalStamp\""
-    }
-
-    class EntityListViewModelFactory(
-        private val application: Application,
-        private val tableName: String,
-        private val appDatabase: AppDatabaseInterface,
-        private val apiService: ApiService,
-        private val fromTableForViewModel: FromTableForViewModel
-    ) : ViewModelProvider.NewInstanceFactory() {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-
-            val key = tableName + VIEWMODEL_BASENAME
-
-            return if (viewModelMap.containsKey(key)) {
-                viewModelMap[key] as T
-            } else {
-                addViewModel(
-                    key, fromTableForViewModel.entityListViewModelFromTable(
-                        application,
-                        tableName,
-                        appDatabase,
-                        apiService,
-                        fromTableForViewModel
-                    )
-                )
-                viewModelMap[key] as T
-            }
-        }
-
-        companion object {
-
-            const val VIEWMODEL_BASENAME = "EntityListViewModel"
-
-            // The HashMap is here to ensure that fragments use the same viewModel instance which
-            // the activity already created. Without this HashMap, I experienced unwanted behaviour
-            // such as creation of a new viewModel instance every time we land on the fragment view
-            val viewModelMap = HashMap<String, ViewModel>()
-
-            fun addViewModel(key: String, viewModel: ViewModel) {
-                viewModelMap[key] = viewModel
-            }
-        }
+        return "\"__GlobalStamp >= $globalStamp\""
     }
 }

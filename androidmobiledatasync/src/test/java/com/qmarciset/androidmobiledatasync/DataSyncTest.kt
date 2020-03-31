@@ -13,8 +13,9 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
-import com.qmarciset.androidmobiledatasync.model.EntityViewModelIsToSync
-import com.qmarciset.androidmobiledatasync.model.GlobalStampWithTable
+import com.qmarciset.androidmobiledatasync.sync.DataSync
+import com.qmarciset.androidmobiledatasync.sync.EntityViewModelIsToSync
+import com.qmarciset.androidmobiledatasync.sync.GlobalStampWithTable
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -106,7 +107,10 @@ class DataSyncTest {
     @Test
     fun testDataSync() {
 
-        dataSync = DataSync(activity, authInfoHelper)
+        dataSync = DataSync(
+            activity,
+            authInfoHelper
+        )
 
         mockForDataSync()
 
@@ -140,7 +144,10 @@ class DataSyncTest {
     @Test
     fun testNumberOfRequestMaxLimit() {
 
-        dataSync = DataSync(activity, authInfoHelper)
+        dataSync = DataSync(
+            activity,
+            authInfoHelper
+        )
 
         mockForDataSync()
 
@@ -176,13 +183,22 @@ class DataSyncTest {
         entityViewModelIsToSyncList = mutableListOf()
 
         entityViewModelIsToSyncList.add(
-            EntityViewModelIsToSync(entityListViewModelEmployee, true)
+            EntityViewModelIsToSync(
+                entityListViewModelEmployee,
+                true
+            )
         )
         entityViewModelIsToSyncList.add(
-            EntityViewModelIsToSync(entityListViewModelService, true)
+            EntityViewModelIsToSync(
+                entityListViewModelService,
+                true
+            )
         )
         entityViewModelIsToSyncList.add(
-            EntityViewModelIsToSync(entityListViewModelOffice, true)
+            EntityViewModelIsToSync(
+                entityListViewModelOffice,
+                true
+            )
         )
 
         sourceIntEmployee = MutableLiveData()
