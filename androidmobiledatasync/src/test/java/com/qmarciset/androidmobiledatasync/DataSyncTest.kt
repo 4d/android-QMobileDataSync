@@ -12,10 +12,14 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import com.google.gson.Gson
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
+import com.qmarciset.androidmobileapi.model.entity.DeletedRecord
+import com.qmarciset.androidmobileapi.model.entity.Entities
 import com.qmarciset.androidmobiledatasync.sync.DataSync
 import com.qmarciset.androidmobiledatasync.sync.EntityViewModelIsToSync
 import com.qmarciset.androidmobiledatasync.sync.GlobalStampWithTable
+import com.qmarciset.androidmobiledatasync.sync.deleteRecord
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -69,12 +73,16 @@ class DataSyncTest {
     // Mocks
     @Mock
     lateinit var activity: AppCompatActivity
+
     @Mock
     lateinit var authInfoHelper: AuthInfoHelper
+
     @Mock
     lateinit var entityListViewModelEmployee: EntityListViewModel<Employee>
+
     @Mock
     lateinit var entityListViewModelService: EntityListViewModel<Service>
+
     @Mock
     lateinit var entityListViewModelOffice: EntityListViewModel<Office>
 
@@ -176,6 +184,34 @@ class DataSyncTest {
         dataSync.setObserver(entityViewModelIsToSyncList, null)
 
         simulateLiveDataInitialization()
+    }
+
+    @Test
+    fun testDecodeDeletedRecords() {
+
+        mockForDataSync()
+
+        val gson = Gson()
+
+        val json = sampleDeletedRecord.toString()
+//        val entities = gson.parseJsonToType<Entities>(json)
+//        val deletedRecordList: List<DeletedRecord>? = gson.parseJsonToType(entities?.__ENTITIES)
+//        deletedRecordList?.let {
+//            for (deletedRecord in deletedRecordList) {
+//                println("deleted record id is ${deletedRecord.__PrimaryKey} for table ${deletedRecord.__TableName}")
+//                entityViewModelIsToSyncList.deleteRecord(deletedRecord)
+//            }
+//        }
+        val entities = Entities.parseEntities(gson, json)
+        DeletedRecord.decodeDeletedRecords(gson, entities) { deletedRecordList ->
+            for (deletedRecord in deletedRecordList) {
+                println("deleted record id is ${deletedRecord.__PrimaryKey} for table ${deletedRecord.__TableName}")
+                entityViewModelIsToSyncList.deleteRecord(deletedRecord)
+            }
+            assertEquals("24", deletedRecordList[0].__PrimaryKey)
+            assertEquals("25", deletedRecordList[1].__PrimaryKey)
+            assertEquals("26", deletedRecordList[2].__PrimaryKey)
+        }
     }
 
     private fun initObservation() {

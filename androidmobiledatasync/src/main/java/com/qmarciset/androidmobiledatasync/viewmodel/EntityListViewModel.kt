@@ -68,7 +68,7 @@ open class EntityListViewModel<T>(
         roomRepository.delete(item as T)
     }
 
-    fun deleteOne(id: String) {
+    open fun deleteOne(id: String) {
         roomRepository.deleteOne(id)
     }
 

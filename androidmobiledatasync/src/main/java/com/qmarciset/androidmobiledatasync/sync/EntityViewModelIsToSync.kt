@@ -7,6 +7,7 @@
 package com.qmarciset.androidmobiledatasync.sync
 
 import androidx.lifecycle.MediatorLiveData
+import com.qmarciset.androidmobileapi.model.entity.DeletedRecord
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
 import timber.log.Timber
 
@@ -58,13 +59,17 @@ fun List<EntityViewModelIsToSync>.syncDeletedRecords() {
     // The goal is to get a RestRepository to perform the request.
     this[0].vm.getDeletedRecords { deletedRecordList ->
         for (deletedRecord in deletedRecordList) {
-            deletedRecord.__PrimaryKey?.let { recordKey ->
-                for (entityViewModel in this) {
-                    if (deletedRecord.__TableName == entityViewModel.vm.getAssociatedTableName()) {
-                        entityViewModel.vm.deleteOne(recordKey)
-                        break
-                    }
-                }
+            this.deleteRecord(deletedRecord)
+        }
+    }
+}
+
+fun List<EntityViewModelIsToSync>.deleteRecord(deletedRecord: DeletedRecord) {
+    deletedRecord.__PrimaryKey?.let { recordKey ->
+        for (entityViewModel in this) {
+            if (deletedRecord.__TableName == entityViewModel.vm.getAssociatedTableName()) {
+                entityViewModel.vm.deleteOne(recordKey)
+                break
             }
         }
     }
