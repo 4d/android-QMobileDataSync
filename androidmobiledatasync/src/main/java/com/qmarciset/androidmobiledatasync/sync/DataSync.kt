@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
+import com.qmarciset.androidmobileapi.auth.LoginRequiredCallback
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import timber.log.Timber
@@ -18,7 +19,8 @@ import timber.log.Timber
 @SuppressLint("BinaryOperationInTimber")
 class DataSync(
     val activity: AppCompatActivity,
-    val authInfoHelper: AuthInfoHelper
+    val authInfoHelper: AuthInfoHelper,
+    private val loginRequiredCallback: LoginRequiredCallback
 ) {
 
     companion object {
@@ -29,6 +31,7 @@ class DataSync(
     var maxGlobalStamp = 0
     private var numberOfRequestMaxLimit = 0
     lateinit var received: AtomicInteger
+    val loginRequired = AtomicBoolean(false)
 
     lateinit var globalStampObserver: Observer<GlobalStampWithTable>
 
@@ -89,34 +92,39 @@ class DataSync(
 
                 if (received.incrementAndGet() == nbToReceive) {
 
-                    // Get the max globalStamp between received ones, and stored one
-                    maxGlobalStamp =
-                        DataSyncUtils.getMaxGlobalStamp(
-                            receivedSyncedTableGS,
-                            authInfoHelper.globalStamp
-                        )
-                    Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
-
-                    val isAtLeastOneToSync =
-                        DataSyncUtils.checkIfAtLeastOneTableToSync(
-                            maxGlobalStamp,
-                            entityViewModelIsToSyncList
-                        )
-
-                    if (isAtLeastOneToSync) {
-                        Timber.d("[There is at least one table that requires data synchronization]")
-                        if (DataSyncUtils.canPerformNewSync(
-                                received,
-                                requestPerformed,
-                                numberOfRequestMaxLimit
-                            )
-                        ) {
-                            syncTables(entityViewModelIsToSyncList)
-                        } else {
-                            unsuccessfulSyncClosure(entityViewModelIsToSyncList)
-                        }
+                    if (loginRequired.getAndSet(false)) {
+                        loginRequiredCallback.loginRequired()
                     } else {
-                        successfulSyncClosure(maxGlobalStamp, entityViewModelIsToSyncList)
+
+                        // Get the max globalStamp between received ones, and stored one
+                        maxGlobalStamp =
+                            DataSyncUtils.getMaxGlobalStamp(
+                                receivedSyncedTableGS,
+                                authInfoHelper.globalStamp
+                            )
+                        Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
+
+                        val isAtLeastOneToSync =
+                            DataSyncUtils.checkIfAtLeastOneTableToSync(
+                                maxGlobalStamp,
+                                entityViewModelIsToSyncList
+                            )
+
+                        if (isAtLeastOneToSync) {
+                            Timber.d("[There is at least one table that requires data synchronization]")
+                            if (DataSyncUtils.canPerformNewSync(
+                                    received,
+                                    requestPerformed,
+                                    numberOfRequestMaxLimit
+                                )
+                            ) {
+                                syncTables(entityViewModelIsToSyncList)
+                            } else {
+                                unsuccessfulSyncClosure(entityViewModelIsToSyncList)
+                            }
+                        } else {
+                            successfulSyncClosure(maxGlobalStamp, entityViewModelIsToSyncList)
+                        }
                     }
                 }
             } else {

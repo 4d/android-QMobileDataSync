@@ -7,6 +7,7 @@
 package com.qmarciset.androidmobiledatasync.sync
 
 import androidx.lifecycle.Observer
+import com.qmarciset.androidmobileapi.network.ApiClient
 import timber.log.Timber
 
 fun DataSync.setupObservable(
@@ -28,6 +29,7 @@ fun DataSync.successfulSynchronization(
     authInfoHelper.globalStamp = maxGlobalStamp
     entityViewModelIsToSyncList.notifyDataSynced()
     entityViewModelIsToSyncList.syncDeletedRecords()
+    ApiClient.dataSyncFinished()
 }
 
 fun DataSync.unsuccessfulSynchronization(
@@ -37,6 +39,15 @@ fun DataSync.unsuccessfulSynchronization(
         "[Number of request max limit has been reached. " +
                 "Data synchronization is ending with tables not synchronized]"
     )
+    mediatorLiveDataList.removeObservers(activity)
+    entityViewModelIsToSyncList.notifyDataUnSynced()
+    ApiClient.dataSyncFinished()
+}
+
+// Stop observing before going back to login page
+fun DataSync.unsuccessfulSynchronizationNeedsLogin(
+    entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
+) {
     mediatorLiveDataList.removeObservers(activity)
     entityViewModelIsToSyncList.notifyDataUnSynced()
 }

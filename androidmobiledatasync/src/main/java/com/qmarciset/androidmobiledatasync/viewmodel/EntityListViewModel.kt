@@ -108,6 +108,8 @@ open class EntityListViewModel<T>(
                     }
                 }
             } else {
+                // send previous globalStamp value for data sync
+                globalStamp.postValue(0)
                 RequestErrorHelper.handleError(error)
                 onResult(false)
             }
