@@ -20,6 +20,7 @@ import com.qmarciset.androidmobileapi.utils.parseJsonToType
 import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
 import com.qmarciset.androidmobiledatasync.sync.DataSyncState
 import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
+import com.qmarciset.androidmobiledatasync.utils.RelationHelper
 import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
@@ -36,7 +37,9 @@ open class EntityListViewModel<T>(
     }
 
     private val authInfoHelper = AuthInfoHelper(application.applicationContext)
-    private var hasGlobalStamp = fromTableForViewModel.hasGlobalStampPropertyFromTable(tableName)
+    private val properties =
+        fromTableForViewModel.getPropertyListFromTable<T>(tableName, application)
+    private val relations = fromTableForViewModel.getRelations<T>(tableName, application)
     private val gson = Gson()
 
     /**
@@ -51,6 +54,8 @@ open class EntityListViewModel<T>(
 
     val dataSynchronized =
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
+
+    val newRelatedEntity = MutableLiveData<EntityModel>()
 
     /**
      * Room database
@@ -85,7 +90,12 @@ open class EntityListViewModel<T>(
         val predicate = buildGlobalStampPredicate(globalStamp.value ?: authInfoHelper.globalStamp)
         Timber.d("Performing data request, with predicate $predicate")
 
-        restRepository.getMoreRecentEntities(predicate = predicate) { isSuccess, response, error ->
+        dataLoading.value = true
+        restRepository.getMoreRecentEntities(
+            filter = predicate,
+            attributes = properties
+        ) { isSuccess, response, error ->
+            dataLoading.value = false
             if (isSuccess) {
                 response?.body()?.let {
                     Entities.decodeEntities(gson, it) { entities ->
@@ -142,6 +152,9 @@ open class EntityListViewModel<T>(
         }
     }
 
+    /**
+     * Decodes the list of entities retrieved
+     */
     private fun decodeEntityModel(entities: Entities?) {
         val entityList: List<T>? = gson.parseJsonToType(entities?.__ENTITIES)
         entityList?.let {
@@ -152,9 +165,23 @@ open class EntityListViewModel<T>(
                         getAssociatedTableName(),
                         itemJson.toString()
                     )
-                entity.let {
-                    this.insert(it as EntityModel)
+                entity?.let {
+                    this.insert(it)
+                    checkRelations(it)
                 }
+            }
+        }
+    }
+
+    /**
+     * Checks in the retrieved [entity] if there is a provided relation. If there is any, we want it
+     * to be added in the appropriate Room dao
+     */
+    private fun checkRelations(entity: EntityModel) {
+        for (relation in relations) {
+            val relatedEntity = RelationHelper.getRelatedEntity<EntityModel>(entity, relation)
+            relatedEntity?.let {
+                newRelatedEntity.postValue(it)
             }
         }
     }

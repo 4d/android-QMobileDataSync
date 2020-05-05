@@ -19,7 +19,7 @@ object Versions {
     val kotlin = "1.3.71"
     val lifecycle = "2.2.0"
     val mockito = "3.3.3"
-    val okhttp = "4.5.0"
+    val okhttp = "4.6.0"
     val preference = "1.1.0"
     val retrofit = "2.8.0"
     val robolectric = "4.3.1"
@@ -56,6 +56,7 @@ object Libs {
 
     // Common
     val androidx_appcompat = "androidx.appcompat:appcompat:${Versions.support}"
+    val kotlin_reflect = "org.jetbrains.kotlin:kotlin-reflect:${Versions.kotlin}"
     val kotlin_stdlib = "org.jetbrains.kotlin:kotlin-stdlib:${Versions.kotlin}"
 
     // Lifecycle

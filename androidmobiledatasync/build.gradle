@@ -19,6 +19,7 @@ dependencies {
 
     // Common
     implementation Libs.androidx_appcompat
+    implementation Libs.kotlin_reflect
     implementation Libs.kotlin_stdlib
 
     // Lifecycle

@@ -24,9 +24,15 @@ interface FromTableForViewModel {
     fun parseEntityFromTable(tableName: String, jsonString: String): EntityModel
 
     /**
-     * Checks if entity has a __GlobalStamp property
+     * Returns list of table properties as a String, separated by commas, without EntityModel
+     * inherited properties
      */
-    fun hasGlobalStampPropertyFromTable(tableName: String): Boolean
+    fun <T> getPropertyListFromTable(tableName: String, application: Application): String
+
+    /**
+     * Returns the list of relations of the given table
+     */
+    fun <T> getRelations(tableName: String, application: Application): List<String>
 
     /**
      * Provides the appropriate EntityListViewModel
