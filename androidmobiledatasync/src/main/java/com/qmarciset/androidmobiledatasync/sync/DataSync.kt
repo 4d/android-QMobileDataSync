@@ -20,7 +20,7 @@ import timber.log.Timber
 class DataSync(
     val activity: AppCompatActivity,
     val authInfoHelper: AuthInfoHelper,
-    private val loginRequiredCallback: LoginRequiredCallback
+    private val loginRequiredCallback: LoginRequiredCallback? = null
 ) {
 
     companion object {
@@ -93,7 +93,7 @@ class DataSync(
                 if (received.incrementAndGet() == nbToReceive) {
 
                     if (loginRequired.getAndSet(false)) {
-                        loginRequiredCallback.loginRequired()
+                        loginRequiredCallback?.loginRequired()
                     } else {
 
                         // Get the max globalStamp between received ones, and stored one

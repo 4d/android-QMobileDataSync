@@ -36,8 +36,8 @@ open class EntityListViewModel<T>(
         Timber.i("EntityListViewModel initializing... $tableName")
     }
 
-    private val authInfoHelper = AuthInfoHelper(application.applicationContext)
-    private val properties =
+    val authInfoHelper = AuthInfoHelper(application.applicationContext)
+    val properties =
         fromTableForViewModel.getPropertyListFromTable<T>(tableName, application)
     private val relations = fromTableForViewModel.getRelations<T>(tableName, application)
     private val gson = Gson()
@@ -177,7 +177,7 @@ open class EntityListViewModel<T>(
      * Checks in the retrieved [entity] if there is a provided relation. If there is any, we want it
      * to be added in the appropriate Room dao
      */
-    private fun checkRelations(entity: EntityModel) {
+    fun checkRelations(entity: EntityModel) {
         for (relation in relations) {
             val relatedEntity = RelationHelper.getRelatedEntity<EntityModel>(entity, relation)
             relatedEntity?.let {
@@ -189,7 +189,7 @@ open class EntityListViewModel<T>(
     /**
      * Returns predicate for requests with __GlobalStamp
      */
-    private fun buildGlobalStampPredicate(globalStamp: Int): String {
+    fun buildGlobalStampPredicate(globalStamp: Int): String {
         // For test purposes
 //        return "\"__GlobalStamp > $globalStamp AND __GlobalStamp < 245\""
         return "\"__GlobalStamp >= $globalStamp\""

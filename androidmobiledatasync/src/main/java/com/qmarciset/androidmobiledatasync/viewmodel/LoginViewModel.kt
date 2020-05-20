@@ -44,7 +44,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     /**
      * Authenticates
      */
-    fun login(email: String = "", password: String = "") {
+    fun login(email: String = "", password: String = "", onResult: (success: Boolean) -> Unit) {
         dataLoading.value = true
         // Builds the request body for $authenticate request
         val authRequest = authInfoHelper.buildAuthRequestBody(email, password)
@@ -62,13 +62,16 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         // Fill SharedPreferences with response details
                         if (authInfoHelper.handleLoginInfo(authResponse)) {
                             authenticationState.postValue(AuthenticationState.AUTHENTICATED)
+                            onResult(true)
                             return@authenticate
                         }
                     }
                 }
+                onResult(false)
                 authenticationState.postValue(AuthenticationState.INVALID_AUTHENTICATION)
             } else {
                 RequestErrorHelper.handleError(error)
+                onResult(false)
                 authenticationState.postValue(AuthenticationState.INVALID_AUTHENTICATION)
             }
         }
