@@ -15,24 +15,21 @@ class Employee(
     override val __KEY: String,
     override val __STAMP: Int? = null,
     override val __GlobalStamp: Int? = null,
-    override val __TIMESTAMP: String? = null,
-    override val __entityModel: String? = null
+    override val __TIMESTAMP: String? = null
 ) : EntityModel
 
 class Service(
     override val __KEY: String,
     override val __STAMP: Int? = null,
     override val __GlobalStamp: Int? = null,
-    override val __TIMESTAMP: String? = null,
-    override val __entityModel: String? = null
+    override val __TIMESTAMP: String? = null
 ) : EntityModel
 
 class Office(
     override val __KEY: String,
     override val __STAMP: Int? = null,
     override val __GlobalStamp: Int? = null,
-    override val __TIMESTAMP: String? = null,
-    override val __entityModel: String? = null
+    override val __TIMESTAMP: String? = null
 ) : EntityModel
 
 // Sample data sets

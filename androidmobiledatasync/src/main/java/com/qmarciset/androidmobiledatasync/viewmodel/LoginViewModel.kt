@@ -26,7 +26,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         Timber.i("LoginViewModel initializing...")
     }
 
-    private val authRepository: AuthRepository = AuthRepository(loginApiService)
+    var authRepository: AuthRepository = AuthRepository(loginApiService)
     val authInfoHelper = AuthInfoHelper.getInstance(application.applicationContext)
 
     /**

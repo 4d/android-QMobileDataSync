@@ -18,9 +18,12 @@ import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobileapi.utils.RequestErrorHelper
 import com.qmarciset.androidmobileapi.utils.parseJsonToType
 import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
+import com.qmarciset.androidmobiledatasync.relation.ManyToOneRelation
+import com.qmarciset.androidmobiledatasync.relation.OneToManyRelation
+import com.qmarciset.androidmobiledatasync.relation.RelationHelper
+import com.qmarciset.androidmobiledatasync.relation.RelationType
 import com.qmarciset.androidmobiledatasync.sync.DataSyncState
 import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
-import com.qmarciset.androidmobiledatasync.utils.RelationHelper
 import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
@@ -37,7 +40,7 @@ open class EntityListViewModel<T>(
     }
 
     val authInfoHelper = AuthInfoHelper(application.applicationContext)
-    val properties =
+    private val properties =
         fromTableForViewModel.getPropertyListFromTable<T>(tableName, application)
     private val relations = fromTableForViewModel.getRelations<T>(tableName, application)
     private val gson = Gson()
@@ -48,14 +51,16 @@ open class EntityListViewModel<T>(
 
     open var entityList: LiveData<List<T>> = roomRepository.getAll()
 
-    open val dataLoading = MutableLiveData<Boolean>().apply { value = false }
+    var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
     open val globalStamp = MutableLiveData<Int>().apply { value = authInfoHelper.globalStamp }
 
     val dataSynchronized =
         MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
 
-    val newRelatedEntity = MutableLiveData<EntityModel>()
+    val newRelatedEntity = MutableLiveData<ManyToOneRelation>()
+
+    val newRelatedEntities = MutableLiveData<OneToManyRelation>()
 
     /**
      * Room database
@@ -114,7 +119,7 @@ open class EntityListViewModel<T>(
                         } else {
                             onResult(false)
                         }
-                        decodeEntityModel(entities)
+                        decodeEntityModel(entities, false)
                     }
                 }
             } else {
@@ -122,24 +127,6 @@ open class EntityListViewModel<T>(
                 globalStamp.postValue(0)
                 RequestErrorHelper.handleError(error)
                 onResult(false)
-            }
-        }
-    }
-
-    /**
-     * Gets all entities
-     */
-    fun getAll() {
-        dataLoading.value = true
-        restRepository.getAll { isSuccess, response, error ->
-            dataLoading.value = false
-            if (isSuccess) {
-                response?.body()?.let {
-                    Entities.decodeEntities(gson, it) { entities -> decodeEntityModel(entities) }
-                }
-            } else {
-                toastMessage.postValue("try_refresh_data")
-                RequestErrorHelper.handleError(error)
             }
         }
     }
@@ -155,7 +142,7 @@ open class EntityListViewModel<T>(
     /**
      * Decodes the list of entities retrieved
      */
-    private fun decodeEntityModel(entities: Entities?) {
+    fun decodeEntityModel(entities: Entities?, fetchedFromRelation: Boolean) {
         val entityList: List<T>? = gson.parseJsonToType(entities?.__ENTITIES)
         entityList?.let {
             for (item in entityList) {
@@ -167,7 +154,8 @@ open class EntityListViewModel<T>(
                     )
                 entity?.let {
                     this.insert(it)
-                    checkRelations(it)
+                    if (!fetchedFromRelation)
+                        checkRelations(it)
                 }
             }
         }
@@ -179,9 +167,20 @@ open class EntityListViewModel<T>(
      */
     fun checkRelations(entity: EntityModel) {
         for (relation in relations) {
-            val relatedEntity = RelationHelper.getRelatedEntity<EntityModel>(entity, relation)
-            relatedEntity?.let {
-                newRelatedEntity.postValue(it)
+            if (relation.relationType == RelationType.MANY_TO_ONE) {
+                val relatedEntity = RelationHelper.getRelatedEntity<EntityModel>(entity, relation.relationName)
+                relatedEntity?.let {
+                    newRelatedEntity.postValue(ManyToOneRelation(entity = it, className = relation.className))
+                }
+            } else { // relationType == ONE_TO_MANY
+                val relatedEntities = RelationHelper.getRelatedEntity<Entities>(entity, relation.relationName)
+                if ((relatedEntities?.__COUNT ?: 0) > 0) {
+                    relatedEntities?.__DATACLASS?.let {
+                        newRelatedEntities.postValue(
+                            OneToManyRelation(entities = relatedEntities, className = it)
+                        )
+                    }
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ import android.app.Application
 import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
+import com.qmarciset.androidmobiledatasync.relation.Relation
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityViewModel
 
@@ -32,7 +33,7 @@ interface FromTableForViewModel {
     /**
      * Returns the list of relations of the given table
      */
-    fun <T> getRelations(tableName: String, application: Application): List<String>
+    fun <T> getRelations(tableName: String, application: Application): MutableList<Relation>
 
     /**
      * Provides the appropriate EntityListViewModel
