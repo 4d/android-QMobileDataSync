@@ -39,8 +39,8 @@ open class EntityListViewModel<T>(
         Timber.i("EntityListViewModel initializing... $tableName")
     }
 
-    val authInfoHelper = AuthInfoHelper(application.applicationContext)
-    private val properties =
+    val authInfoHelper = AuthInfoHelper.getInstance(application.applicationContext)
+    val properties =
         fromTableForViewModel.getPropertyListFromTable<T>(tableName, application)
     private val relations = fromTableForViewModel.getRelations<T>(tableName, application)
     private val gson = Gson()
@@ -193,4 +193,11 @@ open class EntityListViewModel<T>(
 //        return "\"__GlobalStamp > $globalStamp AND __GlobalStamp < 245\""
         return "\"__GlobalStamp >= $globalStamp\""
     }
+
+    /*fun buildPredicate(globalStamp: Int): String {
+        val query = authInfoHelper.getQuery(getAssociatedTableName())
+        if (query.isNotEmpty()) {
+
+        }
+    }*/
 }

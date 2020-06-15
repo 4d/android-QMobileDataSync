@@ -12,9 +12,9 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
 import com.qmarciset.androidmobileapi.auth.AuthInfoHelper
 import com.qmarciset.androidmobileapi.auth.LoginRequiredCallback
+import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import timber.log.Timber
 
 @SuppressLint("BinaryOperationInTimber")
 class DataSync(
@@ -67,22 +67,22 @@ class DataSync(
                 if (globalStampWithTable.tableName == alreadyRefreshedTable) {
                     Timber.d(
                         "[Ignoring received observable for Table : " +
-                                "${globalStampWithTable.tableName} with GlobalStamp : " +
-                                "${globalStampWithTable.globalStamp}]"
+                            "${globalStampWithTable.tableName} with GlobalStamp : " +
+                            "${globalStampWithTable.globalStamp}]"
                     )
                     return@Observer
                 }
 
                 Timber.d(
                     "[NEW] [Table : ${globalStampWithTable.tableName}, " +
-                            "GlobalStamp : ${globalStampWithTable.globalStamp}]"
+                        "GlobalStamp : ${globalStampWithTable.globalStamp}]"
                 )
                 Timber.d("Current globalStamps list :")
 
                 for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
                     Timber.d(
                         " - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, " +
-                                "GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}"
+                            "GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}"
                     )
                 }
 
@@ -113,10 +113,10 @@ class DataSync(
                         if (isAtLeastOneToSync) {
                             Timber.d("[There is at least one table that requires data synchronization]")
                             if (DataSyncUtils.canPerformNewSync(
-                                    received,
-                                    requestPerformed,
-                                    numberOfRequestMaxLimit
-                                )
+                                received,
+                                requestPerformed,
+                                numberOfRequestMaxLimit
+                            )
                             ) {
                                 syncTables(entityViewModelIsToSyncList)
                             } else {
@@ -130,17 +130,17 @@ class DataSync(
             } else {
                 Timber.d(
                     "[INITIALIZING] [Table : ${globalStampWithTable.tableName}, " +
-                            "GlobalStamp : ${globalStampWithTable.globalStamp}]"
+                        "GlobalStamp : ${globalStampWithTable.globalStamp}]"
                 )
                 Timber.d(
                     "[GlobalStamps received for initializing : " +
-                            "${received.get() + 1}/${nbToReceiveForInitializing.get()}]"
+                        "${received.get() + 1}/${nbToReceiveForInitializing.get()}]"
                 )
                 if (DataSyncUtils.canStartSync(
-                        received,
-                        nbToReceiveForInitializing,
-                        viewModelStillInitializing
-                    )
+                    received,
+                    nbToReceiveForInitializing,
+                    viewModelStillInitializing
+                )
                 ) {
                     // first sync
                     syncTables(entityViewModelIsToSyncList)

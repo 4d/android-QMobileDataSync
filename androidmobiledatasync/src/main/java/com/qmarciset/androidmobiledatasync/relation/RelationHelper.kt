@@ -15,23 +15,13 @@ import kotlin.reflect.full.memberProperties
 object RelationHelper {
 
     /**
-     * Retrieve the related entity from its relation name. This method uses reflection
+     * Retrieve the related type from its relation name. This method uses reflection
      */
     @Suppress("UNCHECKED_CAST")
     fun <T> getRelatedEntity(entity: EntityModel, relationName: String): T? {
         val property =
             entity::class.memberProperties.first { it.name == relationName } as KProperty1<EntityModel, *>
         return property.get(entity) as T?
-    }
-
-    /**
-     * Retrieve the related entities from its relation name. This method uses reflection
-     */
-    @Suppress("UNCHECKED_CAST")
-    fun getRelatedEntities(entity: EntityModel, relationName: String): Entities? {
-        val property =
-            entity::class.memberProperties.first { it.name == relationName } as KProperty1<EntityModel, *>
-        return property.get(entity) as Entities?
     }
 
     /**

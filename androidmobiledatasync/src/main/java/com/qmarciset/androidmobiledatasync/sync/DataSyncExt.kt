@@ -37,7 +37,7 @@ fun DataSync.unsuccessfulSynchronization(
 ) {
     Timber.e(
         "[Number of request max limit has been reached. " +
-                "Data synchronization is ending with tables not synchronized]"
+            "Data synchronization is ending with tables not synchronized]"
     )
     mediatorLiveDataList.removeObservers(activity)
     entityViewModelIsToSyncList.notifyDataUnSynced()

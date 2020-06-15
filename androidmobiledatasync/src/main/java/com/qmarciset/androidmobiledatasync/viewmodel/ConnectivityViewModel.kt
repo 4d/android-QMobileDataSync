@@ -17,8 +17,8 @@ import com.qmarciset.androidmobileapi.connectivity.NetworkState
 import com.qmarciset.androidmobileapi.connectivity.NetworkStateMonitor
 import com.qmarciset.androidmobileapi.connectivity.ServerAccessibility
 import com.qmarciset.androidmobileapi.utils.PING_TIMEOUT
-import java.net.URL
 import timber.log.Timber
+import java.net.URL
 
 open class ConnectivityViewModel(application: Application, connectivityManager: ConnectivityManager) :
     AndroidViewModel(application) {

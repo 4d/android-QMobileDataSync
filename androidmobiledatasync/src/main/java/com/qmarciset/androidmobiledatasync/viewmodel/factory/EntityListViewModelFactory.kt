@@ -29,7 +29,8 @@ class EntityListViewModelFactory(
             viewModelMap[key] as T
         } else {
             addViewModel(
-                key, fromTableForViewModel.entityListViewModelFromTable(
+                key,
+                fromTableForViewModel.entityListViewModelFromTable(
                     application,
                     tableName,
                     appDatabase,
