@@ -6,19 +6,14 @@
 
 package com.qmarciset.androidmobiledatasync.viewmodel.factory
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.qmarciset.androidmobileapi.network.ApiService
-import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
-import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
+import com.qmarciset.androidmobiledatasync.app.BaseApp
 
 class EntityListViewModelFactory(
-    private val application: Application,
     private val tableName: String,
-    private val appDatabase: AppDatabaseInterface,
-    private val apiService: ApiService,
-    private val fromTableForViewModel: FromTableForViewModel
+    private val apiService: ApiService
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
@@ -30,12 +25,9 @@ class EntityListViewModelFactory(
         } else {
             addViewModel(
                 key,
-                fromTableForViewModel.entityListViewModelFromTable(
-                    application,
+                BaseApp.fromTableForViewModel.entityListViewModelFromTable(
                     tableName,
-                    appDatabase,
-                    apiService,
-                    fromTableForViewModel
+                    apiService
                 )
             )
             viewModelMap[key] as T

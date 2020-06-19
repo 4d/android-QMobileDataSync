@@ -9,7 +9,6 @@ package com.qmarciset.androidmobiledatasync.utils
 import android.app.Application
 import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobileapi.network.ApiService
-import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
 import com.qmarciset.androidmobiledatasync.relation.Relation
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityViewModel
@@ -18,6 +17,11 @@ import com.qmarciset.androidmobiledatasync.viewmodel.EntityViewModel
  * Interface implemented by MainActivity to provide different elements depending of the generated type
  */
 interface FromTableForViewModel {
+
+    /**
+     * Provides the list of table names
+     */
+    val tableNames: List<String>
 
     /**
      * Provides the appropriate Entity
@@ -39,21 +43,18 @@ interface FromTableForViewModel {
      * Provides the appropriate EntityListViewModel
      */
     fun entityListViewModelFromTable(
-        application: Application,
         tableName: String,
-        appDatabase: AppDatabaseInterface,
-        apiService: ApiService,
-        fromTableForViewModel: FromTableForViewModel
+        apiService: ApiService
     ): EntityListViewModel<*>
 
     /**
      * Provides the appropriate EntityViewModel
      */
     fun entityViewModelFromTable(
-        application: Application,
         tableName: String,
         id: String,
-        appDatabase: AppDatabaseInterface,
         apiService: ApiService
     ): EntityViewModel<*>
+
+    fun entityListViewModelClassFromTable(tableName: String): Class<EntityListViewModel<EntityModel>>
 }

@@ -6,7 +6,6 @@
 
 package com.qmarciset.androidmobiledatasync.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
@@ -17,32 +16,28 @@ import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobileapi.utils.RequestErrorHelper
 import com.qmarciset.androidmobileapi.utils.parseJsonToType
-import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
+import com.qmarciset.androidmobiledatasync.app.BaseApp
 import com.qmarciset.androidmobiledatasync.relation.ManyToOneRelation
 import com.qmarciset.androidmobiledatasync.relation.OneToManyRelation
 import com.qmarciset.androidmobiledatasync.relation.RelationHelper
 import com.qmarciset.androidmobiledatasync.relation.RelationType
 import com.qmarciset.androidmobiledatasync.sync.DataSyncState
-import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
 import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
 open class EntityListViewModel<T>(
-    application: Application,
     tableName: String,
-    appDatabase: AppDatabaseInterface,
-    apiService: ApiService,
-    private val fromTableForViewModel: FromTableForViewModel
-) : BaseViewModel<T>(application, tableName, appDatabase, apiService) {
+    apiService: ApiService
+) : BaseViewModel<T>(tableName, apiService) {
 
     init {
         Timber.i("EntityListViewModel initializing... $tableName")
     }
 
-    val authInfoHelper = AuthInfoHelper.getInstance(application.applicationContext)
+    val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
     val properties =
-        fromTableForViewModel.getPropertyListFromTable<T>(tableName, application)
-    private val relations = fromTableForViewModel.getRelations<T>(tableName, application)
+        BaseApp.fromTableForViewModel.getPropertyListFromTable<T>(tableName, BaseApp.instance)
+    private val relations = BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
     private val gson = Gson()
 
     /**
@@ -148,7 +143,7 @@ open class EntityListViewModel<T>(
             for (item in entityList) {
                 val itemJson = gson.toJson(item)
                 val entity: EntityModel? =
-                    fromTableForViewModel.parseEntityFromTable(
+                    BaseApp.fromTableForViewModel.parseEntityFromTable(
                         getAssociatedTableName(),
                         itemJson.toString()
                     )

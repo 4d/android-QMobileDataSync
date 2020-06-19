@@ -6,14 +6,13 @@
 
 package com.qmarciset.androidmobiledatasync.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobileapi.repository.RestRepository
 import com.qmarciset.androidmobiledatastore.dao.BaseDao
-import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
 import com.qmarciset.androidmobiledatastore.repository.RoomRepository
+import com.qmarciset.androidmobiledatasync.app.BaseApp
 
 /**
  * If you need to use context inside your viewmodel you should use AndroidViewModel, because it
@@ -21,11 +20,9 @@ import com.qmarciset.androidmobiledatastore.repository.RoomRepository
  * regular ViewModel.
  */
 abstract class BaseViewModel<T>(
-    application: Application,
     private val tableName: String,
-    appDatabase: AppDatabaseInterface,
     apiService: ApiService
-) : AndroidViewModel(application) {
+) : AndroidViewModel(BaseApp.instance) {
 
     open fun getAssociatedTableName(): String = tableName
 
@@ -33,7 +30,7 @@ abstract class BaseViewModel<T>(
      * DAO
      */
 
-    val dao: BaseDao<T> = appDatabase.getDao(tableName)
+    val dao: BaseDao<T> = BaseApp.appDatabaseInterface.getDao(tableName)
 
     /**
      * Repositories
