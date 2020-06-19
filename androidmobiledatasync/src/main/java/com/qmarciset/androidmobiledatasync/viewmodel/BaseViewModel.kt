@@ -30,7 +30,7 @@ abstract class BaseViewModel<T>(
      * DAO
      */
 
-    val dao: BaseDao<T> = BaseApp.appDatabaseInterface.getDao(tableName)
+    var dao: BaseDao<T> = BaseApp.appDatabaseInterface.getDao(tableName)
 
     /**
      * Repositories

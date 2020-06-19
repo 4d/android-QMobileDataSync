@@ -20,7 +20,10 @@ import com.qmarciset.androidmobileapi.utils.PING_TIMEOUT
 import timber.log.Timber
 import java.net.URL
 
-open class ConnectivityViewModel(application: Application, connectivityManager: ConnectivityManager) :
+open class ConnectivityViewModel(
+    application: Application,
+    connectivityManager: ConnectivityManager
+) :
     AndroidViewModel(application) {
 
     init {

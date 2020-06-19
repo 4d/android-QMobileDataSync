@@ -37,7 +37,8 @@ open class EntityListViewModel<T>(
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
     val properties =
         BaseApp.fromTableForViewModel.getPropertyListFromTable<T>(tableName, BaseApp.instance)
-    private val relations = BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
+    private val relations =
+        BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
     private val gson = Gson()
 
     /**
@@ -163,12 +164,19 @@ open class EntityListViewModel<T>(
     fun checkRelations(entity: EntityModel) {
         for (relation in relations) {
             if (relation.relationType == RelationType.MANY_TO_ONE) {
-                val relatedEntity = RelationHelper.getRelatedEntity<EntityModel>(entity, relation.relationName)
+                val relatedEntity =
+                    RelationHelper.getRelatedEntity<EntityModel>(entity, relation.relationName)
                 relatedEntity?.let {
-                    newRelatedEntity.postValue(ManyToOneRelation(entity = it, className = relation.className))
+                    newRelatedEntity.postValue(
+                        ManyToOneRelation(
+                            entity = it,
+                            className = relation.className
+                        )
+                    )
                 }
             } else { // relationType == ONE_TO_MANY
-                val relatedEntities = RelationHelper.getRelatedEntity<Entities>(entity, relation.relationName)
+                val relatedEntities =
+                    RelationHelper.getRelatedEntity<Entities>(entity, relation.relationName)
                 if ((relatedEntities?.__COUNT ?: 0) > 0) {
                     relatedEntities?.__DATACLASS?.let {
                         newRelatedEntities.postValue(
