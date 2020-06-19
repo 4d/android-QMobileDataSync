@@ -19,6 +19,7 @@ object Versions {
     val kotlin = "1.3.72"
     val lifecycle = "2.2.0"
     val mockito = "3.3.3"
+    val multidex = "2.0.1"
     val okhttp = "4.7.2"
     val preference = "1.1.1"
     val retrofit = "2.9.0"
@@ -64,6 +65,7 @@ object Libs {
     val lifecycle_extensions = "androidx.lifecycle:lifecycle-extensions:${Versions.lifecycle}"
 
     // Utils
+    val multidex = "androidx.multidex:multidex:${Versions.multidex}"
     val okhttp = "com.squareup.okhttp3:okhttp:${Versions.okhttp}"
     val retrofit_converter_gson = "com.squareup.retrofit2:converter-gson:${Versions.retrofit}"
     val rxjava = "io.reactivex.rxjava2:rxjava:${Versions.rxjava2}"

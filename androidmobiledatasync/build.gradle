@@ -26,6 +26,7 @@ dependencies {
     implementation Libs.lifecycle_extensions
 
     // Utils
+    implementation Libs.multidex
     implementation Libs.okhttp
     implementation Libs.retrofit_converter_gson
     implementation Libs.rxjava
