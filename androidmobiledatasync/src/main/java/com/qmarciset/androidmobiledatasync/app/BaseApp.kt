@@ -6,7 +6,6 @@
 
 package com.qmarciset.androidmobiledatasync.app
 
-import android.app.Application
 import androidx.multidex.MultiDexApplication
 import com.qmarciset.androidmobiledatastore.db.AppDatabaseInterface
 import com.qmarciset.androidmobiledatasync.utils.FromTableForViewModel
@@ -18,7 +17,7 @@ open class BaseApp : MultiDexApplication() {
     companion object {
 
         // Provides Application instance
-        lateinit var instance: Application
+        lateinit var instance: MultiDexApplication
 
         // Provides the drawable resource id for login page logo
         var loginLogoDrawable: Int? = null
