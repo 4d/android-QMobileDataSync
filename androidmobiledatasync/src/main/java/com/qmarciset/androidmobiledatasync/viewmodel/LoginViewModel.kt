@@ -80,7 +80,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     /**
      * Logs out
      */
-    fun disconnectUser() {
+    fun disconnectUser(onResult: (success: Boolean) -> Unit) {
         authRepository.logout { isSuccess, _, error ->
             dataLoading.value = false
             authenticationState.postValue(AuthenticationState.LOGOUT)
@@ -90,6 +90,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             } else {
                 RequestErrorHelper.handleError(error)
             }
+            onResult(isSuccess)
         }
     }
 
