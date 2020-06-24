@@ -33,6 +33,9 @@ interface FromTableForViewModel {
      * inherited properties
      */
     fun <T> getPropertyListFromTable(tableName: String, application: Application): String
+//    fun <T> getPropertyListFromTable(tableName: String, applicatioÒn: Application): List<String>
+
+    fun getPropFromTabl(tableName: String, application: Application): String
 
     /**
      * Returns the list of relations of the given table

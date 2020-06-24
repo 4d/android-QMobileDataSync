@@ -47,11 +47,11 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     fun login(email: String = "", password: String = "", onResult: (success: Boolean) -> Unit) {
         dataLoading.value = true
         // Builds the request body for $authenticate request
-        val authRequest = authInfoHelper.buildAuthRequestBody(email, password)
+        val authRequestBody = authInfoHelper.buildAuthRequestBody(email, password)
         // Provides shouldRetryOnError to know if we should redirect the user to login page or
         // if we should retry silently
         val shouldRetryOnError = authInfoHelper.guestLogin
-        authRepository.authenticate(authRequest, shouldRetryOnError) { isSuccess, response, error ->
+        authRepository.authenticate(authRequestBody, shouldRetryOnError) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
                 response?.let {

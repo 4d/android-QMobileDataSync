@@ -20,7 +20,7 @@ data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync:
 
         if (this.isToSync) {
             this.isToSync = false
-            this.vm.getData {
+            this.vm.getEntities {
                 Timber.v("Requesting data for ${vm.getAssociatedTableName()}")
             }
         }

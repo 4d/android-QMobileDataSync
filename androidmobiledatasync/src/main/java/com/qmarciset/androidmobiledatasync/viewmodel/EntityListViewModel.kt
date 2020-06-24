@@ -22,6 +22,7 @@ import com.qmarciset.androidmobiledatasync.relation.OneToManyRelation
 import com.qmarciset.androidmobiledatasync.relation.RelationHelper
 import com.qmarciset.androidmobiledatasync.relation.RelationType
 import com.qmarciset.androidmobiledatasync.sync.DataSyncState
+import org.json.JSONObject
 import timber.log.Timber
 
 @Suppress("UNCHECKED_CAST")
@@ -35,8 +36,8 @@ open class EntityListViewModel<T>(
     }
 
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
-    val properties =
-        BaseApp.fromTableForViewModel.getPropertyListFromTable<T>(tableName, BaseApp.instance)
+//    val properties =
+//        BaseApp.fromTableForViewModel.getPropertyListFromTable<T>(tableName, BaseApp.instance)
     private val relations =
         BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
     private val gson = Gson()
@@ -85,16 +86,18 @@ open class EntityListViewModel<T>(
     /**
      * Gets all entities more recent than current globalStamp
      */
-    fun getData(
+    fun getEntities(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
         val predicate = buildGlobalStampPredicate(globalStamp.value ?: authInfoHelper.globalStamp)
         Timber.d("Performing data request, with predicate $predicate")
 
+        val jsonRequestBody = buildPostRequestBody()
+
         dataLoading.value = true
-        restRepository.getMoreRecentEntities(
-            filter = predicate,
-            attributes = properties
+        restRepository.getEntitiesExtendedAttributes(
+            jsonRequestBody = jsonRequestBody,
+            filter = predicate
         ) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
@@ -203,4 +206,72 @@ open class EntityListViewModel<T>(
 
         }
     }*/
+
+    private fun buildPostRequestBody(): JSONObject {
+        return JSONObject().apply {
+            put("*", true)
+            // Adding properties
+//            val properties = getProperties(getAssociatedTableName())
+//            for (property in properties) {
+//                if (property.takeLast(2) != ".*") {
+//                    put(property, true)
+//                } // else is a relation
+//            }
+//
+//            // Adding relations
+//            for (relation in relations) {
+//                if (relation.relationType == RelationType.MANY_TO_ONE) {
+//                    put(relation.relationName, buildRelationQueryAndPropertiesManyToOne(relation.relationName))
+//                } else { // relationType == ONE_TO_MANY
+//                    val relatedEntities =
+//                        RelationHelper.getRelatedEntity<Entities>(entity, relation.relationName)
+//                    if ((relatedEntities?.__COUNT ?: 0) > 0) {
+//                        relatedEntities?.__DATACLASS?.let {
+//                            newRelatedEntities.postValue(
+//                                OneToManyRelation(entities = relatedEntities, className = it)
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+        }
+    }
+
+//    private fun buildRelationQueryAndPropertiesManyToOne(property: String): JSONObject {
+//        return JSONObject().apply {
+//            val relationTableName = relations.first { it.relationName == property }.className
+//            val relationProperties = getProperties(relationTableName)
+//            for (relationProperty in relationProperties.filter { it.isNotEmpty() }) {
+//                if (relationProperty.takeLast(2) != ".*") {
+//                    put(relationProperty, true)
+//                } else {
+//                    put(relationProperty.dropLast(2), true)
+//                }
+//            }
+//            val query = authInfoHelper.getQuery(relationTableName)
+//            if (query.isNotEmpty()) {
+//                put("__Query", query)
+//            }
+//        }
+//    }
+
+//    private fun buildRelationQueryAndPropertiesOneToMany(property: String): JSONObject {
+//        return JSONObject().apply {
+//            val relationTableName = relations.first { it. == property }.className // i want to get the Entities.__DATACLASS
+//            val relationProperties = getProperties(relationTableName)
+//            for (relationProperty in relationProperties.filter { it.isNotEmpty() }) {
+//                if (relationProperty.takeLast(2) != ".*") {
+//                    put(relationProperty, true)
+//                } else {
+//                    put(relationProperty.dropLast(2), true)
+//                }
+//            }
+//            val query = authInfoHelper.getQuery(relationTableName)
+//            if (query.isNotEmpty()) {
+//                put("__Query", query)
+//            }
+//        }
+//    }
+
+    private fun getProperties(tableName: String): List<String> = authInfoHelper.getProperties(tableName).split(",")
 }
