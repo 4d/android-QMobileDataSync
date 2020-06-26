@@ -26,21 +26,20 @@ interface FromTableForViewModel {
     /**
      * Provides the appropriate Entity
      */
-    fun parseEntityFromTable(tableName: String, jsonString: String): EntityModel
+    fun parseEntityFromTable(tableName: String, jsonString: String): EntityModel?
 
     /**
-     * Returns list of table properties as a String, separated by commas, without EntityModel
-     * inherited properties
+     * Provides the appropriate EntityList
      */
-    fun <T> getPropertyListFromTable(tableName: String, application: Application): String
-//    fun <T> getPropertyListFromTable(tableName: String, applicatioÒn: Application): List<String>
-
-    fun getPropFromTabl(tableName: String, application: Application): String
+    fun <T : EntityModel> parseEntityListFromTable(tableName: String, jsonString: String): List<T>?
 
     /**
      * Returns the list of relations of the given table
      */
-    fun <T> getRelations(tableName: String, application: Application): MutableList<Relation>
+    fun <T : EntityModel> getRelations(
+        tableName: String,
+        application: Application
+    ): MutableList<Relation>
 
     /**
      * Provides the appropriate EntityListViewModel
@@ -59,5 +58,8 @@ interface FromTableForViewModel {
         apiService: ApiService
     ): EntityViewModel<*>
 
+    /**
+     * Provides the appropriate EntityListViewModel KClass
+     */
     fun entityListViewModelClassFromTable(tableName: String): Class<EntityListViewModel<EntityModel>>
 }

@@ -6,6 +6,13 @@
 
 package com.qmarciset.androidmobiledatasync.relation
 
-data class Relation(val relationName: String, val className: String, val relationType: RelationType)
-// Example : Relation(organizer, Employee, RelationType.MANY_TO_ONE)
-// Example : Relation(employees, Entities, RelationType.ONE_TO_MANY)
+data class Relation(
+    val relationName: String,
+    val className: String,
+    val relationType: RelationType
+) {
+
+    companion object {
+        const val SUFFIX = ".*"
+    }
+}

@@ -26,7 +26,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         Timber.i("LoginViewModel initializing...")
     }
 
-    var authRepository: AuthRepository = AuthRepository(loginApiService)
+    private var authRepository: AuthRepository = AuthRepository(loginApiService)
     val authInfoHelper = AuthInfoHelper.getInstance(application.applicationContext)
 
     /**
@@ -51,7 +51,10 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         // Provides shouldRetryOnError to know if we should redirect the user to login page or
         // if we should retry silently
         val shouldRetryOnError = authInfoHelper.guestLogin
-        authRepository.authenticate(authRequestBody, shouldRetryOnError) { isSuccess, response, error ->
+        authRepository.authenticate(
+            authRequestBody,
+            shouldRetryOnError
+        ) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
                 response?.let {

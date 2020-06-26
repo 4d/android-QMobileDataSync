@@ -194,16 +194,9 @@ class DataSyncTest {
         val gson = Gson()
 
         val json = sampleDeletedRecord.toString()
-//        val entities = gson.parseJsonToType<Entities>(json)
-//        val deletedRecordList: List<DeletedRecord>? = gson.parseJsonToType(entities?.__ENTITIES)
-//        deletedRecordList?.let {
-//            for (deletedRecord in deletedRecordList) {
-//                println("deleted record id is ${deletedRecord.__PrimaryKey} for table ${deletedRecord.__TableName}")
-//                entityViewModelIsToSyncList.deleteRecord(deletedRecord)
-//            }
-//        }
-        val entities = Entities.parseEntities(gson, json)
-        DeletedRecord.decodeDeletedRecords(gson, entities) { deletedRecordList ->
+
+        val entities = Entities.parseEntities<DeletedRecord>(gson, json)
+        entityListViewModelEmployee.decodeDeletedRecords(gson, entities) { deletedRecordList ->
             for (deletedRecord in deletedRecordList) {
                 println("deleted record id is ${deletedRecord.__PrimaryKey} for table ${deletedRecord.__TableName}")
                 entityViewModelIsToSyncList.deleteRecord(deletedRecord)

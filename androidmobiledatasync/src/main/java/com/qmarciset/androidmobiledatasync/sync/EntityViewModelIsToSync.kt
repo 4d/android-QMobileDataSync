@@ -9,6 +9,7 @@ package com.qmarciset.androidmobiledatasync.sync
 import androidx.lifecycle.MediatorLiveData
 import com.qmarciset.androidmobileapi.model.entity.DeletedRecord
 import com.qmarciset.androidmobiledatasync.viewmodel.EntityListViewModel
+import com.qmarciset.androidmobiledatasync.viewmodel.deleteOne
 import timber.log.Timber
 
 data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync: Boolean) {

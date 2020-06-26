@@ -28,7 +28,7 @@ object RelationHelper {
      * Checks if the given type is among tableNames list and therefore is a many-to-one relation.
      * If it is a many-to-one relation, it returns the related Class name
      */
-    fun <T> isManyToOneRelation(
+    fun <T : EntityModel> isManyToOneRelation(
         property: KProperty1<T, *>,
         application: Application,
         tableNames: List<String>
@@ -48,12 +48,26 @@ object RelationHelper {
      * Checks if the given type is Entities and therefore is a one-to-many relation.
      * If it is a one-to-many relation, it returns the related Class name
      */
-    fun <T> isOneToManyRelation(
-        property: KProperty1<T, *>
+    fun <T : EntityModel> isOneToManyRelation(
+        property: KProperty1<T, *>,
+        application: Application,
+        tableNames: List<String>
     ): String? {
         val type = property.toString().split(":")[1].removeSuffix("?")
-        if (type.contains(Entities::class.java.canonicalName.toString())) {
-            return Entities::class.simpleName
+        val entitiesPrefix = " ${Entities::class.java.canonicalName}"
+        if (type.contains(entitiesPrefix)) {
+
+            val canonicalType = type.removePrefix(entitiesPrefix).filter { it !in "<>?" }
+            if (canonicalType.contains(application.packageName)) {
+                val customType =
+                    canonicalType.replace(
+                        "${application.packageName}.data.model.entity.custom.",
+                        ""
+                    )
+                if (customType in tableNames) {
+                    return customType
+                }
+            }
         }
         return null
     }
