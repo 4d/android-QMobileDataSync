@@ -21,7 +21,7 @@ interface FromTableForViewModel {
     /**
      * Provides the list of table names
      */
-    val tableNames: List<String>
+    fun tableNames(): List<String>
 
     /**
      * Provides the appropriate Entity
