@@ -67,6 +67,7 @@ open class EntityListViewModel<T : EntityModel>(
         Timber.d("Performing data request, with predicate $predicate")
 
         val jsonRequestBody = buildPostRequestBody()
+        Timber.d("Json body : $jsonRequestBody")
 
         dataLoading.value = true
         restRepository.getEntitiesExtendedAttributes(
