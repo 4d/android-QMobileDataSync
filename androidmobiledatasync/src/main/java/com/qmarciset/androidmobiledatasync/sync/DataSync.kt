@@ -47,6 +47,7 @@ class DataSync(
         initClosures()
     }
 
+    @Suppress("LongMethod")
     fun setObserver(
         entityViewModelIsToSyncList: List<EntityViewModelIsToSync>,
         alreadyRefreshedTable: String?
