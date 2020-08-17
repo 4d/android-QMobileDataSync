@@ -37,7 +37,11 @@ abstract class BaseViewModel<T>(
      */
 
     val roomRepository: RoomRepository<T> = RoomRepository(dao)
-    val restRepository: RestRepository = RestRepository(tableName, apiService)
+    var restRepository: RestRepository = RestRepository(tableName, apiService)
+
+    fun refreshRestRepository(apiService: ApiService) {
+        restRepository = RestRepository(tableName, apiService)
+    }
 
     /**
      * LiveData
