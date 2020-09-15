@@ -113,12 +113,7 @@ class DataSync(
 
                         if (isAtLeastOneToSync) {
                             Timber.d("[There is at least one table that requires data synchronization]")
-                            if (DataSyncUtils.canPerformNewSync(
-                                received,
-                                requestPerformed,
-                                numberOfRequestMaxLimit
-                            )
-                            ) {
+                            if (DataSyncUtils.canPerformNewSync(received, requestPerformed, numberOfRequestMaxLimit)) {
                                 syncTables(entityViewModelIsToSyncList)
                             } else {
                                 unsuccessfulSyncClosure(entityViewModelIsToSyncList)
@@ -137,12 +132,7 @@ class DataSync(
                     "[GlobalStamps received for initializing : " +
                         "${received.get() + 1}/${nbToReceiveForInitializing.get()}]"
                 )
-                if (DataSyncUtils.canStartSync(
-                    received,
-                    nbToReceiveForInitializing,
-                    viewModelStillInitializing
-                )
-                ) {
+                if (DataSyncUtils.canStartSync(received, nbToReceiveForInitializing, viewModelStillInitializing)) {
                     // first sync
                     syncTables(entityViewModelIsToSyncList)
                 }

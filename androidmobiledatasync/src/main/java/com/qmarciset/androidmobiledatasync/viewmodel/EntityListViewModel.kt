@@ -139,6 +139,7 @@ open class EntityListViewModel<T : EntityModel>(
         entityList?.let {
             for (item in entityList) {
                 val itemJson = gson.toJson(item)
+                Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
                 val entity: EntityModel? =
                     BaseApp.fromTableForViewModel.parseEntityFromTable(
                         getAssociatedTableName(),
@@ -146,8 +147,8 @@ open class EntityListViewModel<T : EntityModel>(
                     )
                 entity?.let {
                     this.insert(it)
-                    if (!fetchedFromRelation)
-                        checkRelations(it)
+//                    if (!fetchedFromRelation)
+//                        checkRelations(it)
                 }
             }
         }

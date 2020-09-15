@@ -62,4 +62,9 @@ interface FromTableForViewModel {
      * Provides the appropriate EntityListViewModel KClass
      */
     fun entityListViewModelClassFromTable(tableName: String): Class<EntityListViewModel<EntityModel>>
+
+    /**
+     * Provides the appropriate EntityViewModel KClass
+     */
+    fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
 }

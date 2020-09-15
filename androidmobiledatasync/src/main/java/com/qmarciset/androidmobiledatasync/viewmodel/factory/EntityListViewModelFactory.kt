@@ -18,7 +18,7 @@ class EntityListViewModelFactory(
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
 
-        val key = tableName + VIEWMODEL_BASENAME
+        val key = tableName + LIST_VIEWMODEL_BASENAME
 
         return if (viewModelMap.containsKey(key)) {
             viewModelMap[key] as T
@@ -36,7 +36,7 @@ class EntityListViewModelFactory(
 
     companion object {
 
-        const val VIEWMODEL_BASENAME = "EntityListViewModel"
+        const val LIST_VIEWMODEL_BASENAME = "EntityListViewModel"
 
         // The HashMap is here to ensure that fragments use the same viewModel instance which
         // the activity already created. Without this HashMap, I experienced unwanted behaviour

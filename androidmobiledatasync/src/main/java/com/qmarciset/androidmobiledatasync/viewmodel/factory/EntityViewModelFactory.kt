@@ -18,10 +18,35 @@ class EntityViewModelFactory(
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return BaseApp.fromTableForViewModel.entityViewModelFromTable(
-            tableName,
-            id,
-            apiService
-        ) as T
+
+        val key = tableName + VIEWMODEL_BASENAME + id
+
+        return if (viewModelMap.containsKey(key)) {
+            viewModelMap[key] as T
+        } else {
+            addViewModel(
+                key,
+                BaseApp.fromTableForViewModel.entityViewModelFromTable(
+                    tableName,
+                    id,
+                    apiService
+                )
+            )
+            viewModelMap[key] as T
+        }
+    }
+
+    companion object {
+
+        const val VIEWMODEL_BASENAME = "EntityViewModel"
+
+        // The HashMap is here to ensure that fragments use the same viewModel instance which
+        // the activity already created. Without this HashMap, I experienced unwanted behaviour
+        // such as creation of a new viewModel instance every time we land on the fragment view
+        val viewModelMap = HashMap<String, ViewModel>()
+
+        fun addViewModel(key: String, viewModel: ViewModel) {
+            viewModelMap[key] = viewModel
+        }
     }
 }

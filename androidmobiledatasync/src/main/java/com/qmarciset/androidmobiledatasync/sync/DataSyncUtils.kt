@@ -53,7 +53,7 @@ object DataSyncUtils {
         receivedSyncedTableGS: List<GlobalStampWithTable>,
         authInfoHelperGlobalStamp: Int
     ): Int = maxOf(
-        receivedSyncedTableGS.map { it.globalStamp }.maxBy { it } ?: 0,
+        receivedSyncedTableGS.map { it.globalStamp }.maxByOrNull { it } ?: 0,
         authInfoHelperGlobalStamp
     )
 }

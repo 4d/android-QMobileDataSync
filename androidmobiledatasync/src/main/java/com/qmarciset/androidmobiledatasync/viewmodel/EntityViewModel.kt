@@ -7,10 +7,12 @@
 package com.qmarciset.androidmobiledatasync.viewmodel
 
 import androidx.lifecycle.LiveData
+import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobileapi.network.ApiService
+import com.qmarciset.androidmobiledatastore.data.RoomRelation
 import timber.log.Timber
 
-open class EntityViewModel<T>(
+abstract class EntityViewModel<T : EntityModel>(
     tableName: String,
     id: String,
     apiService: ApiService
@@ -26,4 +28,8 @@ open class EntityViewModel<T>(
      */
 
     open val entity: LiveData<T> = roomRepository.getOne(id)
+
+    abstract fun getManyToOneRelationKeyFromEntity(entity: EntityModel): Map<String, LiveData<List<RoomRelation>>>
+
+    abstract fun setRelationToLayout(relationName: String, roomRelation: RoomRelation)
 }
