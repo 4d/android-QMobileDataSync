@@ -29,7 +29,7 @@ abstract class EntityViewModel<T : EntityModel>(
 
     open val entity: LiveData<T> = roomRepository.getOne(id)
 
-    abstract fun getManyToOneRelationKeysFromEntity(entity: EntityModel): Map<String, LiveData<List<RoomRelation>>>
+    abstract fun getManyToOneRelationKeysFromEntity(entity: EntityModel): Map<String, LiveData<RoomRelation>>
 
     abstract fun setRelationToLayout(relationName: String, roomRelation: RoomRelation)
 }
