@@ -15,6 +15,10 @@ import com.qmarciset.androidmobileapi.model.entity.Entities
 import com.qmarciset.androidmobileapi.model.entity.EntityModel
 import com.qmarciset.androidmobileapi.network.ApiService
 import com.qmarciset.androidmobileapi.utils.RequestErrorHelper
+import com.qmarciset.androidmobileapi.utils.getSafeArray
+import com.qmarciset.androidmobileapi.utils.getSafeInt
+import com.qmarciset.androidmobileapi.utils.getSafeString
+import com.qmarciset.androidmobileapi.utils.getStringList
 import com.qmarciset.androidmobileapi.utils.parseJsonToType
 import com.qmarciset.androidmobiledatasync.app.BaseApp
 import com.qmarciset.androidmobiledatasync.relation.ManyToOneRelation
@@ -22,6 +26,7 @@ import com.qmarciset.androidmobiledatasync.relation.OneToManyRelation
 import com.qmarciset.androidmobiledatasync.relation.RelationHelper
 import com.qmarciset.androidmobiledatasync.relation.RelationType
 import com.qmarciset.androidmobiledatasync.sync.DataSyncState
+import org.json.JSONArray
 import timber.log.Timber
 
 open class EntityListViewModel<T : EntityModel>(
@@ -131,38 +136,34 @@ open class EntityListViewModel<T : EntityModel>(
      * Decodes the list of entities retrieved
      */
     fun decodeEntityModel(entities: Entities<T>?, fetchedFromRelation: Boolean) {
-        val jsonString = gson.toJson(entities?.__ENTITIES)
-        val entityList = BaseApp.fromTableForViewModel.parseEntityListFromTable<T>(
-            getAssociatedTableName(),
-            jsonString
-        )
-        entityList?.let {
-            for (item in entityList) {
-                val itemJson = gson.toJson(item)
-                Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
-                val entity: EntityModel? =
-                    BaseApp.fromTableForViewModel.parseEntityFromTable(
-                        getAssociatedTableName(),
-                        itemJson.toString()
-                    )
-                entity?.let {
-                    this.insert(it)
-//                    if (!fetchedFromRelation)
-//                        checkRelations(it)
-                }
+        val entitiesJsonString = gson.toJson(entities?.__ENTITIES)
+
+        val entitiesList = JSONArray(entitiesJsonString).getStringList()
+        for (entityJsonString in entitiesList) {
+            Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
+            val entity: EntityModel? =
+                BaseApp.fromTableForViewModel.parseEntityFromTable(
+                    getAssociatedTableName(),
+                    entityJsonString,
+                    fetchedFromRelation
+                )
+            entity?.let {
+                this.insert(it)
+                if (!fetchedFromRelation)
+                    checkRelations(entityJsonString)
             }
         }
     }
 
     /**
-     * Checks in the retrieved [entity] if there is a provided relation. If there is any, we want it
+     * Checks in the retrieved [entityJsonString] if there is a provided relation. If there is any, we want it
      * to be added in the appropriate Room dao
      */
-    fun checkRelations(entity: EntityModel) {
+    fun checkRelations(entityJsonString: String) {
         for (relation in relations) {
             if (relation.relationType == RelationType.MANY_TO_ONE) {
                 val relatedEntity =
-                    RelationHelper.getRelatedEntity<EntityModel>(entity, relation.relationName)
+                    RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
                 relatedEntity?.let {
                     newRelatedEntity.postValue(
                         ManyToOneRelation(
@@ -173,18 +174,17 @@ open class EntityListViewModel<T : EntityModel>(
                 }
             } else { // relationType == ONE_TO_MANY
                 val relatedEntities =
-                    RelationHelper.getRelatedEntity<Entities<EntityModel>>(
-                        entity,
-                        relation.relationName
-                    )
-                if ((relatedEntities?.__COUNT ?: 0) > 0) {
-                    relatedEntities?.__DATACLASS?.let {
-                        newRelatedEntities.postValue(
-                            OneToManyRelation(
-                                entities = relatedEntities,
-                                className = it
+                    RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
+                if (relatedEntities?.getSafeInt("__COUNT") ?: 0 > 0) {
+                    relatedEntities?.getSafeString("__DATACLASS")?.let { dataClass ->
+                        relatedEntities.getSafeArray("__ENTITIES")?.let { entities ->
+                            newRelatedEntities.postValue(
+                                OneToManyRelation(
+                                    entities = entities,
+                                    className = dataClass
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }

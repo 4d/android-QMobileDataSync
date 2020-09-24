@@ -26,12 +26,7 @@ interface FromTableForViewModel {
     /**
      * Provides the appropriate Entity
      */
-    fun parseEntityFromTable(tableName: String, jsonString: String): EntityModel?
-
-    /**
-     * Provides the appropriate EntityList
-     */
-    fun <T : EntityModel> parseEntityListFromTable(tableName: String, jsonString: String): List<T>?
+    fun parseEntityFromTable(tableName: String, jsonString: String, fetchedFromRelation: Boolean): EntityModel?
 
     /**
      * Returns the list of relations of the given table

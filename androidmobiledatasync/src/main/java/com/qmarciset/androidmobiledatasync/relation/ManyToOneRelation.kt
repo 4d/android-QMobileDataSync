@@ -6,6 +6,6 @@
 
 package com.qmarciset.androidmobiledatasync.relation
 
-import com.qmarciset.androidmobileapi.model.entity.EntityModel
+import org.json.JSONObject
 
-data class ManyToOneRelation(val entity: EntityModel, val className: String)
+data class ManyToOneRelation(val entity: JSONObject, val className: String)

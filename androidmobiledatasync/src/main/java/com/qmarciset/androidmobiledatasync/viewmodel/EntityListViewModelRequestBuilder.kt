@@ -31,7 +31,9 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
         // Adding properties
         val properties = authInfoHelper.getProperties(getAssociatedTableName()).split(",")
         for (property in properties) {
-            if (property.takeLast(2) != Relation.SUFFIX) {
+            if (!property.endsWith(Relation.SUFFIX) &&
+                !(property.startsWith("__") && property.endsWith("Key"))
+            ) {
                 put(property, true)
             } // else is a relation
         }
@@ -47,11 +49,9 @@ private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProper
     return JSONObject().apply {
         val relationProperties = authInfoHelper.getProperties(relation.className).split(",")
         for (relationProperty in relationProperties.filter { it.isNotEmpty() }) {
-            if (relationProperty.takeLast(2) != Relation.SUFFIX) {
-                put(relationProperty, true)
+            if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
+                put(relationProperty.removeSuffix(Relation.SUFFIX), true)
             }
-//                else
-//                    put(relationProperty.dropLast(2), true) // Only gives __deferred {...}
         }
         val query = authInfoHelper.getQuery(relation.className)
         if (query.isNotEmpty()) {

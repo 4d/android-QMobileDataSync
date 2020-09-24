@@ -9,19 +9,18 @@ package com.qmarciset.androidmobiledatasync.relation
 import android.app.Application
 import com.qmarciset.androidmobileapi.model.entity.Entities
 import com.qmarciset.androidmobileapi.model.entity.EntityModel
+import com.qmarciset.androidmobileapi.utils.getSafeObject
+import org.json.JSONObject
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.memberProperties
 
 object RelationHelper {
 
     /**
      * Retrieve the related type from its relation name. This method uses reflection
      */
-    @Suppress("UNCHECKED_CAST")
-    fun <T> getRelatedEntity(entity: EntityModel, relationName: String): T? {
-        val property =
-            entity::class.memberProperties.first { it.name == relationName } as KProperty1<EntityModel, *>
-        return property.get(entity) as T?
+    fun getRelatedEntity(entityJsonString: String, relationName: String): JSONObject? {
+        val relationJsonObject = JSONObject(entityJsonString)
+        return relationJsonObject.getSafeObject(relationName)
     }
 
     /**

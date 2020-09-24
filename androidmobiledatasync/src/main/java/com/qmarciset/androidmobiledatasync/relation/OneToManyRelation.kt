@@ -6,7 +6,6 @@
 
 package com.qmarciset.androidmobiledatasync.relation
 
-import com.qmarciset.androidmobileapi.model.entity.Entities
-import com.qmarciset.androidmobileapi.model.entity.EntityModel
+import org.json.JSONArray
 
-data class OneToManyRelation(val entities: Entities<EntityModel>, val className: String)
+data class OneToManyRelation(val entities: JSONArray, val className: String)
