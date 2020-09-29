@@ -35,7 +35,7 @@ object RelationHelper {
         val type = property.toString().split(":")[1].removeSuffix("?")
         if (type.contains(application.packageName)) {
             val customType =
-                type.replace(" ${application.packageName}.data.model.entity.custom.", "")
+                type.replace(" ${application.packageName}.data.model.entity.", "")
             if (customType in tableNames) {
                 return customType
             }
@@ -60,7 +60,7 @@ object RelationHelper {
             if (canonicalType.contains(application.packageName)) {
                 val customType =
                     canonicalType.replace(
-                        "${application.packageName}.data.model.entity.custom.",
+                        "${application.packageName}.data.model.entity.",
                         ""
                     )
                 if (customType in tableNames) {
