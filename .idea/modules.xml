@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AndroidMobileDataSync.iml" filepath="$PROJECT_DIR$/AndroidMobileDataSync.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../AndroidMobileAPI/androidmobileapi/androidmobileapi.iml" filepath="$PROJECT_DIR$/../AndroidMobileAPI/androidmobileapi/androidmobileapi.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../AndroidMobileDataStore/androidmobiledatastore/androidmobiledatastore.iml" filepath="$PROJECT_DIR$/../AndroidMobileDataStore/androidmobiledatastore/androidmobiledatastore.iml" />
-      <module fileurl="file://$PROJECT_DIR$/androidmobiledatasync/androidmobiledatasync.iml" filepath="$PROJECT_DIR$/androidmobiledatasync/androidmobiledatasync.iml" />
-      <module fileurl="file://$PROJECT_DIR$/buildSrc/buildSrc.iml" filepath="$PROJECT_DIR$/buildSrc/buildSrc.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/QMobileDataSync.iml" filepath="$PROJECT_DIR$/.idea/modules/QMobileDataSync.iml" group="QMobileDataSync" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/QMobileDataSync_buildSrc.iml" filepath="$PROJECT_DIR$/.idea/modules/QMobileDataSync_buildSrc.iml" group="QMobileDataSync/QMobileDataSync_buildSrc" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1474178803/qmobileapi.iml" filepath="$PROJECT_DIR$/.idea/modules/1474178803/qmobileapi.iml" group="QMobileDataSync/qmobileapi" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1603319661/qmobiledatastore.iml" filepath="$PROJECT_DIR$/.idea/modules/-1603319661/qmobiledatastore.iml" group="QMobileDataSync/qmobiledatastore" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/qmobiledatasync/qmobiledatasync.iml" filepath="$PROJECT_DIR$/.idea/modules/qmobiledatasync/qmobiledatasync.iml" group="QMobileDataSync/qmobiledatasync" />
     </modules>
   </component>
 </project>

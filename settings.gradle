@@ -1,6 +1,6 @@
-include ':androidmobiledatasync'
-rootProject.name ='AndroidMobileDataSync'
-include ':androidmobileapi'
-project(':androidmobileapi').projectDir = new File(settingsDir, '../AndroidMobileAPI/androidmobileapi')
-include ':androidmobiledatastore'
-project(':androidmobiledatastore').projectDir = new File(settingsDir, '../AndroidMobileDataStore/androidmobiledatastore')
+include ':qmobiledatasync'
+rootProject.name ='QMobileDataSync'
+include ':qmobileapi'
+project(':qmobileapi').projectDir = new File(settingsDir, '../QMobileAPI/qmobileapi')
+include ':qmobiledatastore'
+project(':qmobiledatastore').projectDir = new File(settingsDir, '../QMobileDataStore/qmobiledatastore')

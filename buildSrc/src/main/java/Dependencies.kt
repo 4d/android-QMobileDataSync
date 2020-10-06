@@ -7,9 +7,9 @@
 import org.gradle.api.JavaVersion
 
 object Versions {
-    // AndroidMobile libraries
-    val androidmobileapi = "0.0.1"
-    val androidmobiledatastore = "0.0.1"
+    // QMobile libraries
+    val qmobileapi = "0.0.1"
+    val qmobiledatastore = "0.0.1"
 
     val android_gradle_plugin = "3.5.2"
     val arch_core = "2.1.0"
@@ -47,11 +47,11 @@ object Tools {
     val kotlin_gradle_plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}"
 }
 
-object AndroidMobileLibs {
-    val androidmobileapi =
-        "com.qmarciset.androidmobileapi:androidmobileapi:${Versions.androidmobileapi}"
-    val androidmobiledatastore =
-        "com.qmarciset.androidmobiledatastore:androidmobiledatastore:${Versions.androidmobiledatastore}"
+object QMobileLibs {
+    val qmobileapi =
+        "com.qmobile.qmobileapi:qmobileapi:${Versions.qmobileapi}"
+    val qmobiledatastore =
+        "com.qmobile.qmobiledatastore:qmobiledatastore:${Versions.qmobiledatastore}"
 }
 
 object Libs {
@@ -78,7 +78,7 @@ object Libs {
     val mockito = "org.mockito:mockito-core:${Versions.mockito}"
     val robolectric = "org.robolectric:robolectric:${Versions.robolectric}"
 
-    // For AndroidMobileAPI
+    // For QMobileAPI
     val androidx_preference_ktx = "androidx.preference:preference-ktx:${Versions.preference}"
     val androidx_runner = "androidx.test:runner:${Versions.runner}"
     val okhttp_logging_interceptor = "com.squareup.okhttp3:logging-interceptor:${Versions.okhttp}"
@@ -87,6 +87,6 @@ object Libs {
     val retrofit_adapter_rxjava2 = "com.squareup.retrofit2:adapter-rxjava2:${Versions.retrofit}"
     val rxandroid = "io.reactivex.rxjava2:rxandroid:${Versions.rx_android}"
 
-    // For AndroidMobileDataStore
+    // For QMobileDataStore
     val androidx_room = "androidx.room:room-ktx:${Versions.room}"
 }
