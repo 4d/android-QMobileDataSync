@@ -24,8 +24,8 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
 import com.qmobile.qmobiledatasync.relation.OneToManyRelation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
-import com.qmobile.qmobiledatasync.relation.RelationType
-import com.qmobile.qmobiledatasync.sync.DataSyncState
+import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
+import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import org.json.JSONArray
 import timber.log.Timber
 
@@ -56,7 +56,7 @@ open class EntityListViewModel<T : EntityModel>(
     open val globalStamp = MutableLiveData<Int>().apply { value = authInfoHelper.globalStamp }
 
     val dataSynchronized =
-        MutableLiveData<DataSyncState>().apply { value = DataSyncState.UNSYNCHRONIZED }
+        MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
 
     val newRelatedEntity = MutableLiveData<ManyToOneRelation>()
 
@@ -161,7 +161,7 @@ open class EntityListViewModel<T : EntityModel>(
      */
     fun checkRelations(entityJsonString: String) {
         for (relation in relations) {
-            if (relation.relationType == RelationType.MANY_TO_ONE) {
+            if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
                 val relatedEntity =
                     RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
                 relatedEntity?.let {

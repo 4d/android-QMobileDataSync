@@ -9,7 +9,7 @@ package com.qmobile.qmobiledatasync.relation
 data class Relation(
     val relationName: String,
     val className: String,
-    val relationType: RelationType
+    val relationType: RelationTypeEnum
 ) {
 
     companion object {

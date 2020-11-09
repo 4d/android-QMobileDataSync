@@ -6,6 +6,6 @@
 
 package com.qmobile.qmobiledatasync.relation
 
-enum class RelationType {
+enum class RelationTypeEnum {
     ONE_TO_MANY, MANY_TO_ONE
 }

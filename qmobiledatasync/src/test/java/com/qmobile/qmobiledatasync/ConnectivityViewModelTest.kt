@@ -11,7 +11,7 @@ import android.net.Network
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
-import com.qmobile.qmobileapi.connectivity.NetworkState
+import com.qmobile.qmobileapi.connectivity.NetworkStateEnum
 import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
 import com.qmobile.qmobiledatasync.viewmodel.ConnectivityViewModel
 import org.junit.Assert
@@ -48,7 +48,7 @@ class ConnectivityViewModelTest {
 
     @Before
     fun setUp() {
-        MockitoAnnotations.initMocks(this)
+        MockitoAnnotations.openMocks(this)
     }
 
     @Test
@@ -59,17 +59,17 @@ class ConnectivityViewModelTest {
         Mockito.`when`(connectivityViewModel.networkStateMonitor).thenReturn(networkStateMonitor)
 
         networkStateMonitor.networkStateObject.onAvailable(network)
-        Assert.assertEquals(NetworkState.CONNECTED, connectivityViewModel.networkStateMonitor.value)
+        Assert.assertEquals(NetworkStateEnum.CONNECTED, connectivityViewModel.networkStateMonitor.value)
 
         networkStateMonitor.networkStateObject.onUnavailable()
         Assert.assertEquals(
-            NetworkState.DISCONNECTED,
+            NetworkStateEnum.DISCONNECTED,
             connectivityViewModel.networkStateMonitor.value
         )
 
         networkStateMonitor.networkStateObject.onLost(network)
         Assert.assertEquals(
-            NetworkState.CONNECTION_LOST,
+            NetworkStateEnum.CONNECTION_LOST,
             connectivityViewModel.networkStateMonitor.value
         )
     }

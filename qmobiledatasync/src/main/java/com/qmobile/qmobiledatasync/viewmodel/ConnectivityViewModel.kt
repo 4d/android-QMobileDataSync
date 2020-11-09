@@ -13,7 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.qmobile.qmobileapi.connectivity.NetworkState
+import com.qmobile.qmobileapi.connectivity.NetworkStateEnum
 import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
 import com.qmobile.qmobileapi.connectivity.ServerAccessibility
 import com.qmobile.qmobileapi.utils.PING_TIMEOUT
@@ -37,7 +37,7 @@ open class ConnectivityViewModel(
      */
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-    open val networkStateMonitor: LiveData<NetworkState> =
+    open val networkStateMonitor: LiveData<NetworkStateEnum> =
         NetworkStateMonitor(
             connectivityManager
         )
@@ -49,8 +49,16 @@ open class ConnectivityViewModel(
      */
     open fun checkAccessibility(remoteUrl: String) {
         val url = URL(remoteUrl)
-        serverAccessibility.pingServer(url.host, url.port, PING_TIMEOUT) { isAccessible ->
-            serverAccessible.postValue(isAccessible)
+        serverAccessibility.pingServer(
+            url.host,
+            url.port,
+            PING_TIMEOUT
+        ) { isAccessible, throwable ->
+            throwable?.let {
+                Timber.e("Error occurred while pinging server with url [$url] : ${throwable.message}")
+            }
+
+            serverAccessible.postValue(isAccessible ?: false)
         }
     }
 

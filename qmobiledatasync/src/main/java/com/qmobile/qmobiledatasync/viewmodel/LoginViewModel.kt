@@ -11,7 +11,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
-import com.qmobile.qmobileapi.auth.AuthenticationState
+import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
@@ -37,8 +37,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
 
     val emailValid = MutableLiveData<Boolean>().apply { value = false }
 
-    val authenticationState: MutableLiveData<AuthenticationState> by lazy {
-        MutableLiveData<AuthenticationState>(AuthenticationState.UNAUTHENTICATED)
+    val authenticationState: MutableLiveData<AuthenticationStateEnum> by lazy {
+        MutableLiveData<AuthenticationStateEnum>(AuthenticationStateEnum.UNAUTHENTICATED)
     }
 
     /**
@@ -64,18 +64,18 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                     authResponse?.let {
                         // Fill SharedPreferences with response details
                         if (authInfoHelper.handleLoginInfo(authResponse)) {
-                            authenticationState.postValue(AuthenticationState.AUTHENTICATED)
+                            authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
                             onResult(true)
                             return@authenticate
                         }
                     }
                 }
                 onResult(false)
-                authenticationState.postValue(AuthenticationState.INVALID_AUTHENTICATION)
+                authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
                 RequestErrorHelper.handleError(error)
                 onResult(false)
-                authenticationState.postValue(AuthenticationState.INVALID_AUTHENTICATION)
+                authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
         }
     }
@@ -86,7 +86,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     fun disconnectUser(onResult: (success: Boolean) -> Unit) {
         authRepository.logout { isSuccess, _, error ->
             dataLoading.value = false
-            authenticationState.postValue(AuthenticationState.LOGOUT)
+            authenticationState.postValue(AuthenticationStateEnum.LOGOUT)
             authInfoHelper.sessionToken = ""
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")

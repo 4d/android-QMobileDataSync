@@ -24,6 +24,7 @@ dependencies {
 
     // Lifecycle
     implementation Libs.lifecycle_extensions
+    implementation Libs.lifecyle_viewmodel
 
     // Utils
     implementation Libs.multidex

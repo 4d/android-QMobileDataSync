@@ -15,7 +15,7 @@ import timber.log.Timber
 data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync: Boolean) {
 
     fun sync() {
-        this.vm.dataSynchronized.postValue(DataSyncState.SYNCHRONIZING)
+        this.vm.dataSynchronized.postValue(DataSyncStateEnum.SYNCHRONIZING)
 
         Timber.d("[Sync] [Table : ${this.vm.getAssociatedTableName()}, isToSync : ${this.isToSync}]")
 
@@ -44,13 +44,13 @@ data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync:
 
     fun notifyDataSynced() {
         this.vm.dataSynchronized.postValue(
-            DataSyncState.SYNCHRONIZED
+            DataSyncStateEnum.SYNCHRONIZED
         )
     }
 
     fun notifyDataUnSynced() {
         this.vm.dataSynchronized.postValue(
-            DataSyncState.UNSYNCHRONIZED
+            DataSyncStateEnum.UNSYNCHRONIZED
         )
     }
 }
