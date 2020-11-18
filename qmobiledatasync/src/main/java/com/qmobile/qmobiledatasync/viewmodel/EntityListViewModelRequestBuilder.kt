@@ -29,7 +29,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(globalStamp: Int): S
 fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject {
     return JSONObject().apply {
         // Adding properties
-        val properties = authInfoHelper.getProperties(getAssociatedTableName()).split(",")
+        val properties = authInfoHelper.getProperties(getAssociatedTableName()).split(", ")
         for (property in properties) {
             if (!property.endsWith(Relation.SUFFIX) &&
                 !(property.startsWith("__") && property.endsWith("Key"))
@@ -47,7 +47,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
 private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProperties(relation: Relation): JSONObject {
     return JSONObject().apply {
-        val relationProperties = authInfoHelper.getProperties(relation.className).split(",")
+        val relationProperties = authInfoHelper.getProperties(relation.className).split(", ")
         for (relationProperty in relationProperties.filter { it.isNotEmpty() }) {
             if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
                 put(relationProperty.removeSuffix(Relation.SUFFIX), true)
