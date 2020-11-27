@@ -97,6 +97,10 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         }
     }
 
+    fun refreshAuthRepository(loginApiService: LoginApiService) {
+        authRepository = AuthRepository(loginApiService)
+    }
+
     override fun onCleared() {
         super.onCleared()
         authRepository.disposable.dispose()
