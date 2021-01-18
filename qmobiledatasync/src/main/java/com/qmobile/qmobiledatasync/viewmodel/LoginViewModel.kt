@@ -41,6 +41,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         MutableLiveData<AuthenticationStateEnum>(AuthenticationStateEnum.UNAUTHENTICATED)
     }
 
+    val toastMessage = MutableLiveData<String>()
+
     /**
      * Authenticates
      */
@@ -73,7 +75,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
-                RequestErrorHelper.handleError(error)
+                RequestErrorHelper.handleError(error, toastMessage)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
@@ -91,7 +93,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
-                RequestErrorHelper.handleError(error)
+                RequestErrorHelper.handleError(error, toastMessage)
             }
             onResult(isSuccess)
         }

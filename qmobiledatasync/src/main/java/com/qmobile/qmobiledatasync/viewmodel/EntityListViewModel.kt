@@ -104,7 +104,7 @@ open class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
-                RequestErrorHelper.handleError(error)
+                RequestErrorHelper.handleError(error, toastMessage)
                 onResult(false)
             }
         }
@@ -113,7 +113,7 @@ open class EntityListViewModel<T : EntityModel>(
     fun getDeletedRecords(
         onResult: (deletedRecordList: List<DeletedRecord>) -> Unit
     ) {
-        DeletedRecord.getDeletedRecords(gson, restRepository, authInfoHelper) { entities ->
+        DeletedRecord.getDeletedRecords(gson, restRepository, authInfoHelper, toastMessage) { entities ->
             decodeDeletedRecords(gson, entities) { deletedRecords ->
                 onResult(deletedRecords)
             }
