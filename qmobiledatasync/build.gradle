@@ -14,8 +14,8 @@ dependencies {
     // QMobile libraries
 //    implementation project(':qmobileapi')
 //    implementation project(':qmobiledatastore')
-    implementation(QMobileLibs.qmobileapi + gitBranch()) { changing = true }
-    implementation(QMobileLibs.qmobiledatastore + gitBranch()) { changing = true }
+    implementation(QMobileLibs.qmobileapi + '-' + gitBranch()) { changing = true }
+    implementation(QMobileLibs.qmobiledatastore + '-' + gitBranch()) { changing = true }
 
     // Common
     implementation Libs.androidx_appcompat
