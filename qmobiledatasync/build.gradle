@@ -14,8 +14,8 @@ dependencies {
     // QMobile libraries
 //    implementation project(':qmobileapi')
 //    implementation project(':qmobiledatastore')
-    implementation(QMobileLibs.qmobileapi + '-' + gitBranch()) { changing = true }
-    implementation(QMobileLibs.qmobiledatastore + '-' + gitBranch()) { changing = true }
+    implementation(QMobileAPI) { changing = true }
+    implementation(QMobileDataStore) { changing = true }
 
     // Common
     implementation Libs.androidx_appcompat
@@ -43,14 +43,18 @@ dependencies {
 
 def libraryGroupId = 'com.qmobile.qmobiledatasync'
 def libraryArtifactId = 'qmobiledatasync'
-def libraryVersion = Versions.qmobiledatasync + '-' + gitBranch()
+def libraryVersion = Versions.qmobiledatasync
 def buildVariant = 'release'
 
 publishing {
     publications {
         aar(MavenPublication) {
             groupId libraryGroupId
-            version libraryVersion
+            def branchName = System.getenv('CI_COMMIT_REF_NAME')
+            if (branchName != null) {
+                branchName = branchName.replace("/", "_")
+            }
+            version libraryVersion + '-' + branchName
 
             artifactId libraryArtifactId
             artifact("$buildDir/outputs/aar/${artifactId}-${buildVariant}.aar")
