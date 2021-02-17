@@ -14,10 +14,10 @@ dependencies {
 
 
     // QMobile libraries
-    implementation project(':qmobileapi')
-    implementation project(':qmobiledatastore')
-  //  implementation(QMobileLibs.qmobileapi) { changing = true }
-   // implementation(QMobileLibs.qmobiledatastore) { changing = true }
+    //implementation project(':qmobileapi')
+    //implementation project(':qmobiledatastore')
+     implementation(QMobileLibs.qmobileapi) { changing = true }
+     implementation(QMobileLibs.qmobiledatastore) { changing = true }
 
     // Room
     implementation Libs.androidx_room
