@@ -12,17 +12,11 @@ apply from: "$rootDir/buildscripts/projectDependencyGraph.gradle"
 dependencies {
     implementation 'androidx.sqlite:sqlite-ktx:2.1.0'
 
-
     // QMobile libraries
     //implementation project(':qmobileapi')
     //implementation project(':qmobiledatastore')
-     implementation(QMobileLibs.qmobileapi) { changing = true }
-     implementation(QMobileLibs.qmobiledatastore) { changing = true }
-
-    // Room
-    implementation Libs.androidx_room
-    implementation Libs.androidx_room_runtime
-    kapt Libs.androidx_room_compiler
+    implementation(QMobileAPI) { changing = true }
+    implementation(QMobileDataStore) { changing = true }
 
     // Common
     implementation Libs.androidx_appcompat
@@ -33,6 +27,11 @@ dependencies {
     implementation Libs.lifecycle_extensions
     implementation Libs.lifecyle_viewmodel
 
+    // Room
+    implementation Libs.androidx_room
+    implementation Libs.androidx_room_runtime
+    kapt Libs.androidx_room_compiler
+    
     // Utils
     implementation Libs.multidex
     implementation Libs.okhttp
@@ -50,14 +49,18 @@ dependencies {
 
 def libraryGroupId = 'com.qmobile.qmobiledatasync'
 def libraryArtifactId = 'qmobiledatasync'
-def libraryVersion = '0.0.1'
+def libraryVersion = Versions.qmobiledatasync
 def buildVariant = 'release'
 
 publishing {
     publications {
         aar(MavenPublication) {
             groupId libraryGroupId
-            version libraryVersion
+            def branchName = System.getenv('CI_COMMIT_REF_NAME')
+            if (branchName != null) {
+                branchName = branchName.replace("/", "_")
+            }
+            version libraryVersion + '-' + branchName
 
             artifactId libraryArtifactId
             artifact("$buildDir/outputs/aar/${artifactId}-${buildVariant}.aar")
