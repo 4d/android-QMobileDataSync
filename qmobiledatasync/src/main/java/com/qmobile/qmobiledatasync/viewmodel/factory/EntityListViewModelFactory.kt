@@ -8,8 +8,11 @@ package com.qmobile.qmobiledatasync.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
+import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobiledatasync.app.BaseApp
+import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 
 class EntityListViewModelFactory(
     private val tableName: String,
@@ -47,4 +50,21 @@ class EntityListViewModelFactory(
             viewModelMap[key] = viewModel
         }
     }
+}
+
+fun getEntityListViewModel(
+    viewModelStoreOwner: ViewModelStoreOwner?,
+    apiService: ApiService,
+    tableName: String
+): EntityListViewModel<EntityModel> {
+    val clazz = BaseApp.fromTableForViewModel.entityListViewModelClassFromTable(tableName)
+    viewModelStoreOwner?.run {
+        return ViewModelProvider(
+            this,
+            EntityListViewModelFactory(
+                tableName,
+                apiService
+            )
+        )[clazz]
+    } ?: throw IllegalStateException("Invalid Activity")
 }

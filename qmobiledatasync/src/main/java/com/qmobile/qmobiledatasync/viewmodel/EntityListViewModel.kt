@@ -16,7 +16,8 @@ import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
-import com.qmobile.qmobileapi.utils.RequestErrorHelper
+import com.qmobile.qmobileapi.repository.RestRepository
+import com.qmobile.qmobileapi.utils.DELETED_RECORDS
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
@@ -117,7 +118,7 @@ open class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
-                RequestErrorHelper.handleError(error, toastMessage)
+                toastMessage.showError(error)
                 onResult(false)
             }
         }
@@ -126,14 +127,37 @@ open class EntityListViewModel<T : EntityModel>(
     fun getDeletedRecords(
         onResult: (deletedRecordList: List<DeletedRecord>) -> Unit
     ) {
-        DeletedRecord.getDeletedRecords(
-            gson,
-            restRepository,
-            authInfoHelper,
-            toastMessage
-        ) { entities ->
+        getDeletedRecords(gson, restRepository, authInfoHelper) { entities ->
             decodeDeletedRecords(gson, entities) { deletedRecords ->
                 onResult(deletedRecords)
+            }
+        }
+    }
+
+    private fun getDeletedRecords(
+        gson: Gson,
+        restRepository: RestRepository,
+        authInfoHelper: AuthInfoHelper,
+        onResult: (entities: Entities<DeletedRecord>?) -> Unit
+    ) {
+        val predicate = DeletedRecord.buildStampPredicate(authInfoHelper.deletedRecordsStamp)
+        Timber.d("Performing data request, with predicate $predicate")
+
+        restRepository.getEntities(
+            tableName = DELETED_RECORDS,
+            filter = predicate
+        ) { isSuccess, response, error ->
+            if (isSuccess) {
+                response?.body()?.let {
+                    Entities.decodeEntities<DeletedRecord>(gson, it) { entities ->
+
+                        authInfoHelper.deletedRecordsStamp = authInfoHelper.globalStamp
+
+                        onResult(entities)
+                    }
+                }
+            } else {
+                toastMessage.showError(error)
             }
         }
     }

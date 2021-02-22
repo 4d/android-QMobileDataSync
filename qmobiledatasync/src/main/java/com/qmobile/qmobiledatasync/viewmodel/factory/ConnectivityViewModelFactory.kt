@@ -10,6 +10,9 @@ import android.app.Application
 import android.net.ConnectivityManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStoreOwner
+import com.qmobile.qmobileapi.connectivity.sdkNewerThanKitKat
+import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.viewmodel.ConnectivityViewModel
 
 class ConnectivityViewModelFactory(
@@ -23,4 +26,22 @@ class ConnectivityViewModelFactory(
             connectivityManager
         ) as T
     }
+}
+
+fun getConnectivityViewModel(
+    viewModelStoreOwner: ViewModelStoreOwner?,
+    connectivityManager: ConnectivityManager
+): ConnectivityViewModel? {
+    viewModelStoreOwner?.run {
+        return if (sdkNewerThanKitKat) {
+            ViewModelProvider(
+                this,
+                ConnectivityViewModelFactory(
+                    BaseApp.instance,
+                    connectivityManager
+                )
+            )[ConnectivityViewModel::class.java]
+        } else
+            null
+    } ?: throw IllegalStateException("Invalid Activity")
 }

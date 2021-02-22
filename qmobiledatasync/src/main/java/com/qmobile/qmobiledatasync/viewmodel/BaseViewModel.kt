@@ -7,11 +7,11 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
 import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.repository.RoomRepository
+import com.qmobile.qmobiledatasync.ToastMessage
 import com.qmobile.qmobiledatasync.app.BaseApp
 
 /**
@@ -46,6 +46,5 @@ abstract class BaseViewModel<T>(
     /**
      * LiveData
      */
-
-    val toastMessage = MutableLiveData<String>()
+    val toastMessage: ToastMessage = ToastMessage()
 }

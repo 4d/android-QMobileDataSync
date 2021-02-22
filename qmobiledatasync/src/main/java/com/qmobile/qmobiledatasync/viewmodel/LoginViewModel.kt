@@ -15,8 +15,8 @@ import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
-import com.qmobile.qmobileapi.utils.RequestErrorHelper
 import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobiledatasync.ToastMessage
 import timber.log.Timber
 
 class LoginViewModel(application: Application, loginApiService: LoginApiService) :
@@ -41,7 +41,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         MutableLiveData<AuthenticationStateEnum>(AuthenticationStateEnum.UNAUTHENTICATED)
     }
 
-    val toastMessage = MutableLiveData<String>()
+    val toastMessage: ToastMessage = ToastMessage()
 
     /**
      * Authenticates
@@ -75,7 +75,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
-                RequestErrorHelper.handleError(error, toastMessage)
+                this.toastMessage.showError(error)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
@@ -93,7 +93,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
-                RequestErrorHelper.handleError(error, toastMessage)
+                this.toastMessage.showError(error)
             }
             onResult(isSuccess)
         }
