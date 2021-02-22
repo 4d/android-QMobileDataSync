@@ -10,7 +10,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
-
 import com.google.gson.Gson
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
@@ -51,13 +50,10 @@ open class EntityListViewModel<T : EntityModel>(
     /**
      * LiveData
      */
-    open var entityList: LiveData<List<T>> = roomRepository.getAll()
+//    open var entityList: LiveData<List<T>> = roomRepository.getAll()
 
-    open var entityListSize: LiveData<List<T>> = roomRepository.getAllDynamicQuery(SimpleSQLiteQuery("SELECT * FROM $tableName"))
-
-/*    fun getListByQuery(query: String): LiveData<List<T>>{
-        return roomRepository.getSearchAllByQuery(query)
-    }*/
+    open var entityListSize: LiveData<List<T>> =
+        roomRepository.getAllDynamicQuery(SimpleSQLiteQuery("SELECT * FROM $tableName"))
 
     /**
      * Get All by Dynamic query
@@ -66,7 +62,7 @@ open class EntityListViewModel<T : EntityModel>(
         return roomRepository.getAllDynamicQuery(sqLiteQuery)
     }
 
-    var result: LiveData<List<T>> = roomRepository.getAll()
+//    var result: LiveData<List<T>> = roomRepository.getAll()
 
     var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
@@ -130,7 +126,12 @@ open class EntityListViewModel<T : EntityModel>(
     fun getDeletedRecords(
         onResult: (deletedRecordList: List<DeletedRecord>) -> Unit
     ) {
-        DeletedRecord.getDeletedRecords(gson, restRepository, authInfoHelper, toastMessage) { entities ->
+        DeletedRecord.getDeletedRecords(
+            gson,
+            restRepository,
+            authInfoHelper,
+            toastMessage
+        ) { entities ->
             decodeDeletedRecords(gson, entities) { deletedRecords ->
                 onResult(deletedRecords)
             }

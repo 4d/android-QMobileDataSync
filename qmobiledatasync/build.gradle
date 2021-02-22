@@ -10,11 +10,10 @@ apply from: "$rootDir/buildscripts/jacoco.gradle"
 apply from: "$rootDir/buildscripts/projectDependencyGraph.gradle"
 
 dependencies {
-    implementation 'androidx.sqlite:sqlite-ktx:2.1.0'
 
     // QMobile libraries
-    //implementation project(':qmobileapi')
-    //implementation project(':qmobiledatastore')
+//    implementation project(':qmobileapi')
+//    implementation project(':qmobiledatastore')
     implementation(QMobileAPI) { changing = true }
     implementation(QMobileDataStore) { changing = true }
 
@@ -31,6 +30,7 @@ dependencies {
     implementation Libs.androidx_room
     implementation Libs.androidx_room_runtime
     kapt Libs.androidx_room_compiler
+    implementation Libs.sqlite
     
     // Utils
     implementation Libs.multidex
@@ -56,11 +56,7 @@ publishing {
     publications {
         aar(MavenPublication) {
             groupId libraryGroupId
-            def branchName = System.getenv('CI_COMMIT_REF_NAME')
-            if (branchName != null) {
-                branchName = branchName.replace("/", "_")
-            }
-            version libraryVersion + '-' + branchName
+            version libraryVersion + '-' + gitBranch()
 
             artifactId libraryArtifactId
             artifact("$buildDir/outputs/aar/${artifactId}-${buildVariant}.aar")
