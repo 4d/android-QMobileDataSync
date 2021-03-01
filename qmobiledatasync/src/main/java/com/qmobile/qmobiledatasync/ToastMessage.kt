@@ -8,6 +8,8 @@ package com.qmobile.qmobiledatasync
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import retrofit2.Response
+import timber.log.Timber
 
 class ToastMessage {
 
@@ -27,8 +29,15 @@ class ToastMessage {
     }
 
     fun showError(error: Any?) {
-        (error as Throwable?)?.localizedMessage?.let { message ->
-            setMessage(message)
+        Timber.e("Error: $error")
+        when (error) {
+            is Response<*> -> {
+            }
+            is Throwable -> {
+                error.localizedMessage?.let { message ->
+                    setMessage(message)
+                }
+            }
         }
     }
 }
