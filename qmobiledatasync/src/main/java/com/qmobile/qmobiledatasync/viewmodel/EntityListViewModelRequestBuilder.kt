@@ -18,7 +18,9 @@ import org.json.JSONObject
 fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(globalStamp: Int): String {
     // For test purposes
 //        return "\"__GlobalStamp > $globalStamp AND __GlobalStamp < 245\""
-    var predicate = "\"$GLOBALSTAMP_PROPERTY >= $globalStamp\""
+
+    // As some table can have no globalStamp, we add the possibility for a null value in filter
+    var predicate = "\"($GLOBALSTAMP_PROPERTY >= $globalStamp OR $GLOBALSTAMP_PROPERTY = null)\""
     val query = authInfoHelper.getQuery(getAssociatedTableName())
     if (query.isNotEmpty()) {
         predicate = predicate.dropLast(1) + " AND ($query)\""
