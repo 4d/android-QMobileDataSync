@@ -9,9 +9,9 @@ package com.qmobile.qmobiledatasync.app
 import android.app.Application
 import androidx.multidex.MultiDexApplication
 import com.qmobile.qmobiledatastore.db.AppDatabaseInterface
+import com.qmobile.qmobiledatasync.utils.FragmentUtil
 import com.qmobile.qmobiledatasync.utils.FromTableForViewModel
 import com.qmobile.qmobiledatasync.utils.NavigationInterface
-import com.qmobile.qmobiledatasync.utils.ViewDataBindingInterface
 
 open class BaseApp : MultiDexApplication() {
 
@@ -36,7 +36,7 @@ open class BaseApp : MultiDexApplication() {
         lateinit var appDatabaseInterface: AppDatabaseInterface
         lateinit var fromTableForViewModel: FromTableForViewModel
         lateinit var navigationInterface: NavigationInterface
-        lateinit var viewDataBindingInterface: ViewDataBindingInterface
+        lateinit var fragmentUtil: FragmentUtil
     }
 
     override fun onCreate() {

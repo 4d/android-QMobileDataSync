@@ -1,7 +1,7 @@
 /*
- * Created by Quentin Marciset on 7/2/2020.
+ * Created by Quentin Marciset on 2/3/2021.
  * 4D SAS
- * Copyright (c) 2020 Quentin Marciset. All rights reserved.
+ * Copyright (c) 2021 Quentin Marciset. All rights reserved.
  */
 
 package com.qmobile.qmobiledatasync.utils
@@ -14,7 +14,7 @@ import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 /**
  * Interface implemented by MainActivity to provide different elements depending of the generated type
  */
-interface ViewDataBindingInterface {
+interface FragmentUtil {
 
     /**
      * Sets the appropriate EntityListViewModel
@@ -31,4 +31,9 @@ interface ViewDataBindingInterface {
         viewDataBinding: ViewDataBinding,
         entityViewModel: EntityViewModel<EntityModel>
     )
+
+    /**
+     * Provides the list form type
+     */
+    fun layoutType(tableName: String): String
 }
