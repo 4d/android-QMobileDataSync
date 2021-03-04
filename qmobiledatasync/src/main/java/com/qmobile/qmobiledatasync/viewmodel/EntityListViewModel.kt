@@ -8,7 +8,6 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.google.gson.Gson
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
@@ -52,9 +51,6 @@ open class EntityListViewModel<T : EntityModel>(
      * LiveData
      */
 //    open var entityList: LiveData<List<T>> = roomRepository.getAll()
-
-    open var entityListSize: LiveData<List<T>> =
-        roomRepository.getAllDynamicQuery(SimpleSQLiteQuery("SELECT * FROM $tableName"))
 
     /**
      * Get All by Dynamic query
