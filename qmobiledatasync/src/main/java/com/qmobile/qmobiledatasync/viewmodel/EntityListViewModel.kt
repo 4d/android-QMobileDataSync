@@ -114,6 +114,8 @@ open class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
+                Timber.e("EntityListViewModel, response = $response")
+                Timber.e("EntityListViewModel, error = $error")
                 toastMessage.showError(error)
                 onResult(false)
             }
@@ -219,7 +221,7 @@ open class EntityListViewModel<T : EntityModel>(
                             newRelatedEntities.postValue(
                                 OneToManyRelation(
                                     entities = entities,
-                                    className = dataClass
+                                    className = dataClass.filter { !it.isWhitespace() }
                                 )
                             )
                         }

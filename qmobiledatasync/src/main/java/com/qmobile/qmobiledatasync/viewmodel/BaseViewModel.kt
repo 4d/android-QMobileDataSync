@@ -25,6 +25,7 @@ abstract class BaseViewModel<T>(
 ) : AndroidViewModel(BaseApp.instance) {
 
     open fun getAssociatedTableName(): String = tableName
+    val originalAssociatedTableName = BaseApp.fromTableForViewModel.originalTableName(tableName)
 
     /**
      * DAO
@@ -37,10 +38,11 @@ abstract class BaseViewModel<T>(
      */
 
     val roomRepository: RoomRepository<T> = RoomRepository(dao)
-    var restRepository: RestRepository = RestRepository(tableName, apiService)
+    var restRepository: RestRepository =
+        RestRepository(originalAssociatedTableName, apiService)
 
     fun refreshRestRepository(apiService: ApiService) {
-        restRepository = RestRepository(tableName, apiService)
+        restRepository = RestRepository(originalAssociatedTableName, apiService)
     }
 
     /**
