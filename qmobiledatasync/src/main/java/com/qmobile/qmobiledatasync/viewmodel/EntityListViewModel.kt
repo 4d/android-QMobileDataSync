@@ -114,9 +114,8 @@ open class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
-                Timber.e("EntityListViewModel, response = $response")
-                Timber.e("EntityListViewModel, error = $error")
-                toastMessage.showError(error)
+                response?.let { toastMessage.showError(it) }
+                error?.let { toastMessage.showError(it) }
                 onResult(false)
             }
         }
