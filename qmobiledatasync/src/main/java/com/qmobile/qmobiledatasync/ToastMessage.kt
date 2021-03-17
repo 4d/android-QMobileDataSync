@@ -32,6 +32,7 @@ class ToastMessage {
         Timber.e("Error: $error")
         when (error) {
             is Response<*> -> {
+                setMessage("[Error] Server responded : ${error.code()} - ${error.message()}")
             }
             is Throwable -> {
                 error.localizedMessage?.let { message ->
