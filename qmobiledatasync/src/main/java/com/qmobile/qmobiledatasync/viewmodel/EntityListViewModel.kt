@@ -154,7 +154,8 @@ open class EntityListViewModel<T : EntityModel>(
                     }
                 }
             } else {
-                toastMessage.showError(error)
+                response?.let { toastMessage.showError(it) }
+                error?.let { toastMessage.showError(it) }
             }
         }
     }
