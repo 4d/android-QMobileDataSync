@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.Entities
@@ -87,7 +88,8 @@ open class EntityListViewModel<T : EntityModel>(
         dataLoading.value = true
         restRepository.getEntitiesExtendedAttributes(
             jsonRequestBody = jsonRequestBody,
-            filter = predicate
+            filter = predicate,
+            params = JsonParser().parse(authInfoHelper.userInfo).asJsonObject
         ) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
