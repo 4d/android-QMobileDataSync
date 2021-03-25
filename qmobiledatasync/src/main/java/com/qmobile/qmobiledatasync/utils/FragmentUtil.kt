@@ -36,4 +36,13 @@ interface FragmentUtil {
      * Provides the list form type
      */
     fun layoutType(tableName: String): String
+
+    /**
+     * Sets relations to the appropriate list form
+     */
+    fun setRelationBinding(
+        viewDataBinding: ViewDataBinding,
+        relationName: String,
+        relatedEntity: Any
+    )
 }

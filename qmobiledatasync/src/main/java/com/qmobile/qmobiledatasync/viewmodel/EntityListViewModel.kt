@@ -22,6 +22,7 @@ import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
 import com.qmobile.qmobiledatasync.relation.OneToManyRelation
@@ -31,7 +32,7 @@ import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import org.json.JSONArray
 import timber.log.Timber
 
-open class EntityListViewModel<T : EntityModel>(
+abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
     apiService: ApiService
 ) : BaseViewModel<T>(tableName, apiService) {
@@ -52,14 +53,8 @@ open class EntityListViewModel<T : EntityModel>(
      */
 //    open var entityList: LiveData<List<T>> = roomRepository.getAll()
 
-    /**
-     * Get All by Dynamic query
-     */
-    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> {
-        return roomRepository.getAllDynamicQuery(sqLiteQuery)
-    }
-
-//    var result: LiveData<List<T>> = roomRepository.getAll()
+    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
+        roomRepository.getAllDynamicQuery(sqLiteQuery)
 
     var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
@@ -97,11 +92,6 @@ open class EntityListViewModel<T : EntityModel>(
                         val receivedGlobalStamp = entities?.__GlobalStamp ?: 0
 
                         globalStamp.postValue(receivedGlobalStamp)
-                        // For test purposes
-//                        if (getAssociatedTableName() == "Service")
-//                             globalStamp.postValue(248)
-//                        else
-//                            globalStamp.postValue(245)
 
                         if (receivedGlobalStamp > authInfoHelper.globalStamp) {
                             onResult(true)
@@ -230,4 +220,9 @@ open class EntityListViewModel<T : EntityModel>(
             }
         }
     }
+
+    // Map<entityKey, Map<relationName, LiveData<RoomRelation>>>
+    abstract fun getManyToOneRelationKeysFromEntityList(
+        entityList: List<EntityModel>
+    ): MutableMap<String, MutableMap<String, LiveData<RoomRelation>>>
 }
