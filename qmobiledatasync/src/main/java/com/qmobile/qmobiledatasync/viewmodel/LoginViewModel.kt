@@ -23,7 +23,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     AndroidViewModel(application) {
 
     init {
-        Timber.i("LoginViewModel initializing...")
+        Timber.v("LoginViewModel initializing...")
     }
 
     private var authRepository: AuthRepository = AuthRepository(loginApiService)

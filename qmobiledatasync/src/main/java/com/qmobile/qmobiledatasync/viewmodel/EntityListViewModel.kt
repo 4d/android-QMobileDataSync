@@ -38,7 +38,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 ) : BaseViewModel<T>(tableName, apiService) {
 
     init {
-        Timber.i("EntityListViewModel initializing... $tableName")
+        Timber.v("EntityListViewModel initializing... $tableName")
     }
 
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
@@ -77,7 +77,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         Timber.d("Performing data request, with predicate $predicate")
 
         val jsonRequestBody = buildPostRequestBody()
-        Timber.d("Json body : $jsonRequestBody")
+        Timber.v("Json body : $jsonRequestBody")
 
         dataLoading.value = true
         restRepository.getEntitiesExtendedAttributes(

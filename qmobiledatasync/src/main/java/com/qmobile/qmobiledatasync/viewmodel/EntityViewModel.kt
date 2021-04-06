@@ -20,7 +20,7 @@ abstract class EntityViewModel<T : EntityModel>(
     BaseViewModel<T>(tableName, apiService) {
 
     init {
-        Timber.i("EntityViewModel initializing... $tableName")
+        Timber.v("EntityViewModel initializing... $tableName")
     }
 
     /**

@@ -27,7 +27,7 @@ open class ConnectivityViewModel(
     AndroidViewModel(application) {
 
     init {
-        Timber.i("ConnectivityViewModel initializing...")
+        Timber.v("ConnectivityViewModel initializing...")
     }
 
     open val serverAccessibility = ServerAccessibility()
