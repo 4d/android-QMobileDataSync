@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.qmobile.qmobileapi.utils.HttpCode
 import retrofit2.Response
 import timber.log.Timber
 
@@ -32,6 +33,14 @@ class ToastMessage {
         Timber.e("Error: $error")
         when (error) {
             is Response<*> -> {
+                var message = ""
+                val code = error.code()
+                HttpCode.reason(code)?.let { reason ->
+                    message = "$reason ($code)"
+                } ?: kotlin.run {
+                    message = "${HttpCode.message(code)} ($code)"
+                }
+                setMessage(message)
             }
             is Throwable -> {
                 error.localizedMessage?.let { message ->

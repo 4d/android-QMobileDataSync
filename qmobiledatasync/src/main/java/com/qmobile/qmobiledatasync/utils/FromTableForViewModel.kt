@@ -24,6 +24,11 @@ interface FromTableForViewModel {
     fun tableNames(): List<String>
 
     /**
+     * Provides the original table name. May contain spaces for example
+     */
+    fun originalTableName(tableName: String): String
+
+    /**
      * Provides the appropriate Entity
      */
     fun parseEntityFromTable(tableName: String, jsonString: String, fetchedFromRelation: Boolean): EntityModel?

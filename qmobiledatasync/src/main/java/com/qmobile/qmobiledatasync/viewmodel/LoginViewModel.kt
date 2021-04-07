@@ -75,7 +75,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
-                this.toastMessage.showError(error)
+                response?.let { toastMessage.showError(it) }
+                error?.let { toastMessage.showError(it) }
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
@@ -86,14 +87,15 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
      * Logs out
      */
     fun disconnectUser(onResult: (success: Boolean) -> Unit) {
-        authRepository.logout { isSuccess, _, error ->
+        authRepository.logout { isSuccess, response, error ->
             dataLoading.value = false
             authenticationState.postValue(AuthenticationStateEnum.LOGOUT)
             authInfoHelper.sessionToken = ""
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
-                this.toastMessage.showError(error)
+                response?.let { toastMessage.showError(it) }
+                error?.let { toastMessage.showError(it) }
             }
             onResult(isSuccess)
         }
