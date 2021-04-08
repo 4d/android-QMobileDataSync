@@ -30,8 +30,16 @@ import com.qmobile.qmobiledatasync.relation.OneToManyRelation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
+import okhttp3.internal.http2.Http2
+import okio.ByteString.Companion.toByteString
 import org.json.JSONArray
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.HTTP
 import timber.log.Timber
+import java.io.OutputStreamWriter
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
@@ -68,6 +76,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     val newRelatedEntities = MutableLiveData<OneToManyRelation>()
 
+
     /**
      * Gets all entities more recent than current globalStamp
      */
@@ -78,13 +87,16 @@ abstract class EntityListViewModel<T : EntityModel>(
         Timber.d("Performing data request, with predicate $predicate")
 
         val jsonRequestBody = buildPostRequestBody()
-        Timber.d("Json body : $jsonRequestBody")
+        Timber.d("Json body ${getAssociatedTableName()} : $jsonRequestBody")
+        Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
+        Timber.d("TEST :: ${URLEncoder.encode(authInfoHelper.userInfo,"utf-8")} --- ${authInfoHelper.userInfo}")
 
-        dataLoading.value = true
-        restRepository.getEntitiesExtendedAttributes(
+        val valueEncoded =  URLEncoder.encode("'"+authInfoHelper.userInfo+"'","utf-8") // String encoded
+         dataLoading.value = true
+         restRepository.getEntitiesExtendedAttributes(
             jsonRequestBody = jsonRequestBody,
             filter = predicate,
-            params = JsonParser().parse(authInfoHelper.userInfo).asJsonObject
+            params = authInfoHelper.userInfo
         ) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
@@ -106,8 +118,8 @@ abstract class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
-                response?.let { toastMessage.showError(it) }
-                error?.let { toastMessage.showError(it) }
+                response?.let { toastMessage.showError(it, getAssociatedTableName()) }
+                error?.let { toastMessage.showError(it,getAssociatedTableName()) }
                 onResult(false)
             }
         }
@@ -146,8 +158,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                     }
                 }
             } else {
-                response?.let { toastMessage.showError(it) }
-                error?.let { toastMessage.showError(it) }
+                response?.let { toastMessage.showError(it,getAssociatedTableName()) }
+                error?.let { toastMessage.showError(it,getAssociatedTableName()) }
             }
         }
     }
@@ -228,3 +240,5 @@ abstract class EntityListViewModel<T : EntityModel>(
         entityList: List<EntityModel>
     ): MutableMap<String, MutableMap<String, LiveData<RoomRelation>>>
 }
+
+class TestJson(firstName: String,lastName: String)

@@ -8,9 +8,13 @@ package com.qmobile.qmobiledatasync
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.Gson
 import com.qmobile.qmobileapi.utils.HttpCode
+import okhttp3.ResponseBody
 import retrofit2.Response
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.InputStreamReader
 
 class ToastMessage {
 
@@ -29,10 +33,13 @@ class ToastMessage {
         _message.value = Event(message)
     }
 
-    fun showError(error: Any?) {
-        Timber.e("Error: $error")
+    fun showError(error: Any?, info: String?) {
+        Timber.e("Error for $info: $error")
         when (error) {
             is Response<*> -> {
+                val errorbody  = InputStreamReader(error.errorBody()!!.byteStream())
+                //errorbody.readLines()
+                Timber.e("Response errorBody for $info ::${error.errorBody()!!.string()}")
                 var message = ""
                 val code = error.code()
                 HttpCode.reason(code)?.let { reason ->
