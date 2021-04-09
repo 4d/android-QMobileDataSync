@@ -72,8 +72,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
-                response?.let { toastMessage.showError(it) }
-                error?.let { toastMessage.showError(it) }
+                response?.let { toastMessage.showError(it,"LoginViewModel") }
+                error?.let { toastMessage.showError(it,"LoginViewModel") }
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
@@ -91,8 +91,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
-                response?.let { toastMessage.showError(it) }
-                error?.let { toastMessage.showError(it) }
+                response?.let { toastMessage.showError(it,"LoginViewModel") }
+                error?.let { toastMessage.showError(it,"LoginViewModel") }
             }
             onResult(isSuccess)
         }
