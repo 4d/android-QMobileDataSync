@@ -7,9 +7,11 @@
 package com.qmobile.qmobiledatasync.sync
 
 import androidx.lifecycle.MediatorLiveData
-import com.qmobile.qmobileapi.model.entity.DeletedRecord
+import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
+import org.json.JSONObject
 import timber.log.Timber
 
 data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync: Boolean) {
@@ -58,19 +60,21 @@ data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync:
 fun List<EntityViewModelIsToSync>.syncDeletedRecords() {
     // We pick first viewModel to perform a deletedRecords request, but it could be any viewModel.
     // The goal is to get a RestRepository to perform the request.
-    this[0].vm.getDeletedRecords { deletedRecordList ->
-        for (deletedRecord in deletedRecordList) {
-            this.deleteRecord(deletedRecord)
+    this[0].vm.getDeletedRecords { entitiesList ->
+        for (deletedRecordString in entitiesList) {
+            this.deleteRecord(retrieveJSONObject(deletedRecordString))
         }
     }
 }
 
-fun List<EntityViewModelIsToSync>.deleteRecord(deletedRecord: DeletedRecord) {
-    deletedRecord.__PrimaryKey?.let { recordKey ->
-        for (entityViewModel in this) {
-            if (deletedRecord.__TableName == entityViewModel.vm.getAssociatedTableName()) {
-                entityViewModel.vm.deleteOne(recordKey)
-                break
+fun List<EntityViewModelIsToSync>.deleteRecord(deletedRecordJson: JSONObject?) {
+    deletedRecordJson?.getSafeString("__PrimaryKey")?.let { recordKey ->
+        deletedRecordJson.getSafeString("__TableName")?.let { tableName ->
+            for (entityViewModel in this) {
+                if (tableName == entityViewModel.vm.getAssociatedTableName()) {
+                    entityViewModel.vm.deleteOne(recordKey)
+                    break
+                }
             }
         }
     }

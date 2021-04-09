@@ -9,13 +9,11 @@ package com.qmobile.qmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.Gson
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
-import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
-import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.ToastMessage
 import timber.log.Timber
 
@@ -23,7 +21,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     AndroidViewModel(application) {
 
     init {
-        Timber.i("LoginViewModel initializing...")
+        Timber.v("LoginViewModel initializing...")
     }
 
     private var authRepository: AuthRepository = AuthRepository(loginApiService)
@@ -59,13 +57,12 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         ) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
-                response?.let {
-                    val responseBody = response.body()
-                    val json = responseBody?.string()
-                    val authResponse: AuthResponse? = Gson().parseJsonToType(json)
-                    authResponse?.let {
+                response?.body()?.let { responseBody ->
+
+                    retrieveJSONObject(responseBody.string())?.let { authResponseJson ->
+
                         // Fill SharedPreferences with response details
-                        if (authInfoHelper.handleLoginInfo(authResponse)) {
+                        if (authInfoHelper.handleLoginInfo(authResponseJson)) {
                             authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
                             onResult(true)
                             return@authenticate
