@@ -57,7 +57,16 @@ private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProper
         }
         val query = authInfoHelper.getQuery(relation.className)
         if (query.isNotEmpty()) {
-            put(Query.QUERY_PROPERTY, query)
+            if (authInfoHelper.userInfo.isEmpty()) {
+                put(Query.QUERY_PROPERTY, query) // XXX could dev assert here if query contains parameters but no userInfo
+            } else {
+                put(Query.QUERY_PROPERTY, JSONObject().apply {
+                    put(Query.QUERY_STRING_PROPERTY, query)
+                    put(Query.SETTINGS,  JSONObject().apply {
+                        put(Query.PARAMETERS, JSONObject(authInfoHelper.userInfo))
+                    })
+                })
+            }
         }
     }
 }

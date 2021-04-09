@@ -88,15 +88,15 @@ abstract class EntityListViewModel<T : EntityModel>(
 
         val jsonRequestBody = buildPostRequestBody()
         Timber.d("Json body ${getAssociatedTableName()} : $jsonRequestBody")
-        Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
-        Timber.d("TEST :: ${URLEncoder.encode(authInfoHelper.userInfo,"utf-8")} --- ${authInfoHelper.userInfo}")
+        //Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
+        //Timber.d("TEST :: ${URLEncoder.encode(authInfoHelper.userInfo,"utf-8")} --- ${authInfoHelper.userInfo}")
 
-        val valueEncoded =  URLEncoder.encode("'"+authInfoHelper.userInfo+"'","utf-8") // String encoded
-         dataLoading.value = true
-         restRepository.getEntitiesExtendedAttributes(
+        val paramsEncoded =  "'"+URLEncoder.encode(authInfoHelper.userInfo, StandardCharsets.UTF_8.toString())+"'" // String encoded
+        dataLoading.value = true
+        restRepository.getEntitiesExtendedAttributes(
             jsonRequestBody = jsonRequestBody,
             filter = predicate,
-            params = authInfoHelper.userInfo
+            params = paramsEncoded
         ) { isSuccess, response, error ->
             dataLoading.value = false
             if (isSuccess) {
