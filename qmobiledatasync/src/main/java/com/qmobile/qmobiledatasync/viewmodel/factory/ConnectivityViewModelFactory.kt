@@ -12,25 +12,29 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import com.qmobile.qmobileapi.connectivity.sdkNewerThanKitKat
+import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.viewmodel.ConnectivityViewModel
 
 class ConnectivityViewModelFactory(
     private val application: Application,
-    private val connectivityManager: ConnectivityManager
+    private val connectivityManager: ConnectivityManager,
+    private val accessibilityApiService: AccessibilityApiService
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         return ConnectivityViewModel(
             application,
-            connectivityManager
+            connectivityManager,
+            accessibilityApiService
         ) as T
     }
 }
 
 fun getConnectivityViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?,
-    connectivityManager: ConnectivityManager
+    connectivityManager: ConnectivityManager,
+    accessibilityApiService: AccessibilityApiService
 ): ConnectivityViewModel? {
     viewModelStoreOwner?.run {
         return if (sdkNewerThanKitKat) {
@@ -38,7 +42,8 @@ fun getConnectivityViewModel(
                 this,
                 ConnectivityViewModelFactory(
                     BaseApp.instance,
-                    connectivityManager
+                    connectivityManager,
+                    accessibilityApiService
                 )
             )[ConnectivityViewModel::class.java]
         } else

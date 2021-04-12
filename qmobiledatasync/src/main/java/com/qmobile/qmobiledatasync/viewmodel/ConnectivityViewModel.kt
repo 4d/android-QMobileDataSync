@@ -12,17 +12,18 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.qmobile.qmobileapi.connectivity.NetworkStateEnum
 import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
-import com.qmobile.qmobileapi.connectivity.ServerAccessibility
-import com.qmobile.qmobileapi.utils.PING_TIMEOUT
+import com.qmobile.qmobileapi.connectivity.isConnected
+import com.qmobile.qmobileapi.network.AccessibilityApiService
+import com.qmobile.qmobileapi.repository.AccessibilityRepository
+import com.qmobile.qmobiledatasync.ToastMessage
 import timber.log.Timber
-import java.net.URL
 
 open class ConnectivityViewModel(
     application: Application,
-    connectivityManager: ConnectivityManager
+    private val connectivityManager: ConnectivityManager,
+    accessibilityApiService: AccessibilityApiService
 ) :
     AndroidViewModel(application) {
 
@@ -30,7 +31,7 @@ open class ConnectivityViewModel(
         Timber.v("ConnectivityViewModel initializing...")
     }
 
-    open val serverAccessibility = ServerAccessibility()
+    private val accessibilityRepository = AccessibilityRepository(accessibilityApiService)
 
     /**
      * LiveData
@@ -42,28 +43,33 @@ open class ConnectivityViewModel(
             connectivityManager
         )
 
-    open val serverAccessible = MutableLiveData<Boolean>().apply { value = false }
+    val toastMessage: ToastMessage = ToastMessage()
 
     /**
-     * Pings server to check if it is accessible or not
+     * Request to server to check if it is accessible or not.
+     * Performed before data sync and in settings.
      */
-    open fun checkAccessibility(remoteUrl: String) {
-        val url = URL(remoteUrl)
-        serverAccessibility.pingServer(
-            url.host,
-            url.port,
-            PING_TIMEOUT
-        ) { isAccessible, throwable ->
-            throwable?.let {
-                Timber.e("Error occurred while pinging server with url [$url] : ${throwable.message}")
+    fun isServerConnectionOk(
+        onResult: (success: Boolean) -> Unit
+    ) {
+        accessibilityRepository.checkAccessibility { isSuccess, response, error ->
+            if (isSuccess) {
+                Timber.d("Server ping successful")
+                onResult(true)
+            } else {
+                Timber.d("Server ping unsuccessful")
+                response?.let { toastMessage.showError(it, "ConnectivityViewModel") }
+                error?.let { toastMessage.showError(it, "ConnectivityViewModel") }
+                onResult(false)
             }
-
-            serverAccessible.postValue(isAccessible ?: false)
         }
     }
 
+    fun isConnected(): Boolean =
+        connectivityManager.isConnected(networkStateMonitor.value)
+
     override fun onCleared() {
         super.onCleared()
-        serverAccessibility.disposable.dispose()
+        accessibilityRepository.disposable.dispose()
     }
 }
