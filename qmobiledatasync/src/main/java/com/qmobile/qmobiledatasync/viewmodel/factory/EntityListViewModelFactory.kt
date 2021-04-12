@@ -54,8 +54,8 @@ class EntityListViewModelFactory(
 
 fun getEntityListViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?,
-    apiService: ApiService,
-    tableName: String
+    tableName: String,
+    apiService: ApiService
 ): EntityListViewModel<EntityModel> {
     val clazz = BaseApp.fromTableForViewModel.entityListViewModelClassFromTable(tableName)
     viewModelStoreOwner?.run {

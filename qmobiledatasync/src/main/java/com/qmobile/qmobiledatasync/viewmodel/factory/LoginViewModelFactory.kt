@@ -27,7 +27,10 @@ class LoginViewModelFactory(
     }
 }
 
-fun getLoginViewModel(viewModelStoreOwner: ViewModelStoreOwner?, loginApiService: LoginApiService): LoginViewModel {
+fun getLoginViewModel(
+    viewModelStoreOwner: ViewModelStoreOwner?,
+    loginApiService: LoginApiService
+): LoginViewModel {
     // We need this ViewModel to know when MainActivity has performed its $authenticate so that
     // we don't trigger the initial sync if we are not authenticated yet
     viewModelStoreOwner?.run {
