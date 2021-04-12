@@ -9,8 +9,6 @@ package com.qmobile.qmobiledatasync.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.google.gson.Gson
-import com.google.gson.JsonParser
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
@@ -29,17 +27,12 @@ import com.qmobile.qmobiledatasync.relation.OneToManyRelation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
-import okhttp3.internal.http2.Http2
-import okio.ByteString.Companion.toByteString
 import org.json.JSONArray
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.HTTP
 import org.json.JSONObject
 import timber.log.Timber
-import java.io.OutputStreamWriter
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.nio.charset.StandardCharsets.UTF_8
+import kotlin.math.max
 
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
@@ -54,8 +47,6 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     val relations =
         BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
-
-    private val gson = Gson()
 
     /**
      * LiveData
@@ -76,21 +67,25 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     val newRelatedEntities = MutableLiveData<OneToManyRelation>()
 
-
     /**
      * Gets all entities more recent than current globalStamp
      */
     fun getEntities(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
-        val predicate = buildPredicate(globalStamp.value ?: authInfoHelper.globalStamp)
+        var gs = globalStamp.value ?: authInfoHelper.globalStamp
+
+        if (authInfoHelper.dumpedTables.split(", ").contains(getAssociatedTableName()))
+            gs = max(gs, authInfoHelper.initialGlobalStamp)
+
+        val predicate = buildPredicate(gs)
         Timber.d("Performing data request, with predicate $predicate")
 
         val jsonRequestBody = buildPostRequestBody()
         Timber.d("Json body ${getAssociatedTableName()} : $jsonRequestBody")
-        //Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
+        // Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
 
-        val paramsEncoded =  "'"+URLEncoder.encode(authInfoHelper.userInfo, StandardCharsets.UTF_8.toString())+"'" // String encoded
+        val paramsEncoded = "'" + URLEncoder.encode(authInfoHelper.userInfo, StandardCharsets.UTF_8.toString()) + "'" // String encoded
         dataLoading.value = true
         restRepository.getEntitiesExtendedAttributes(
             jsonRequestBody = jsonRequestBody,
@@ -119,7 +114,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
                 response?.let { toastMessage.showError(it, getAssociatedTableName()) }
-                error?.let { toastMessage.showError(it,getAssociatedTableName()) }
+                error?.let { toastMessage.showError(it, getAssociatedTableName()) }
                 onResult(false)
             }
         }
@@ -158,8 +153,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                     }
                 }
             } else {
-                response?.let { toastMessage.showError(it,getAssociatedTableName()) }
-                error?.let { toastMessage.showError(it,getAssociatedTableName()) }
+                response?.let { toastMessage.showError(it, getAssociatedTableName()) }
+                error?.let { toastMessage.showError(it, getAssociatedTableName()) }
             }
         }
     }
@@ -240,4 +235,4 @@ abstract class EntityListViewModel<T : EntityModel>(
     ): MutableMap<String, MutableMap<String, LiveData<RoomRelation>>>
 }
 
-class TestJson(firstName: String,lastName: String)
+class TestJson(firstName: String, lastName: String)
