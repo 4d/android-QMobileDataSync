@@ -8,6 +8,8 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
@@ -20,7 +22,6 @@ import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
-import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
 import com.qmobile.qmobiledatasync.relation.OneToManyRelation
@@ -43,6 +44,10 @@ abstract class EntityListViewModel<T : EntityModel>(
         Timber.v("EntityListViewModel initializing... $tableName")
     }
 
+    companion object {
+        private const val DEFAULT_PAGE_SIZE = 60
+    }
+
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
 
     val relations =
@@ -53,8 +58,15 @@ abstract class EntityListViewModel<T : EntityModel>(
      */
 //    open var entityList: LiveData<List<T>> = roomRepository.getAll()
 
-    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
-        roomRepository.getAllDynamicQuery(sqLiteQuery)
+//    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
+//        roomRepository.getAllDynamicQuery(sqLiteQuery)
+
+    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<PagedList<T>> {
+        val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
+            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_PAGE_SIZE,
+        )
+        return livePagedListBuilder.build()
+    }
 
     var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
@@ -85,7 +97,10 @@ abstract class EntityListViewModel<T : EntityModel>(
         Timber.d("Json body ${getAssociatedTableName()} : $jsonRequestBody")
         // Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
 
-        val paramsEncoded = "'" + URLEncoder.encode(authInfoHelper.userInfo, StandardCharsets.UTF_8.toString()) + "'" // String encoded
+        val paramsEncoded = "'" + URLEncoder.encode(
+            authInfoHelper.userInfo,
+            StandardCharsets.UTF_8.toString()
+        ) + "'" // String encoded
         dataLoading.value = true
         restRepository.getEntitiesExtendedAttributes(
             jsonRequestBody = jsonRequestBody,
@@ -228,11 +243,4 @@ abstract class EntityListViewModel<T : EntityModel>(
             }
         }
     }
-
-    // Map<entityKey, Map<relationName, LiveData<RoomRelation>>>
-    abstract fun getManyToOneRelationKeysFromEntityList(
-        entityList: List<EntityModel>
-    ): MutableMap<String, MutableMap<String, LiveData<RoomRelation>>>
 }
-
-class TestJson(firstName: String, lastName: String)

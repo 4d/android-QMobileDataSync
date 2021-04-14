@@ -7,9 +7,12 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
 import com.qmobile.qmobiledatastore.dao.BaseDao
+import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.ToastMessage
 import com.qmobile.qmobiledatasync.app.BaseApp
@@ -49,4 +52,6 @@ abstract class BaseViewModel<T>(
      * LiveData
      */
     val toastMessage: ToastMessage = ToastMessage()
+
+    abstract fun getRelationsInfo(entity: EntityModel): Map<String, LiveData<RoomRelation>>
 }
