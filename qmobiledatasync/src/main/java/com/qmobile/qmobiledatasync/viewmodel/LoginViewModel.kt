@@ -9,11 +9,14 @@ package com.qmobile.qmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
+import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
-import com.qmobile.qmobileapi.utils.retrieveJSONObject
+import com.qmobile.qmobileapi.utils.parseJsonToType
 import com.qmobile.qmobiledatasync.ToastMessage
 import timber.log.Timber
 
@@ -59,10 +62,10 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
 
-                    retrieveJSONObject(responseBody.string())?.let { authResponseJson ->
+                    retrieveAuthResponse(responseBody.string())?.let { authResponse ->
 
                         // Fill SharedPreferences with response details
-                        if (authInfoHelper.handleLoginInfo(authResponseJson)) {
+                        if (authInfoHelper.handleLoginInfo(authResponse)) {
                             authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
                             onResult(true)
                             return@authenticate
@@ -78,6 +81,21 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
         }
+    }
+
+    /**
+     * Decode auth response
+     */
+    private fun retrieveAuthResponse(jsonString: String): AuthResponse? {
+        jsonString.extractJSON()?.let {
+            return try {
+                Gson().parseJsonToType<AuthResponse>(it)
+            } catch (e: JsonSyntaxException) {
+                Timber.w("Failed to decode auth response ${e.localizedMessage}: $jsonString")
+                null
+            }
+        }
+        return null
     }
 
     /**
@@ -106,4 +124,13 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         super.onCleared()
         authRepository.disposable.dispose()
     }
+}
+
+private fun String.extractJSON(): String? {
+    val start = this.indexOf("{")
+    val end = this.lastIndexOf("}")
+    if (start >= 0 && end >= 0) {
+        return this.substring(start, end + 1)
+    }
+    return null
 }
