@@ -16,6 +16,7 @@ import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
+import com.qmobile.qmobileapi.utils.extractJSON
 import com.qmobile.qmobileapi.utils.parseJsonToType
 import com.qmobile.qmobiledatasync.ToastMessage
 import timber.log.Timber
@@ -124,13 +125,4 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         super.onCleared()
         authRepository.disposable.dispose()
     }
-}
-
-private fun String.extractJSON(): String? {
-    val start = this.indexOf("{")
-    val end = this.lastIndexOf("}")
-    if (start >= 0 && end >= 0) {
-        return this.substring(start, end + 1)
-    }
-    return null
 }
