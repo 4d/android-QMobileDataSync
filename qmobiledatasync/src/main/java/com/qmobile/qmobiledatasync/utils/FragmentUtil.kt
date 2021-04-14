@@ -45,4 +45,9 @@ interface FragmentUtil {
         relationName: String,
         relatedEntity: Any
     )
+
+    /**
+     * Reset relations as PagedListAdapter generates issue with relations
+     */
+    fun unsetRelationBinding(viewDataBinding: ViewDataBinding)
 }

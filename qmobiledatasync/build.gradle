@@ -35,7 +35,10 @@ dependencies {
     implementation Libs.androidx_room_runtime
     kapt Libs.androidx_room_compiler
     implementation Libs.sqlite
-    
+
+    // Paging
+    implementation Libs.androidx_paging
+
     // Utils
     implementation Libs.multidex
     implementation Libs.okhttp
