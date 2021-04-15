@@ -10,16 +10,16 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.MutableLiveData
-import com.qmobile.qmobileapi.connectivity.NetworkStateEnum
+import androidx.test.core.app.ApplicationProvider
 import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
+import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobiledatasync.viewmodel.ConnectivityViewModel
+import io.reactivex.Single
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
@@ -33,12 +33,12 @@ class ConnectivityViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val sourceServerAccessible: MutableLiveData<Boolean> = MutableLiveData()
-
     private lateinit var networkStateMonitor: NetworkStateMonitor
 
+    private lateinit var connectivityViewModel: ConnectivityViewModel
+
     @Mock
-    lateinit var connectivityViewModel: ConnectivityViewModel
+    lateinit var mockedAccessibilityApiService: AccessibilityApiService
 
     @Mock
     lateinit var connectivityManager: ConnectivityManager
@@ -49,54 +49,39 @@ class ConnectivityViewModelTest {
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
-    }
 
-    @Test
-    fun testNetworkStateMonitorLiveData() {
-
-        networkStateMonitor = NetworkStateMonitor(connectivityManager)
-
-        Mockito.`when`(connectivityViewModel.networkStateMonitor).thenReturn(networkStateMonitor)
-
-        networkStateMonitor.networkStateObject.onAvailable(network)
-        Assert.assertEquals(NetworkStateEnum.CONNECTED, connectivityViewModel.networkStateMonitor.value)
-
-        networkStateMonitor.networkStateObject.onUnavailable()
-        Assert.assertEquals(
-            NetworkStateEnum.DISCONNECTED,
-            connectivityViewModel.networkStateMonitor.value
-        )
-
-        networkStateMonitor.networkStateObject.onLost(network)
-        Assert.assertEquals(
-            NetworkStateEnum.CONNECTION_LOST,
-            connectivityViewModel.networkStateMonitor.value
+        connectivityViewModel = ConnectivityViewModel(
+            ApplicationProvider.getApplicationContext(),
+            connectivityManager,
+            mockedAccessibilityApiService
         )
     }
 
     @Test
     fun testServerAccessible() {
 
-        Mockito.`when`(connectivityViewModel.serverAccessible).thenReturn(sourceServerAccessible)
+        val response = buildSampleResponseFromJsonString("", true)
 
-        Mockito.`when`(connectivityViewModel.checkAccessibility(anyString())).thenAnswer {
-            sourceServerAccessible.postValue(true)
+        Mockito.`when`(
+            mockedAccessibilityApiService.checkAccessibility()
+        ).thenAnswer { Single.just(response) }
+
+        connectivityViewModel.isServerConnectionOk { isAccessible ->
+            Assert.assertTrue(isAccessible)
         }
-
-        connectivityViewModel.checkAccessibility(anyString())
-        Assert.assertEquals(true, connectivityViewModel.serverAccessible.value)
     }
 
     @Test
     fun testServerNotAccessible() {
 
-        Mockito.`when`(connectivityViewModel.serverAccessible).thenReturn(sourceServerAccessible)
+        val response = buildSampleResponseFromJsonString("", false)
 
-        Mockito.`when`(connectivityViewModel.checkAccessibility(anyString())).thenAnswer {
-            sourceServerAccessible.postValue(false)
+        Mockito.`when`(
+            mockedAccessibilityApiService.checkAccessibility()
+        ).thenAnswer { Single.just(response) }
+
+        connectivityViewModel.isServerConnectionOk { isAccessible ->
+            Assert.assertFalse(isAccessible)
         }
-
-        connectivityViewModel.checkAccessibility(anyString())
-        Assert.assertEquals(false, connectivityViewModel.serverAccessible.value)
     }
 }
