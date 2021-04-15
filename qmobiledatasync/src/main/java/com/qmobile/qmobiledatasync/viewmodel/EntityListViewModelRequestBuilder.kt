@@ -41,8 +41,10 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
         }
 
         // Adding relations
-        for (relation in relations) {
-            put(relation.relationName, buildRelationQueryAndProperties(relation))
+        if (authInfoHelper.relationAvailable) {
+            for (relation in relations) {
+                put(relation.relationName, buildRelationQueryAndProperties(relation))
+            }
         }
     }
 }

@@ -86,7 +86,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         }
     }
 
-    private fun showStatusText(authResponse: AuthResponse){
+    private fun showStatusText(authResponse: AuthResponse) {
         Timber.d("Entered in to showStatusText")
         authResponse.statusText?.let {
             val message = it
