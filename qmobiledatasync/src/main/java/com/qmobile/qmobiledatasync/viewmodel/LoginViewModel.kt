@@ -7,6 +7,8 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
+import android.graphics.Color
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
@@ -64,7 +66,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 response?.body()?.let { responseBody ->
 
                     retrieveAuthResponse(responseBody.string())?.let { authResponse ->
-
+                        showStatusText(authResponse)
                         // Fill SharedPreferences with response details
                         if (authInfoHelper.handleLoginInfo(authResponse)) {
                             authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
@@ -81,6 +83,22 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
+        }
+    }
+
+    private fun showStatusText(authResponse: AuthResponse){
+        Timber.d("Entered in to showStatusText")
+        authResponse.statusText?.let {
+            val message = it
+            Timber.d("Entered in to showStatusText $message")
+            val toast =
+                Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT)
+            toast.view.apply {
+                val toastBackGroundColor =
+                    if (authResponse.success) Color.GREEN else Color.RED
+                this.setBackgroundColor(toastBackGroundColor)
+            }
+            toast.show()
         }
     }
 
