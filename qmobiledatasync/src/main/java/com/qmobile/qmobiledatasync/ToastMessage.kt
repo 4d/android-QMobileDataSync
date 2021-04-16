@@ -9,9 +9,12 @@ package com.qmobile.qmobiledatasync
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.qmobile.qmobileapi.utils.HttpCode
+import com.qmobile.qmobileapi.utils.getSafeString
+import org.json.JSONException
+import org.json.JSONObject
 import retrofit2.Response
 import timber.log.Timber
-import java.io.InputStreamReader
+import java.net.HttpURLConnection
 
 class ToastMessage {
 
@@ -34,15 +37,32 @@ class ToastMessage {
         Timber.e("Error for $info: $error")
         when (error) {
             is Response<*> -> {
-                val errorbody = InputStreamReader(error.errorBody()!!.byteStream())
+                // val errorbody = InputStreamReader(error.errorBody()!!.byteStream())
                 // errorbody.readLines()
-                Timber.e("Response errorBody for $info ::${error.errorBody()!!.string()}")
-                var message = ""
+
                 val code = error.code()
-                HttpCode.reason(code)?.let { reason ->
-                    message = "$reason ($code)"
-                } ?: kotlin.run {
-                    message = "${HttpCode.message(code)} ($code)"
+                var message = ""
+
+                // Trying to check if there is a missing On Mobile App Authentication method
+                error.errorBody()?.let {
+                    // must be copy into a variable and used as many times as required
+                    val errorBody = it.string()
+                    Timber.e("Response errorBody for $info ::$errorBody")
+                    if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                        message = try {
+                            JSONObject(errorBody).getSafeString("statusText") ?: ""
+                        } catch (e: JSONException) {
+                            ""
+                        }
+                    }
+                }
+
+                if (message.isEmpty()) {
+                    HttpCode.reason(code)?.let { reason ->
+                        message = "$reason ($code)"
+                    } ?: kotlin.run {
+                        message = "${HttpCode.message(code)} ($code)"
+                    }
                 }
                 setMessage(message)
             }
