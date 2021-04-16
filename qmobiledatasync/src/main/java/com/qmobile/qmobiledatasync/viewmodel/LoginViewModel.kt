@@ -86,6 +86,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         }
     }
 
+    // TODO maybe move that to QMobileUI that listen to login status and receive the response
     private fun showStatusText(authResponse: AuthResponse) {
         Timber.d("Entered in to showStatusText")
         authResponse.statusText?.let {
@@ -94,8 +95,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             val toast =
                 Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT)
             toast.view.apply {
-                val toastBackGroundColor =
-                    if (authResponse.success) Color.GREEN else Color.RED
+                val toastBackGroundColor = if (authResponse.success) Color.parseColor("#FF81D134") else Color.parseColor("#FFF46560")
                 this.setBackgroundColor(toastBackGroundColor)
             }
             toast.show()
