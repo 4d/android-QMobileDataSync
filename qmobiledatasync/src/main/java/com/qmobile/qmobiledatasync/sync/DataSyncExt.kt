@@ -28,7 +28,9 @@ fun DataSync.successfulSynchronization(
     mediatorLiveDataList.removeObservers(activity)
     authInfoHelper.globalStamp = maxGlobalStamp
     entityViewModelIsToSyncList.notifyDataSynced()
+    entityViewModelIsToSyncList.startDataLoading()
     entityViewModelIsToSyncList.syncDeletedRecords()
+    entityViewModelIsToSyncList.stopDataLoading()
     ApiClient.dataSyncFinished()
 }
 

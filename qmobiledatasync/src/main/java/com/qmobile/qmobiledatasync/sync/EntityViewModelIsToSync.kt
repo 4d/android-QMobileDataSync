@@ -55,6 +55,14 @@ data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync:
             DataSyncStateEnum.UNSYNCHRONIZED
         )
     }
+
+    fun startDataLoading() {
+        this.vm.dataLoading.value = true
+    }
+
+    fun stopDataLoading() {
+        this.vm.dataLoading.value = false
+    }
 }
 
 fun List<EntityViewModelIsToSync>.syncDeletedRecords() {
@@ -98,5 +106,17 @@ fun List<EntityViewModelIsToSync>.notifyDataSynced() {
 fun List<EntityViewModelIsToSync>.notifyDataUnSynced() {
     for (entityViewModelIsToSync in this) {
         entityViewModelIsToSync.notifyDataUnSynced()
+    }
+}
+
+fun List<EntityViewModelIsToSync>.startDataLoading() {
+    for (entityViewModelIsToSync in this) {
+        entityViewModelIsToSync.startDataLoading()
+    }
+}
+
+fun List<EntityViewModelIsToSync>.stopDataLoading() {
+    for (entityViewModelIsToSync in this) {
+        entityViewModelIsToSync.stopDataLoading()
     }
 }

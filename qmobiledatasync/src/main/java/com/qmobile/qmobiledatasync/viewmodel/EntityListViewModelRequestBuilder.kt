@@ -11,21 +11,31 @@ import com.qmobile.qmobileapi.model.queries.Query
 import com.qmobile.qmobileapi.utils.GLOBALSTAMP_PROPERTY
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject
+import kotlin.math.max
 
 /**
  * Returns predicate for requests with __GlobalStamp
  */
-fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(globalStamp: Int): String {
-    // For test purposes
-//        return "\"__GlobalStamp > $globalStamp AND __GlobalStamp < 245\""
+fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 
-    // As some table can have no globalStamp, we add the possibility for a null value in filter
-    var predicate = "\"($GLOBALSTAMP_PROPERTY >= $globalStamp OR $GLOBALSTAMP_PROPERTY = null)\""
+    var gs = globalStamp.value ?: authInfoHelper.globalStamp
+
+    val isDumpedTable = authInfoHelper.dumpedTables.split(", ").contains(getAssociatedTableName())
+
+    if (isDumpedTable)
+        gs = max(gs, authInfoHelper.initialGlobalStamp)
+
+    var predicate = if (gs > 0) "\"$GLOBALSTAMP_PROPERTY >= $gs\"" else ""
+
     val query = authInfoHelper.getQuery(getAssociatedTableName())
     if (query.isNotEmpty()) {
-        predicate = predicate.dropLast(1) + " AND ($query)\""
+        predicate = if (predicate.isEmpty()) {
+            "\"$query\""
+        } else {
+            predicate.dropLast(1) + " AND ($query)\""
+        }
     }
-    return predicate
+    return if (predicate.isEmpty()) null else predicate
 }
 
 fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject {

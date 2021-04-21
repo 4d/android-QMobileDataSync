@@ -33,7 +33,6 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import kotlin.math.max
 
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
@@ -85,17 +84,11 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun getEntities(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
-        var gs = globalStamp.value ?: authInfoHelper.globalStamp
-
-        if (authInfoHelper.dumpedTables.split(", ").contains(getAssociatedTableName()))
-            gs = max(gs, authInfoHelper.initialGlobalStamp)
-
-        val predicate = buildPredicate(gs)
+        val predicate: String? = buildPredicate()
         Timber.d("Performing data request, with predicate $predicate")
 
         val jsonRequestBody = buildPostRequestBody()
         Timber.d("Json body ${getAssociatedTableName()} : $jsonRequestBody")
-        // Timber.d("UserInfo :: ${JsonParser().parse(authInfoHelper.userInfo).asJsonObject.toString()}")
 
         val paramsEncoded = "'" + URLEncoder.encode(
             authInfoHelper.userInfo,
@@ -107,7 +100,6 @@ abstract class EntityListViewModel<T : EntityModel>(
             filter = predicate,
             params = paramsEncoded
         ) { isSuccess, response, error ->
-            dataLoading.value = false
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
 
@@ -132,6 +124,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 onResult(false)
             }
+            dataLoading.value = false
         }
     }
 
@@ -189,6 +182,7 @@ abstract class EntityListViewModel<T : EntityModel>(
      */
     fun decodeEntityModel(entitiesJsonArray: JSONArray?, fetchedFromRelation: Boolean) {
 
+        val parsedList: MutableList<EntityModel> = mutableListOf()
         val entitiesList: List<String>? = entitiesJsonArray?.getObjectListAsString()
         entitiesList?.let {
             for (entityJsonString in entitiesList) {
@@ -200,11 +194,12 @@ abstract class EntityListViewModel<T : EntityModel>(
                         fetchedFromRelation
                     )
                 entity?.let {
-                    this.insert(it)
+                    parsedList.add(it)
                     if (!fetchedFromRelation)
                         checkRelations(entityJsonString)
                 }
             }
+            this.insertAll(parsedList)
         }
     }
 
