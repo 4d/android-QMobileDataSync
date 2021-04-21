@@ -60,7 +60,8 @@ private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProper
         val query = authInfoHelper.getQuery(relation.className)
         if (query.isNotEmpty()) {
             if (authInfoHelper.userInfo.isEmpty()) {
-                put(Query.QUERY_PROPERTY, query) // XXX could dev assert here if query contains parameters but no userInfo
+                // XXX could dev assert here if query contains parameters but no userInfo
+                put(Query.QUERY_PROPERTY, query)
             } else {
                 put(
                     Query.QUERY_PROPERTY,

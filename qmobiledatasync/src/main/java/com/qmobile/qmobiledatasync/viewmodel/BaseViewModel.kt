@@ -14,8 +14,8 @@ import com.qmobile.qmobileapi.repository.RestRepository
 import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatastore.repository.RoomRepository
-import com.qmobile.qmobiledatasync.ToastMessage
 import com.qmobile.qmobiledatasync.app.BaseApp
+import com.qmobile.qmobiledatasync.toast.ToastMessage
 
 /**
  * If you need to use context inside your viewmodel you should use AndroidViewModel, because it

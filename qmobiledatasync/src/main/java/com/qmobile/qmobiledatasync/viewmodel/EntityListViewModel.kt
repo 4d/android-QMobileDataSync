@@ -128,8 +128,8 @@ abstract class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 globalStamp.postValue(0)
-                response?.let { toastMessage.showError(it, getAssociatedTableName()) }
-                error?.let { toastMessage.showError(it, getAssociatedTableName()) }
+                response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 onResult(false)
             }
         }
@@ -168,8 +168,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                     }
                 }
             } else {
-                response?.let { toastMessage.showError(it, getAssociatedTableName()) }
-                error?.let { toastMessage.showError(it, getAssociatedTableName()) }
+                response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
             }
         }
     }

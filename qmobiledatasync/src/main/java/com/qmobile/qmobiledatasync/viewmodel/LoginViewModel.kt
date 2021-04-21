@@ -7,8 +7,6 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
-import android.graphics.Color
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
@@ -20,7 +18,8 @@ import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
 import com.qmobile.qmobileapi.utils.extractJSON
 import com.qmobile.qmobileapi.utils.parseJsonToType
-import com.qmobile.qmobiledatasync.ToastMessage
+import com.qmobile.qmobiledatasync.toast.MessageType
+import com.qmobile.qmobiledatasync.toast.ToastMessage
 import timber.log.Timber
 
 class LoginViewModel(application: Application, loginApiService: LoginApiService) :
@@ -37,9 +36,12 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
      * LiveData
      */
 
-    val dataLoading = MutableLiveData<Boolean>().apply { value = false }
+    var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
     val emailValid = MutableLiveData<Boolean>().apply { value = false }
+
+//    var statusMessage = MutableLiveData<String>().apply { value = "" }
+    var statusMessage = ""
 
     val authenticationState: MutableLiveData<AuthenticationStateEnum> by lazy {
         MutableLiveData<AuthenticationStateEnum>(AuthenticationStateEnum.UNAUTHENTICATED)
@@ -66,7 +68,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 response?.body()?.let { responseBody ->
 
                     retrieveAuthResponse(responseBody.string())?.let { authResponse ->
-                        showStatusText(authResponse)
+//                        statusMessage.postValue(authResponse.statusText ?: "")
+                        statusMessage = authResponse.statusText ?: ""
                         // Fill SharedPreferences with response details
                         if (authInfoHelper.handleLoginInfo(authResponse)) {
                             authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
@@ -78,27 +81,11 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
-                response?.let { toastMessage.showError(it, "LoginViewModel") }
-                error?.let { toastMessage.showError(it, "LoginViewModel") }
+                response?.let { toastMessage.showMessage(it, "LoginViewModel", MessageType.ERROR) }
+                error?.let { toastMessage.showMessage(it, "LoginViewModel", MessageType.ERROR) }
                 onResult(false)
                 authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
-        }
-    }
-
-    // TODO maybe move that to QMobileUI that listen to login status and receive the response
-    private fun showStatusText(authResponse: AuthResponse) {
-        Timber.d("Entered in to showStatusText")
-        authResponse.statusText?.let {
-            val message = it
-            Timber.d("Entered in to showStatusText $message")
-            val toast =
-                Toast.makeText(getApplication(), message, Toast.LENGTH_SHORT)
-            toast.view.apply {
-                val toastBackGroundColor = if (authResponse.success) Color.parseColor("#FF81D134") else Color.parseColor("#FFF46560")
-                this.setBackgroundColor(toastBackGroundColor)
-            }
-            toast.show()
         }
     }
 
@@ -128,8 +115,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
-                response?.let { toastMessage.showError(it, "LoginViewModel") }
-                error?.let { toastMessage.showError(it, "LoginViewModel") }
+                response?.let { toastMessage.showMessage(it, "LoginViewModel") }
+                error?.let { toastMessage.showMessage(it, "LoginViewModel") }
             }
             onResult(isSuccess)
         }

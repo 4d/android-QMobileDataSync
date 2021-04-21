@@ -4,7 +4,7 @@
  * Copyright (c) 2021 Quentin Marciset. All rights reserved.
  */
 
-package com.qmobile.qmobiledatasync
+package com.qmobile.qmobiledatasync.toast
 
 /**
  * Used as a wrapper for data that is exposed via a LiveData that represents an event.
