@@ -100,6 +100,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             filter = predicate,
             params = paramsEncoded
         ) { isSuccess, response, error ->
+            var shouldHideDataLoading = true
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
 
@@ -111,6 +112,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
                         if (receivedGlobalStamp > authInfoHelper.globalStamp) {
                             onResult(true)
+                            shouldHideDataLoading = false
                         } else {
                             onResult(false)
                         }
@@ -124,7 +126,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                 error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 onResult(false)
             }
-            dataLoading.value = false
+            if (shouldHideDataLoading)
+                dataLoading.value = false
         }
     }
 
