@@ -75,6 +75,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                             authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
                             onResult(true)
                             return@authenticate
+                        } else {
+                            response.let { toastMessage.showMessage(statusMessage, "LoginViewModel", MessageType.WARNING) }
                         }
                     }
                 }
