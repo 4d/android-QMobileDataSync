@@ -17,6 +17,7 @@ import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
 import com.qmobile.qmobileapi.connectivity.isConnected
 import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobileapi.repository.AccessibilityRepository
+import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import timber.log.Timber
 
@@ -58,8 +59,11 @@ open class ConnectivityViewModel(
                 onResult(true)
             } else {
                 Timber.d("Server ping unsuccessful")
-                response?.let { toastMessage.showMessage(it, "ConnectivityViewModel") }
-                error?.let { toastMessage.showMessage(it, "ConnectivityViewModel") }
+                response?.let {
+                    onResult(true)
+                    return@checkAccessibility
+                }
+                error?.let { toastMessage.showMessage(it, "ConnectivityViewModel", MessageType.ERROR) }
                 onResult(false)
             }
         }

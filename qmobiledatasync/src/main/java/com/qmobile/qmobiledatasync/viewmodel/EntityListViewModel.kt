@@ -6,8 +6,9 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.asLiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
@@ -28,6 +29,13 @@ import com.qmobile.qmobiledatasync.relation.OneToManyRelation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
@@ -52,6 +60,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     val relations =
         BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
 
+    val currentQuery = MutableLiveData<String>()
+
     /**
      * LiveData
      */
@@ -60,12 +70,43 @@ abstract class EntityListViewModel<T : EntityModel>(
 //    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
 //        roomRepository.getAllDynamicQuery(sqLiteQuery)
 
-    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<PagedList<T>> {
+    @ExperimentalCoroutinesApi
+    private val searchChanel = ConflatedBroadcastChannel<SupportSQLiteQuery>()
+    // We will use a ConflatedBroadcastChannel as this will only broadcast
+    // the most recent sent element to all the subscribers
+
+    @ExperimentalCoroutinesApi
+    fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
+        // We use .offer() to send the element to all the subscribers.
+        searchChanel.offer(sqLiteQuery)
+    }
+
+    @FlowPreview
+    @ExperimentalCoroutinesApi
+    val entityListLiveData =
+        searchChanel.asFlow() // asFlow() converts received elements from broadcast channels into a flow.
+            .flatMapLatest {
+                // We use flatMapLatest as we don't want flows of flows and
+//            //we only want to query the latest searched string.
+                getAllDynamicQueryFlow(it)
+            }.catch { throwable ->
+                Timber.e("Error while getting entityListLiveData in EntityListViewModel of [$tableName]")
+                Timber.e(throwable.localizedMessage)
+            }.asLiveData()
+
+    private fun getAllDynamicQueryFlow(sqLiteQuery: SupportSQLiteQuery): Flow<PagedList<T>> {
+        val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
+            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_PAGE_SIZE,
+        )
+        return livePagedListBuilder.build().asFlow()
+    }
+
+    /*fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<PagedList<T>> {
         val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
             roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_PAGE_SIZE,
         )
         return livePagedListBuilder.build()
-    }
+    }*/
 
     var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 

@@ -40,7 +40,6 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
 
     val emailValid = MutableLiveData<Boolean>().apply { value = false }
 
-//    var statusMessage = MutableLiveData<String>().apply { value = "" }
     var statusMessage = ""
 
     val authenticationState: MutableLiveData<AuthenticationStateEnum> by lazy {
@@ -76,7 +75,13 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                             onResult(true)
                             return@authenticate
                         } else {
-                            response.let { toastMessage.showMessage(statusMessage, "LoginViewModel", MessageType.WARNING) }
+                            response.let {
+                                toastMessage.showMessage(
+                                    statusMessage,
+                                    "LoginViewModel",
+                                    MessageType.WARNING
+                                )
+                            }
                         }
                     }
                 }
