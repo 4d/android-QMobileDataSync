@@ -52,7 +52,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     companion object {
-        private const val DEFAULT_PAGE_SIZE = 60
+        private const val DEFAULT_ROOM_PAGE_SIZE = 60
+        private const val DEFAULT_REST_PAGE_SIZE = 50
     }
 
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
@@ -96,7 +97,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     private fun getAllDynamicQueryFlow(sqLiteQuery: SupportSQLiteQuery): Flow<PagedList<T>> {
         val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
-            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_PAGE_SIZE,
+            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_ROOM_PAGE_SIZE,
         )
         return livePagedListBuilder.build().asFlow()
     }
@@ -125,6 +126,51 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun getEntities(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
+
+        var iter = 0
+        var totalReceived = 0
+
+        dataLoading.value = true
+
+        fun paging(
+            onResult: (shouldSyncData: Boolean) -> Unit
+        ) {
+            performRequest(
+                iter = iter,
+                totalReceived = totalReceived
+            ) { isSuccess, hasFinished, receivedFromIter, shouldSyncData ->
+
+                if (isSuccess) {
+                    if (hasFinished) {
+                        onResult(shouldSyncData)
+                        if (!shouldSyncData) {
+                            dataLoading.value = false
+                        }
+                        return@performRequest
+                    } else {
+                        iter++
+                        totalReceived += receivedFromIter
+                        paging(onResult)
+                    }
+                } else {
+                    onResult(shouldSyncData)
+                    if (!shouldSyncData) {
+                        dataLoading.value = false
+                    }
+                    return@performRequest
+                }
+            }
+        }
+
+        paging(onResult)
+    }
+
+    private fun performRequest(
+        iter: Int,
+        totalReceived: Int,
+        onResult: (isSuccess: Boolean, hasFinished: Boolean, receivedFromIter: Int, shouldSyncData: Boolean) -> Unit
+    ) {
+
         val predicate: String? = buildPredicate()
         Timber.d("Performing data request, with predicate $predicate")
 
@@ -135,29 +181,43 @@ abstract class EntityListViewModel<T : EntityModel>(
             authInfoHelper.userInfo,
             StandardCharsets.UTF_8.toString()
         ) + "'" // String encoded
-        dataLoading.value = true
+
         restRepository.getEntitiesExtendedAttributes(
             jsonRequestBody = jsonRequestBody,
             filter = predicate,
-            params = paramsEncoded
+            paramsEncoded = paramsEncoded,
+            iter = iter,
+            limit = DEFAULT_REST_PAGE_SIZE
         ) { isSuccess, response, error ->
-            var shouldHideDataLoading = true
+
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
 
                     retrieveJSONObject(responseBody.string())?.let { responseJson ->
 
-                        val receivedGlobalStamp = responseJson.getSafeInt("__GlobalStamp") ?: 0
+                        responseJson.getSafeArray("__ENTITIES")?.let { jsonArray ->
 
-                        globalStamp.postValue(receivedGlobalStamp)
+                            val receivedFromIter = jsonArray.length()
 
-                        if (receivedGlobalStamp > authInfoHelper.globalStamp) {
-                            onResult(true)
-                            shouldHideDataLoading = false
-                        } else {
-                            onResult(false)
+                            responseJson.getSafeInt("__COUNT")?.let { count ->
+                                if (count <= totalReceived + receivedFromIter) { // it's time to stop
+
+                                    val receivedGlobalStamp = responseJson.getSafeInt("__GlobalStamp") ?: 0
+
+                                    globalStamp.postValue(receivedGlobalStamp)
+
+                                    if (receivedGlobalStamp > authInfoHelper.globalStamp) {
+                                        onResult(true, true, receivedFromIter, true)
+                                    } else {
+                                        onResult(true, true, receivedFromIter, false)
+                                    }
+                                } else {
+                                    onResult(true, false, receivedFromIter, false)
+                                }
+                            }
+
+                            decodeEntityModel(jsonArray, false)
                         }
-                        decodeEntityModel(responseJson.getSafeArray("__ENTITIES"), false)
                     }
                 }
             } else {
@@ -165,10 +225,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                 globalStamp.postValue(0)
                 response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
-                onResult(false)
+                onResult(false, true, 0, false)
             }
-            if (shouldHideDataLoading)
-                dataLoading.value = false
         }
     }
 

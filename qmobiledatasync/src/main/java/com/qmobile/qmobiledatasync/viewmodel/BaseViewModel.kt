@@ -54,4 +54,9 @@ abstract class BaseViewModel<T>(
     val toastMessage: ToastMessage = ToastMessage()
 
     abstract fun getRelationsInfo(entity: EntityModel): Map<String, LiveData<RoomRelation>>
+
+    override fun onCleared() {
+        super.onCleared()
+        restRepository.disposable.dispose()
+    }
 }
