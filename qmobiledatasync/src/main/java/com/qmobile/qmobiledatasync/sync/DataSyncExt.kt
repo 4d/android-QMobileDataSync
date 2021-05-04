@@ -67,7 +67,7 @@ fun DataSync.initClosures() {
 
     // Synchronization api requests
     val defaultSyncClosure: (EntityViewModelIsToSync) -> Unit = { entityViewModelIsToSync ->
-        entityViewModelIsToSync.sync()
+        entityViewModelIsToSync.sync(this.activity)
     }
 
     syncClosure = defaultSyncClosure

@@ -6,25 +6,34 @@
 
 package com.qmobile.qmobiledatasync.sync
 
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.lifecycleScope
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import timber.log.Timber
 
 data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync: Boolean) {
 
-    fun sync() {
+    var job: Job? = null
+
+    fun sync(activity: AppCompatActivity) {
         this.vm.dataSynchronized.postValue(DataSyncStateEnum.SYNCHRONIZING)
 
         Timber.d("[Sync] [Table : ${this.vm.getAssociatedTableName()}, isToSync : ${this.isToSync}]")
 
         if (this.isToSync) {
             this.isToSync = false
-            this.vm.getEntities {
-                Timber.v("Requesting data for ${vm.getAssociatedTableName()}")
+            job?.cancel()
+            job = activity.lifecycleScope.launch {
+                this@EntityViewModelIsToSync.vm.getEntities {
+                    Timber.v("Requested data for ${vm.getAssociatedTableName()}")
+                }
             }
         }
     }
