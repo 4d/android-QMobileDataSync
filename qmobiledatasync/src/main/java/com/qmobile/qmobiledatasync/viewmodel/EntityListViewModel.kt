@@ -18,6 +18,7 @@ import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
 import com.qmobile.qmobileapi.utils.DELETED_RECORDS
+import com.qmobile.qmobileapi.utils.UTF8
 import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
@@ -40,7 +41,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
@@ -60,8 +60,6 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     val relations =
         BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
-
-    val currentQuery = MutableLiveData<String>()
 
     /**
      * LiveData
@@ -179,7 +177,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
         val paramsEncoded = "'" + URLEncoder.encode(
             authInfoHelper.userInfo,
-            StandardCharsets.UTF_8.toString()
+            UTF8
         ) + "'" // String encoded
 
         restRepository.getEntitiesExtendedAttributes(

@@ -32,7 +32,7 @@ open class ConnectivityViewModel(
         Timber.v("ConnectivityViewModel initializing...")
     }
 
-    private val accessibilityRepository = AccessibilityRepository(accessibilityApiService)
+    private var accessibilityRepository = AccessibilityRepository(accessibilityApiService)
 
     /**
      * LiveData
@@ -75,5 +75,9 @@ open class ConnectivityViewModel(
     override fun onCleared() {
         super.onCleared()
         accessibilityRepository.disposable.dispose()
+    }
+
+    fun refreshAccessibilityRepository(accessibilityApiService: AccessibilityApiService) {
+        accessibilityRepository = AccessibilityRepository(accessibilityApiService)
     }
 }
