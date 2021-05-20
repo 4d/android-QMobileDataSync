@@ -50,4 +50,9 @@ interface FragmentUtil {
      * Reset relations as PagedListAdapter generates issue with relations
      */
     fun unsetRelationBinding(viewDataBinding: ViewDataBinding)
+
+    /**
+     * Provides drawable resources for custom formatters
+     */
+    fun getDrawableForFormatter(formatName: String, imageName: String): Int?
 }

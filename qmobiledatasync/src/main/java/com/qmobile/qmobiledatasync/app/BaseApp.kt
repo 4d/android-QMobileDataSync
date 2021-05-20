@@ -29,9 +29,6 @@ open class BaseApp : MultiDexApplication() {
         // Provides navigation graphs id list for navigation
         lateinit var navGraphIds: List<Int>
 
-        //Hold Resources
-        lateinit var drawable: Map<String,Int>
-
         // Provides the embedded images
         lateinit var embeddedFiles: List<String>
 
