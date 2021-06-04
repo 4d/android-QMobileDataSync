@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.app
 
 import android.app.Application
+import android.content.res.Configuration
 import androidx.multidex.MultiDexApplication
 import com.qmobile.qmobiledatastore.db.AppDatabaseInterface
 import com.qmobile.qmobiledatasync.utils.FragmentUtil
@@ -37,6 +38,18 @@ open class BaseApp : MultiDexApplication() {
         lateinit var fromTableForViewModel: FromTableForViewModel
         lateinit var navigationInterface: NavigationInterface
         lateinit var fragmentUtil: FragmentUtil
+
+        // Provides if dark mode is enabled
+        fun nightMode(): Boolean = if (::instance.isInitialized) {
+            when (instance.resources?.configuration?.uiMode?.and(Configuration.UI_MODE_NIGHT_MASK)) {
+                Configuration.UI_MODE_NIGHT_YES -> true
+                Configuration.UI_MODE_NIGHT_NO -> false
+                Configuration.UI_MODE_NIGHT_UNDEFINED -> false
+                else -> false
+            }
+        } else {
+            false
+        }
     }
 
     override fun onCreate() {
