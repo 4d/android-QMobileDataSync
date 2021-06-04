@@ -54,5 +54,5 @@ interface FragmentUtil {
     /**
      * Provides drawable resources for custom formatters
      */
-    fun getDrawableForFormatter(formatName: String, imageName: String): Pair<Int, Int?>?
+    fun getDrawableForFormatter(formatName: String, imageName: String): Pair<Int, Int>?
 }
