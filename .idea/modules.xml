@@ -4,8 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/QMobileDataSync.iml" filepath="$PROJECT_DIR$/.idea/modules/QMobileDataSync.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/QMobileDataSync.buildSrc.iml" filepath="$PROJECT_DIR$/.idea/modules/QMobileDataSync.buildSrc.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1474178803/QMobileDataSync.qmobileapi.iml" filepath="$PROJECT_DIR$/.idea/modules/1474178803/QMobileDataSync.qmobileapi.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1603319661/QMobileDataSync.qmobiledatastore.iml" filepath="$PROJECT_DIR$/.idea/modules/-1603319661/QMobileDataSync.qmobiledatastore.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-396149618/QMobileDataSync.qmobileapi.iml" filepath="$PROJECT_DIR$/.idea/modules/-396149618/QMobileDataSync.qmobileapi.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1575107154/QMobileDataSync.qmobiledatastore.iml" filepath="$PROJECT_DIR$/.idea/modules/-1575107154/QMobileDataSync.qmobiledatastore.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/qmobiledatasync/QMobileDataSync.qmobiledatasync.iml" filepath="$PROJECT_DIR$/.idea/modules/qmobiledatasync/QMobileDataSync.qmobiledatasync.iml" />
     </modules>
   </component>
