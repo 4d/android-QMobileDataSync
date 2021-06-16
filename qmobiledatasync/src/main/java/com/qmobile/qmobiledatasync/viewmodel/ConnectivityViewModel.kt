@@ -8,13 +8,10 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
 import android.net.ConnectivityManager
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.connectivity.NetworkStateEnum
 import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
-import com.qmobile.qmobileapi.connectivity.isConnected
 import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobileapi.repository.AccessibilityRepository
 import com.qmobile.qmobiledatasync.toast.MessageType
@@ -23,7 +20,7 @@ import timber.log.Timber
 
 open class ConnectivityViewModel(
     application: Application,
-    private val connectivityManager: ConnectivityManager,
+    connectivityManager: ConnectivityManager,
     accessibilityApiService: AccessibilityApiService
 ) :
     AndroidViewModel(application) {
@@ -38,7 +35,6 @@ open class ConnectivityViewModel(
      * LiveData
      */
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     open val networkStateMonitor: LiveData<NetworkStateEnum> =
         NetworkStateMonitor(
             connectivityManager
@@ -69,8 +65,7 @@ open class ConnectivityViewModel(
         }
     }
 
-    fun isConnected(): Boolean =
-        connectivityManager.isConnected(networkStateMonitor.value)
+    fun isConnected(): Boolean = networkStateMonitor.value == NetworkStateEnum.CONNECTED
 
     override fun onCleared() {
         super.onCleared()

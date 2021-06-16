@@ -30,12 +30,10 @@ import com.qmobile.qmobiledatasync.relation.OneToManyRelation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.channels.ConflatedBroadcastChannel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import org.json.JSONArray
 import org.json.JSONObject
@@ -69,24 +67,20 @@ abstract class EntityListViewModel<T : EntityModel>(
 //    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
 //        roomRepository.getAllDynamicQuery(sqLiteQuery)
 
-    @ExperimentalCoroutinesApi
-    private val searchChanel = ConflatedBroadcastChannel<SupportSQLiteQuery>()
+    private val searchChanel = MutableStateFlow<SupportSQLiteQuery?>(null)
     // We will use a ConflatedBroadcastChannel as this will only broadcast
     // the most recent sent element to all the subscribers
 
-    @ExperimentalCoroutinesApi
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
-        // We use .offer() to send the element to all the subscribers.
-        searchChanel.offer(sqLiteQuery)
+        searchChanel.value = sqLiteQuery
     }
 
-    @FlowPreview
-    @ExperimentalCoroutinesApi
     val entityListLiveData =
-        searchChanel.asFlow() // asFlow() converts received elements from broadcast channels into a flow.
+        searchChanel
+            .filterNotNull()
             .flatMapLatest {
                 // We use flatMapLatest as we don't want flows of flows and
-//            //we only want to query the latest searched string.
+                // we only want to query the latest searched string.
                 getAllDynamicQueryFlow(it)
             }.catch { throwable ->
                 Timber.e("Error while getting entityListLiveData in EntityListViewModel of [$tableName]")
