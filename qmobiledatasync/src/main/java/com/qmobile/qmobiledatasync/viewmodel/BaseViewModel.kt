@@ -28,13 +28,13 @@ abstract class BaseViewModel<T>(
 ) : AndroidViewModel(BaseApp.instance) {
 
     open fun getAssociatedTableName(): String = tableName
-    val originalAssociatedTableName = BaseApp.fromTableForViewModel.originalTableName(tableName)
+    val originalAssociatedTableName = BaseApp.genericTableHelper.originalTableName(tableName)
 
     /**
      * DAO
      */
 
-    var dao: BaseDao<T> = BaseApp.appDatabaseInterface.getDao(tableName)
+    var dao: BaseDao<T> = BaseApp.daoProvider.getDao(tableName)
 
     /**
      * Repositories

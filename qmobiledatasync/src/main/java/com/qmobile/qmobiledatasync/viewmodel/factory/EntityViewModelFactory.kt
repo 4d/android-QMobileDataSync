@@ -29,7 +29,7 @@ class EntityViewModelFactory(
         } else {
             addViewModel(
                 key,
-                BaseApp.fromTableForViewModel.entityViewModelFromTable(
+                BaseApp.genericTableHelper.entityViewModelFromTable(
                     tableName,
                     id,
                     apiService
@@ -60,7 +60,7 @@ fun getEntityViewModel(
     itemId: String,
     apiService: ApiService
 ): EntityViewModel<EntityModel> {
-    val clazz = BaseApp.fromTableForViewModel.entityViewModelClassFromTable(tableName)
+    val clazz = BaseApp.genericTableHelper.entityViewModelClassFromTable(tableName)
     viewModelStoreOwner?.run {
         return ViewModelProvider(
             this,

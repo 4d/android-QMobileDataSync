@@ -14,9 +14,9 @@ import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 
 /**
- * Interface implemented by MainActivity to provide different elements depending of the generated type
+ * Interface providing different elements depending of the generated type
  */
-interface FromTableForViewModel {
+interface GenericTableHelper {
 
     /**
      * Provides the list of table names

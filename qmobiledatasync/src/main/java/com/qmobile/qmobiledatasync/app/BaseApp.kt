@@ -9,10 +9,9 @@ package com.qmobile.qmobiledatasync.app
 import android.app.Application
 import android.content.res.Configuration
 import androidx.multidex.MultiDexApplication
-import com.qmobile.qmobiledatastore.db.AppDatabaseInterface
-import com.qmobile.qmobiledatasync.utils.FragmentUtil
-import com.qmobile.qmobiledatasync.utils.FromTableForViewModel
-import com.qmobile.qmobiledatasync.utils.NavigationInterface
+import com.qmobile.qmobiledatastore.db.DaoProvider
+import com.qmobile.qmobiledatasync.utils.GenericTableFragmentHelper
+import com.qmobile.qmobiledatasync.utils.GenericTableHelper
 
 open class BaseApp : MultiDexApplication() {
 
@@ -34,10 +33,9 @@ open class BaseApp : MultiDexApplication() {
         lateinit var embeddedFiles: List<String>
 
         // Provides interfaces to get data coming from outside the SDK
-        lateinit var appDatabaseInterface: AppDatabaseInterface
-        lateinit var fromTableForViewModel: FromTableForViewModel
-        lateinit var navigationInterface: NavigationInterface
-        lateinit var fragmentUtil: FragmentUtil
+        lateinit var daoProvider: DaoProvider
+        lateinit var genericTableHelper: GenericTableHelper
+        lateinit var genericTableFragmentHelper: GenericTableFragmentHelper
 
         // Provides if dark mode is enabled
         fun nightMode(): Boolean = if (::instance.isInitialized) {

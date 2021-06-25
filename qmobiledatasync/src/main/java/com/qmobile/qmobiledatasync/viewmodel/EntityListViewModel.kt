@@ -57,7 +57,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
 
     val relations =
-        BaseApp.fromTableForViewModel.getRelations<T>(tableName, BaseApp.instance)
+        BaseApp.genericTableHelper.getRelations<T>(tableName, BaseApp.instance)
 
     /**
      * LiveData
@@ -282,7 +282,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             for (entityJsonString in entitiesList) {
                 Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
                 val entity: EntityModel? =
-                    BaseApp.fromTableForViewModel.parseEntityFromTable(
+                    BaseApp.genericTableHelper.parseEntityFromTable(
                         getAssociatedTableName(),
                         entityJsonString,
                         fetchedFromRelation

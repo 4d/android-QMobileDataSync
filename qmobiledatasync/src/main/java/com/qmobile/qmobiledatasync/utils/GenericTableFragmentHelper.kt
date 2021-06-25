@@ -1,19 +1,31 @@
 /*
- * Created by Quentin Marciset on 2/3/2021.
+ * Created by Quentin Marciset on 7/2/2020.
  * 4D SAS
- * Copyright (c) 2021 Quentin Marciset. All rights reserved.
+ * Copyright (c) 2020 Quentin Marciset. All rights reserved.
  */
 
 package com.qmobile.qmobiledatasync.utils
 
+import android.view.View
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.Fragment
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 
 /**
- * Interface implemented by MainActivity to provide different elements depending of the generated type
+ * Interface providing different elements depending of the generated type
  */
-interface FragmentUtil {
+interface GenericTableFragmentHelper {
+
+    /**
+     * Navigates from ListView to ViewPager (which displays one DetailView)
+     */
+    fun navigateFromListToViewPager(view: View, position: Int, tableName: String)
+
+    /**
+     * Gets the appropriate detail fragment
+     */
+    fun getDetailFragment(itemId: String, tableName: String): Fragment
 
     /**
      * Sets the appropriate EntityViewModel

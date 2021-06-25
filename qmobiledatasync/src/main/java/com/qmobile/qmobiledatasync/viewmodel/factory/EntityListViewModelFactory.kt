@@ -28,7 +28,7 @@ class EntityListViewModelFactory(
         } else {
             addViewModel(
                 key,
-                BaseApp.fromTableForViewModel.entityListViewModelFromTable(
+                BaseApp.genericTableHelper.entityListViewModelFromTable(
                     tableName,
                     apiService
                 )
@@ -57,7 +57,7 @@ fun getEntityListViewModel(
     tableName: String,
     apiService: ApiService
 ): EntityListViewModel<EntityModel> {
-    val clazz = BaseApp.fromTableForViewModel.entityListViewModelClassFromTable(tableName)
+    val clazz = BaseApp.genericTableHelper.entityListViewModelClassFromTable(tableName)
     viewModelStoreOwner?.run {
         return ViewModelProvider(
             this,
