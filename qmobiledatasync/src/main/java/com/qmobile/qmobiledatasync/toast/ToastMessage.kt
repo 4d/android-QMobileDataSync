@@ -41,45 +41,53 @@ class ToastMessage {
                 setMessage(entry, type)
             }
             is Response<*> -> {
-                // val errorbody = InputStreamReader(error.errorBody()!!.byteStream())
-                // errorbody.readLines()
-
-                val code = entry.code()
-                var message = ""
-
-                // Trying to check if there is a missing On Mobile App Authentication method
-                entry.errorBody()?.let {
-                    // must be copy into a variable and used as many times as required
-                    val errorBody = it.string()
-                    Timber.e("Response errorBody for $info ::$errorBody")
-                    if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                        message = try {
-                            JSONObject(errorBody).getSafeString("statusText") ?: ""
-                        } catch (e: JSONException) {
-                            ""
-                        }
-                    }
-                }
-
-                if (message.isNotEmpty()) {
-                    setMessage(message, MessageType.WARNING)
-                } else {
-                    HttpCode.reason(code)?.let { reason ->
-                        message = "$reason ($code)"
-                    } ?: kotlin.run {
-                        message = "${HttpCode.message(code)} ($code)"
-                    }
-                    setMessage(message, type)
-                }
+                handleErrorResponse(entry, info, type)
             }
             is Throwable -> {
-                if (entry is SocketTimeoutException) {
-                    setMessage(HttpCode.message(HttpCode.requestTimeout), type)
-                } else {
-                    entry.localizedMessage?.let { message ->
-                        setMessage(message, type)
-                    }
+                handleErrorThrowable(entry, type)
+            }
+        }
+    }
+
+    private fun handleErrorResponse(entry: Response<*>, info: String?, type: MessageType) {
+        // val errorbody = InputStreamReader(error.errorBody()!!.byteStream())
+        // errorbody.readLines()
+
+        val code = entry.code()
+        var message = ""
+
+        // Trying to check if there is a missing On Mobile App Authentication method
+        entry.errorBody()?.let {
+            // must be copy into a variable and used as many times as required
+            val errorBody = it.string()
+            Timber.e("Response errorBody for $info ::$errorBody")
+            if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                message = try {
+                    JSONObject(errorBody).getSafeString("statusText") ?: ""
+                } catch (e: JSONException) {
+                    ""
                 }
+            }
+        }
+
+        if (message.isNotEmpty()) {
+            setMessage(message, MessageType.WARNING)
+        } else {
+            HttpCode.reason(code)?.let { reason ->
+                message = "$reason ($code)"
+            } ?: kotlin.run {
+                message = "${HttpCode.message(code)} ($code)"
+            }
+            setMessage(message, type)
+        }
+    }
+
+    private fun handleErrorThrowable(entry: Throwable, type: MessageType) {
+        if (entry is SocketTimeoutException) {
+            setMessage(HttpCode.message(HttpCode.requestTimeout), type)
+        } else {
+            entry.localizedMessage?.let { message ->
+                setMessage(message, type)
             }
         }
     }

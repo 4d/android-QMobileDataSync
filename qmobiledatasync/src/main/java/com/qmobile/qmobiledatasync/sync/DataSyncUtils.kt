@@ -39,7 +39,7 @@ object DataSyncUtils {
         entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
     ): Boolean {
         var isAtLeastOneToSync = false
-        for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+        entityViewModelIsToSyncList.forEach { entityViewModelIsToSync ->
             val vmGs = entityViewModelIsToSync.vm.globalStamp.value ?: 0
             if (vmGs < maxGlobalStamp) {
                 entityViewModelIsToSync.isToSync = true

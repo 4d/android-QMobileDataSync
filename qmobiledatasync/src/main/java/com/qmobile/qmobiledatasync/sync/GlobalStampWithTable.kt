@@ -14,7 +14,7 @@ import androidx.lifecycle.Observer
 data class GlobalStampWithTable(val tableName: String, val globalStamp: Int)
 
 fun MutableList<MediatorLiveData<GlobalStampWithTable>>.removeObservers(activity: AppCompatActivity) {
-    for (mediatorLiveData in this) {
+    this.forEach { mediatorLiveData ->
         mediatorLiveData.removeObservers(activity)
     }
 }
@@ -23,7 +23,7 @@ fun MutableList<MediatorLiveData<GlobalStampWithTable>>.setObservers(
     activity: AppCompatActivity,
     globalStampObserver: Observer<GlobalStampWithTable>
 ) {
-    for (mediatorLiveData in this) {
+    this.forEach { mediatorLiveData ->
         mediatorLiveData.observe(activity, globalStampObserver)
     }
 }

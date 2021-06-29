@@ -80,7 +80,7 @@ class DataSync(
                 )
                 Timber.d("Current globalStamps list :")
 
-                for (entityViewModelIsToSync in entityViewModelIsToSyncList) {
+                entityViewModelIsToSyncList.forEach { entityViewModelIsToSync ->
                     Timber.d(
                         " - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, " +
                             "GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}"
@@ -149,7 +149,7 @@ class DataSync(
 
         val syncRequiredList = entityViewModelIsToSyncList.filter { it.isToSync }
 
-        for (syncRequired in syncRequiredList) {
+        syncRequiredList.forEach { syncRequired ->
             syncClosure(syncRequired)
         }
     }

@@ -58,7 +58,7 @@ class RelationHelperTest {
         val properties: Collection<*>
         properties = CustomEmployee::class.declaredMemberProperties
 
-        for (property in properties.toList()) {
+        properties.toList().forEach { property ->
 
             val manyToOneRelation = RelationHelper.isManyToOneRelation(
                 property,
@@ -92,7 +92,7 @@ class RelationHelperTest {
         val properties: Collection<*>
         properties = CustomEmployee::class.declaredMemberProperties
 
-        for (property in properties.toList()) {
+        properties.toList().forEach { property ->
 
             val oneToManyRelation = RelationHelper.isOneToManyRelation(
                 property,

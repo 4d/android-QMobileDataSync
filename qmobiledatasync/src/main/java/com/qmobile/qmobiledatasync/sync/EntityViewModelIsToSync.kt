@@ -78,7 +78,7 @@ fun List<EntityViewModelIsToSync>.syncDeletedRecords() {
     // We pick first viewModel to perform a deletedRecords request, but it could be any viewModel.
     // The goal is to get a RestRepository to perform the request.
     this[0].vm.getDeletedRecords { entitiesList ->
-        for (deletedRecordString in entitiesList) {
+        entitiesList.forEach { deletedRecordString ->
             this.deleteRecord(retrieveJSONObject(deletedRecordString))
         }
     }
@@ -87,12 +87,7 @@ fun List<EntityViewModelIsToSync>.syncDeletedRecords() {
 fun List<EntityViewModelIsToSync>.deleteRecord(deletedRecordJson: JSONObject?) {
     deletedRecordJson?.getSafeString("__PrimaryKey")?.let { recordKey ->
         deletedRecordJson.getSafeString("__TableName")?.let { tableName ->
-            for (entityViewModel in this) {
-                if (tableName == entityViewModel.vm.getAssociatedTableName()) {
-                    entityViewModel.vm.deleteOne(recordKey)
-                    break
-                }
-            }
+            this.findLast { tableName == it.vm.getAssociatedTableName() }?.vm?.deleteOne(recordKey)
         }
     }
 }
@@ -100,32 +95,32 @@ fun List<EntityViewModelIsToSync>.deleteRecord(deletedRecordJson: JSONObject?) {
 fun List<EntityViewModelIsToSync>.createMediatorLiveData(
     mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
 ) {
-    for (entityViewModelIsToSync in this) {
+    this.forEach { entityViewModelIsToSync ->
         val mediatorLiveData = entityViewModelIsToSync.createMediatorLiveData()
         mediatorLiveDataList.add(mediatorLiveData)
     }
 }
 
 fun List<EntityViewModelIsToSync>.notifyDataSynced() {
-    for (entityViewModelIsToSync in this) {
+    this.forEach { entityViewModelIsToSync ->
         entityViewModelIsToSync.notifyDataSynced()
     }
 }
 
 fun List<EntityViewModelIsToSync>.notifyDataUnSynced() {
-    for (entityViewModelIsToSync in this) {
+    this.forEach { entityViewModelIsToSync ->
         entityViewModelIsToSync.notifyDataUnSynced()
     }
 }
 
 fun List<EntityViewModelIsToSync>.startDataLoading() {
-    for (entityViewModelIsToSync in this) {
+    this.forEach { entityViewModelIsToSync ->
         entityViewModelIsToSync.startDataLoading()
     }
 }
 
 fun List<EntityViewModelIsToSync>.stopDataLoading() {
-    for (entityViewModelIsToSync in this) {
+    this.forEach { entityViewModelIsToSync ->
         entityViewModelIsToSync.stopDataLoading()
     }
 }

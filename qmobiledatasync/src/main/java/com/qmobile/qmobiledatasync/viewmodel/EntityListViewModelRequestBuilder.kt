@@ -42,7 +42,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
     return JSONObject().apply {
         // Adding properties
         val properties = authInfoHelper.getProperties(getAssociatedTableName()).split(", ")
-        for (property in properties) {
+        properties.forEach { property ->
             if (!property.endsWith(Relation.SUFFIX) &&
                 !(property.startsWith("__") && property.endsWith("Key"))
             ) {
@@ -52,7 +52,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
         // Adding relations
         if (authInfoHelper.relationAvailable) {
-            for (relation in relations) {
+            relations.forEach { relation ->
                 put(relation.relationName, buildRelationQueryAndProperties(relation))
             }
         }
@@ -62,7 +62,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProperties(relation: Relation): JSONObject {
     return JSONObject().apply {
         val relationProperties = authInfoHelper.getProperties(relation.className).split(", ")
-        for (relationProperty in relationProperties.filter { it.isNotEmpty() }) {
+        relationProperties.filter { it.isNotEmpty() }.forEach { relationProperty ->
             if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
                 put(relationProperty.removeSuffix(Relation.SUFFIX), true)
             }

@@ -27,6 +27,7 @@ import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
 import com.qmobile.qmobiledatasync.relation.OneToManyRelation
+import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
@@ -208,7 +209,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                                 }
                             }
 
-                            decodeEntityModel(jsonArray, false)
+                            decodeEntities(jsonArray, false)
                         }
                     }
                 }
@@ -274,12 +275,12 @@ abstract class EntityListViewModel<T : EntityModel>(
     /**
      * Decodes the list of entities retrieved
      */
-    fun decodeEntityModel(entitiesJsonArray: JSONArray?, fetchedFromRelation: Boolean) {
+    fun decodeEntities(entitiesJsonArray: JSONArray?, fetchedFromRelation: Boolean) {
 
         val parsedList: MutableList<EntityModel> = mutableListOf()
         val entitiesList: List<String>? = entitiesJsonArray?.getObjectListAsString()
         entitiesList?.let {
-            for (entityJsonString in entitiesList) {
+            entitiesList.forEach { entityJsonString ->
                 Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
                 val entity: EntityModel? =
                     BaseApp.genericTableHelper.parseEntityFromTable(
@@ -302,32 +303,36 @@ abstract class EntityListViewModel<T : EntityModel>(
      * to be added in the appropriate Room dao
      */
     fun checkRelations(entityJsonString: String) {
-        for (relation in relations) {
-            if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
-                val relatedEntity =
-                    RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
-                relatedEntity?.let {
-                    newRelatedEntity.postValue(
-                        ManyToOneRelation(
-                            entity = it,
-                            className = relation.className
+        relations.forEach { relation ->
+            RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)?.let { relatedJson ->
+                if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
+                    checkManyToOneRelation(relation, relatedJson)
+                } else { // relationType == ONE_TO_MANY
+                    checkOneToManyRelation(relatedJson)
+                }
+            }
+        }
+    }
+
+    private fun checkManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
+        newRelatedEntity.postValue(
+            ManyToOneRelation(
+                entity = relatedJson,
+                className = relation.className
+            )
+        )
+    }
+
+    private fun checkOneToManyRelation(relatedJson: JSONObject) {
+        if (relatedJson.getSafeInt("__COUNT") ?: 0 > 0) {
+            relatedJson.getSafeString("__DATACLASS")?.let { dataClass ->
+                relatedJson.getSafeArray("__ENTITIES")?.let { entities ->
+                    newRelatedEntities.postValue(
+                        OneToManyRelation(
+                            entities = entities,
+                            className = dataClass.filter { !it.isWhitespace() }
                         )
                     )
-                }
-            } else { // relationType == ONE_TO_MANY
-                val relatedEntities =
-                    RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
-                if (relatedEntities?.getSafeInt("__COUNT") ?: 0 > 0) {
-                    relatedEntities?.getSafeString("__DATACLASS")?.let { dataClass ->
-                        relatedEntities.getSafeArray("__ENTITIES")?.let { entities ->
-                            newRelatedEntities.postValue(
-                                OneToManyRelation(
-                                    entities = entities,
-                                    className = dataClass.filter { !it.isWhitespace() }
-                                )
-                            )
-                        }
-                    }
                 }
             }
         }
