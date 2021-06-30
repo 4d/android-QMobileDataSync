@@ -337,4 +337,28 @@ abstract class EntityListViewModel<T : EntityModel>(
             }
         }
     }
+
+    fun insertNewRelatedEntity(manyToOneRelation: ManyToOneRelation) {
+        val entity = BaseApp.genericTableHelper.parseEntityFromTable(
+            tableName = manyToOneRelation.className,
+            jsonString = manyToOneRelation.entity.toString(),
+            fetchedFromRelation = true
+        )
+        entity?.let {
+            this.insert(entity)
+        }
+    }
+
+    fun insertNewRelatedEntities(oneToManyRelation: OneToManyRelation) {
+        oneToManyRelation.entities.getObjectListAsString().forEach { entityString ->
+            val entity = BaseApp.genericTableHelper.parseEntityFromTable(
+                tableName = oneToManyRelation.className,
+                jsonString = entityString,
+                fetchedFromRelation = true
+            )
+            entity?.let {
+                this.insert(entity)
+            }
+        }
+    }
 }
