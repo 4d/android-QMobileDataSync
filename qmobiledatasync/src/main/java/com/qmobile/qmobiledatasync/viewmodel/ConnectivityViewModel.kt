@@ -47,6 +47,7 @@ open class ConnectivityViewModel(
      * Performed before data sync and in settings.
      */
     fun isServerConnectionOk(
+        toastError: Boolean = true,
         onResult: (success: Boolean) -> Unit
     ) {
         accessibilityRepository.checkAccessibility { isSuccess, response, error ->
@@ -59,7 +60,8 @@ open class ConnectivityViewModel(
                     onResult(true)
                     return@checkAccessibility
                 }
-                error?.let { toastMessage.showMessage(it, "ConnectivityViewModel", MessageType.ERROR) }
+                if (toastError)
+                    error?.let { toastMessage.showMessage(it, "ConnectivityViewModel", MessageType.ERROR) }
                 onResult(false)
             }
         }
