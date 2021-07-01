@@ -7,9 +7,13 @@
 package com.qmobile.qmobiledatasync.relation
 
 import android.app.Application
+import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.utils.getSafeObject
+import com.qmobile.qmobiledatastore.dao.RelationBaseDao
+import com.qmobile.qmobiledatastore.data.RoomRelation
+import com.qmobile.qmobiledatasync.app.BaseApp
 import org.json.JSONObject
 import kotlin.reflect.KProperty1
 
@@ -69,5 +73,16 @@ object RelationHelper {
             }
         }
         return null
+    }
+
+    fun getManyToOneRelation(
+        relationId: String,
+        sourceTableName: String,
+        relationName: String
+    ): LiveData<RoomRelation> {
+        val relatedTableName = BaseApp.genericTableHelper.getRelatedTableName(sourceTableName, relationName)
+        val relationDao: RelationBaseDao<RoomRelation> =
+            BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName)
+        return relationDao.getManyToOneRelation(relationId)
     }
 }

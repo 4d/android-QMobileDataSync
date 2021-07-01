@@ -7,8 +7,10 @@
 package com.qmobile.qmobiledatasync.utils
 
 import android.app.Application
+import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
+import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
@@ -67,4 +69,8 @@ interface GenericTableHelper {
      * Provides the appropriate EntityViewModel KClass
      */
     fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
+
+    fun getRelatedTableName(sourceTableName: String, relationName: String): String
+
+    fun getRelationsInfo(tableName: String, entity: EntityModel): Map<String, LiveData<RoomRelation>>
 }
