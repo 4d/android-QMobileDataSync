@@ -6,14 +6,14 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-import android.app.Application
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobiledatastore.data.RoomRelation
-import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
+import kotlin.reflect.KParameter
+import kotlin.reflect.KProperty1
 
 /**
  * Interface providing different elements depending of the generated type
@@ -34,14 +34,6 @@ interface GenericTableHelper {
      * Provides the appropriate Entity
      */
     fun parseEntityFromTable(tableName: String, jsonString: String, fetchedFromRelation: Boolean): EntityModel?
-
-    /**
-     * Returns the list of relations of the given table
-     */
-    fun <T : EntityModel> getRelations(
-        tableName: String,
-        application: Application
-    ): MutableList<Relation>
 
     /**
      * Provides the appropriate EntityListViewModel
@@ -69,6 +61,10 @@ interface GenericTableHelper {
      * Provides the appropriate EntityViewModel KClass
      */
     fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
+
+    fun <T : EntityModel> getReflectedProperties(
+        tableName: String
+    ): Pair<Collection<KProperty1<T, *>>, List<KParameter>?>
 
     fun getRelatedTableName(sourceTableName: String, relationName: String): String
 
