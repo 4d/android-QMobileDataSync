@@ -12,6 +12,7 @@ import androidx.lifecycle.asLiveData
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
@@ -40,6 +41,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.net.URLEncoder
+import kotlin.reflect.full.findAnnotation
 
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
@@ -57,8 +59,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
 
-    val relations =
-        BaseApp.genericTableHelper.getRelations<T>(tableName, BaseApp.instance)
+    val relations = getRelationList()
 
     /**
      * LiveData
@@ -360,5 +361,60 @@ abstract class EntityListViewModel<T : EntityModel>(
                 this.insert(entity)
             }
         }
+    }
+
+    /**
+     * Returns the list of relations of the given table
+     */
+    fun getRelationList(): MutableList<Relation> {
+
+        val relations = mutableListOf<Relation>()
+
+        val reflectedProperties = BaseApp.genericTableHelper.getReflectedProperties<T>(getAssociatedTableName())
+
+        val propertyList = reflectedProperties.first.toList()
+        val constructorParameters = reflectedProperties.second
+
+        propertyList.forEach eachProperty@{ property ->
+
+            val propertyName: String = property.name
+
+            val serializedName: String? = constructorParameters?.find { it.name == propertyName }
+                ?.findAnnotation<JsonProperty>()?.value
+
+            val name: String = serializedName ?: propertyName
+
+            val manyToOneRelation = RelationHelper.isManyToOneRelation(
+                property,
+                BaseApp.instance,
+                BaseApp.genericTableHelper.tableNames()
+            )
+            if (manyToOneRelation != null) {
+                relations.add(
+                    Relation(
+                        relationName = name,
+                        className = manyToOneRelation,
+                        relationType = RelationTypeEnum.MANY_TO_ONE
+                    )
+                )
+                return@eachProperty
+            }
+            val oneToManyRelation =
+                RelationHelper.isOneToManyRelation(
+                    property,
+                    BaseApp.instance,
+                    BaseApp.genericTableHelper.tableNames()
+                )
+            if (oneToManyRelation != null) {
+                relations.add(
+                    Relation(
+                        relationName = name,
+                        className = oneToManyRelation,
+                        relationType = RelationTypeEnum.ONE_TO_MANY
+                    )
+                )
+            }
+        }
+        return relations
     }
 }
