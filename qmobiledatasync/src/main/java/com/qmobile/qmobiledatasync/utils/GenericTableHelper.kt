@@ -62,11 +62,20 @@ interface GenericTableHelper {
      */
     fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
 
+    /**
+     * Uses Kotlin reflection to retrieve type properties
+     */
     fun <T : EntityModel> getReflectedProperties(
         tableName: String
     ): Pair<Collection<KProperty1<T, *>>, List<KParameter>?>
 
+    /**
+     * Retrieves the table name of a related field
+     */
     fun getRelatedTableName(sourceTableName: String, relationName: String): String
 
+    /**
+     * Provides the relation map extracted from an entity
+     */
     fun getRelationsInfo(tableName: String, entity: EntityModel): Map<String, LiveData<RoomRelation>>
 }
