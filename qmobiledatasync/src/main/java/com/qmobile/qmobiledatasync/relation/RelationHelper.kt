@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.relation
 
 import android.app.Application
 import androidx.lifecycle.LiveData
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.utils.getSafeObject
@@ -16,6 +17,8 @@ import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.app.BaseApp
 import org.json.JSONObject
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.findAnnotation
 
 object RelationHelper {
 
@@ -75,14 +78,68 @@ object RelationHelper {
         return null
     }
 
-    fun getManyToOneRelation(
+    fun addRelation(
+        relationName: String,
+        relationId: String,
+        sourceTableName: String,
+        map: MutableMap<String, LiveData<RoomRelation>>
+    ) {
+        map[relationName] = getManyToOneRelation(
+            relationId = relationId,
+            sourceTableName = sourceTableName,
+            relationName = relationName
+        )
+    }
+
+    private fun getManyToOneRelation(
         relationId: String,
         sourceTableName: String,
         relationName: String
     ): LiveData<RoomRelation> {
-        val relatedTableName = BaseApp.genericTableHelper.getRelatedTableName(sourceTableName, relationName)
+        val relatedTableName =
+            BaseApp.genericTableHelper.getRelatedTableName(sourceTableName, relationName)
         val relationDao: RelationBaseDao<RoomRelation> =
             BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName)
         return relationDao.getManyToOneRelation(relationId)
+    }
+
+    /**
+     * Returns list of table properties as a String, separated by commas, without EntityModel
+     * inherited properties
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <T : EntityModel> getPropertyListString(
+        tableName: String,
+        application: Application
+    ): String {
+
+        val entityModelProperties = EntityModel::class.declaredMemberProperties.map { it.name }
+        val tableNames = BaseApp.genericTableHelper.tableNames()
+
+        val reflectedProperties = BaseApp.genericTableHelper.getReflectedProperties<T>(tableName)
+
+        val propertyList = reflectedProperties.first.toList()
+        val constructorParameters = reflectedProperties.second
+
+        val names = mutableListOf<String>()
+        propertyList.forEach eachProperty@{ property ->
+
+            val propertyName: String = property.name
+
+            val serializedName: String? = constructorParameters?.find { it.name == propertyName }
+                ?.findAnnotation<JsonProperty>()?.value
+
+            var name: String = serializedName ?: propertyName
+
+            if (isManyToOneRelation(property, application, tableNames) != null ||
+                isOneToManyRelation(property, application, tableNames) != null
+            ) {
+                name += Relation.SUFFIX
+            }
+            names.add(name)
+        }
+
+        val difference = names.toSet().minus(entityModelProperties.toSet())
+        return difference.toString().filter { it !in "[]" }
     }
 }
