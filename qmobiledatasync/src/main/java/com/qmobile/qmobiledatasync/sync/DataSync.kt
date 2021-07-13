@@ -146,10 +146,7 @@ class DataSync(
     private fun syncTables(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
         this.nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
         this.numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
-
-        val syncRequiredList = entityViewModelIsToSyncList.filter { it.isToSync }
-
-        syncRequiredList.forEach { syncRequired ->
+        entityViewModelIsToSyncList.filter { it.isToSync }.forEach { syncRequired ->
             syncClosure(syncRequired)
         }
     }
