@@ -12,7 +12,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import com.qmobile.qmobileapi.auth.AuthInfoHelper
+import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.EntityViewModelIsToSync
 import com.qmobile.qmobiledatasync.sync.GlobalStampWithTable
@@ -71,7 +71,7 @@ class DataSyncTest {
     lateinit var activity: AppCompatActivity
 
     @Mock
-    lateinit var authInfoHelper: AuthInfoHelper
+    lateinit var sharedPreferencesHolder: SharedPreferencesHolder
 
     @Mock
     lateinit var entityListViewModelEmployee: EntityListViewModel<Employee>
@@ -112,7 +112,7 @@ class DataSyncTest {
 
         dataSync = DataSync(
             activity,
-            authInfoHelper
+            sharedPreferencesHolder
         )
 
         mockForDataSync()
@@ -149,7 +149,7 @@ class DataSyncTest {
 
         dataSync = DataSync(
             activity,
-            authInfoHelper
+            sharedPreferencesHolder
         )
 
         mockForDataSync()
@@ -291,7 +291,7 @@ class DataSyncTest {
         Mockito.`when`(entityListViewModelOffice.getAssociatedTableName())
             .thenReturn(OFFICE_TABLE)
 
-        Mockito.`when`(authInfoHelper.globalStamp).thenReturn(sharedPreferencesGlobalStamp)
+        Mockito.`when`(sharedPreferencesHolder.globalStamp).thenReturn(sharedPreferencesGlobalStamp)
     }
 
     private fun observeMergedLiveData() {

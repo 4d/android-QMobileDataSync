@@ -26,7 +26,7 @@ fun DataSync.successfulSynchronization(
 ) {
     Timber.i("[Synchronization performed, all tables are up-to-date]")
     mediatorLiveDataList.removeObservers(activity)
-    authInfoHelper.globalStamp = maxGlobalStamp
+    sharedPreferencesHolder.globalStamp = maxGlobalStamp
     entityViewModelIsToSyncList.notifyDataSynced()
     entityViewModelIsToSyncList.startDataLoading()
     entityViewModelIsToSyncList.syncDeletedRecords()

@@ -13,7 +13,6 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
@@ -56,8 +55,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         private const val DEFAULT_ROOM_PAGE_SIZE = 60
         private const val DEFAULT_REST_PAGE_SIZE = 50
     }
-
-    val authInfoHelper = AuthInfoHelper.getInstance(BaseApp.instance)
 
     val relations = getRelationList()
 
@@ -105,7 +102,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     var dataLoading = MutableLiveData<Boolean>().apply { value = false }
 
-    open val globalStamp = MutableLiveData<Int>().apply { value = authInfoHelper.globalStamp }
+    open val globalStamp = MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
 
     val dataSynchronized =
         MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
@@ -172,7 +169,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         Timber.d("Json body ${getAssociatedTableName()} : $jsonRequestBody")
 
         val paramsEncoded = "'" + URLEncoder.encode(
-            authInfoHelper.userInfo,
+            BaseApp.sharedPreferencesHolder.userInfo,
             UTF8
         ) + "'" // String encoded
 
@@ -200,7 +197,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
                                     globalStamp.postValue(receivedGlobalStamp)
 
-                                    if (receivedGlobalStamp > authInfoHelper.globalStamp) {
+                                    if (receivedGlobalStamp > BaseApp.sharedPreferencesHolder.globalStamp) {
                                         onResult(true, true, receivedFromIter, true)
                                     } else {
                                         onResult(true, true, receivedFromIter, false)
@@ -227,7 +224,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun getDeletedRecords(
         onResult: (entitiesList: List<String>) -> Unit
     ) {
-        getDeletedRecords(restRepository, authInfoHelper) { responseJson ->
+        getDeletedRecords(restRepository) { responseJson ->
             decodeDeletedRecords(responseJson.getSafeArray("__ENTITIES")) { entitiesList ->
                 onResult(entitiesList)
             }
@@ -236,10 +233,9 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     private fun getDeletedRecords(
         restRepository: RestRepository,
-        authInfoHelper: AuthInfoHelper,
         onResult: (responseJson: JSONObject) -> Unit
     ) {
-        val predicate = DeletedRecord.buildStampPredicate(authInfoHelper.deletedRecordsStamp)
+        val predicate = DeletedRecord.buildStampPredicate(BaseApp.sharedPreferencesHolder.deletedRecordsStamp)
         Timber.d("Performing data request, with predicate $predicate")
 
         restRepository.getEntities(
@@ -251,7 +247,8 @@ abstract class EntityListViewModel<T : EntityModel>(
 
                     retrieveJSONObject(responseBody.string())?.let { responseJson ->
 
-                        authInfoHelper.deletedRecordsStamp = authInfoHelper.globalStamp
+                        BaseApp.sharedPreferencesHolder.deletedRecordsStamp =
+                            BaseApp.sharedPreferencesHolder.globalStamp
 
                         onResult(responseJson)
                     }
@@ -279,24 +276,21 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun decodeEntities(entitiesJsonArray: JSONArray?, fetchedFromRelation: Boolean) {
 
         val parsedList: MutableList<EntityModel> = mutableListOf()
-        val entitiesList: List<String>? = entitiesJsonArray?.getObjectListAsString()
-        entitiesList?.let {
-            entitiesList.forEach { entityJsonString ->
-                Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
-                val entity: EntityModel? =
-                    BaseApp.genericTableHelper.parseEntityFromTable(
-                        getAssociatedTableName(),
-                        entityJsonString,
-                        fetchedFromRelation
-                    )
-                entity?.let {
-                    parsedList.add(it)
-                    if (!fetchedFromRelation)
-                        checkRelations(entityJsonString)
-                }
+        entitiesJsonArray?.getObjectListAsString()?.forEach { entityJsonString ->
+            Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
+            val entity: EntityModel? =
+                BaseApp.genericTableHelper.parseEntityFromTable(
+                    getAssociatedTableName(),
+                    entityJsonString,
+                    fetchedFromRelation
+                )
+            entity?.let {
+                parsedList.add(it)
+                if (!fetchedFromRelation)
+                    checkRelations(entityJsonString)
             }
-            this.insertAll(parsedList)
         }
+        this.insertAll(parsedList)
     }
 
     /**

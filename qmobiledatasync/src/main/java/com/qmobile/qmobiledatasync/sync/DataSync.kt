@@ -10,8 +10,8 @@ import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
-import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.auth.LoginRequiredCallback
+import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @SuppressLint("BinaryOperationInTimber")
 class DataSync(
     val activity: AppCompatActivity,
-    val authInfoHelper: AuthInfoHelper,
+    val sharedPreferencesHolder: SharedPreferencesHolder,
     private val loginRequiredCallback: LoginRequiredCallback? = null
 ) {
 
@@ -101,7 +101,7 @@ class DataSync(
                         maxGlobalStamp =
                             DataSyncUtils.getMaxGlobalStamp(
                                 receivedSyncedTableGS,
-                                authInfoHelper.globalStamp
+                                sharedPreferencesHolder.globalStamp
                             )
                         Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
 

@@ -107,7 +107,6 @@ object RelationHelper {
      * Returns list of table properties as a String, separated by commas, without EntityModel
      * inherited properties
      */
-    @Suppress("UNCHECKED_CAST")
     fun <T : EntityModel> getPropertyListString(
         tableName: String,
         application: Application

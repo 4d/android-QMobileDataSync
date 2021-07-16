@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.viewmodel
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.model.queries.Query
 import com.qmobile.qmobileapi.utils.GLOBALSTAMP_PROPERTY
+import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject
 import kotlin.math.max
@@ -18,16 +19,16 @@ import kotlin.math.max
  */
 fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 
-    var gs = globalStamp.value ?: authInfoHelper.globalStamp
+    var gs = globalStamp.value ?: BaseApp.sharedPreferencesHolder.globalStamp
 
-    val isDumpedTable = authInfoHelper.dumpedTables.split(", ").contains(getAssociatedTableName())
+    val isDumpedTable = BaseApp.runtimeDataHolder.dumpedTables.split(", ").contains(getAssociatedTableName())
 
     if (isDumpedTable)
-        gs = max(gs, authInfoHelper.initialGlobalStamp)
+        gs = max(gs, BaseApp.runtimeDataHolder.initialGlobalStamp)
 
     var predicate = if (gs > 0) "\"$GLOBALSTAMP_PROPERTY >= $gs\"" else ""
 
-    val query = authInfoHelper.getQuery(getAssociatedTableName())
+    val query: String = BaseApp.runtimeDataHolder.getQuery(getAssociatedTableName())
     if (query.isNotEmpty()) {
         predicate = if (predicate.isEmpty()) {
             "\"$query\""
@@ -41,7 +42,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject {
     return JSONObject().apply {
         // Adding properties
-        val properties = authInfoHelper.getProperties(getAssociatedTableName()).split(", ")
+        val properties = BaseApp.runtimeDataHolder.getTableProperty(getAssociatedTableName()).split(", ")
         properties.forEach { property ->
             if (!property.endsWith(Relation.SUFFIX) &&
                 !(property.startsWith("__") && property.endsWith("Key"))
@@ -51,7 +52,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
         }
 
         // Adding relations
-        if (authInfoHelper.relationAvailable) {
+        if (BaseApp.runtimeDataHolder.relationAvailable) {
             relations.forEach { relation ->
                 put(relation.relationName, buildRelationQueryAndProperties(relation))
             }
@@ -61,15 +62,15 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
 private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProperties(relation: Relation): JSONObject {
     return JSONObject().apply {
-        val relationProperties = authInfoHelper.getProperties(relation.className).split(", ")
+        val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(relation.className).split(", ")
         relationProperties.filter { it.isNotEmpty() }.forEach { relationProperty ->
             if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
                 put(relationProperty.removeSuffix(Relation.SUFFIX), true)
             }
         }
-        val query = authInfoHelper.getQuery(relation.className)
+        val query: String = BaseApp.runtimeDataHolder.getQuery(relation.className)
         if (query.isNotEmpty()) {
-            if (authInfoHelper.userInfo.isEmpty()) {
+            if (BaseApp.sharedPreferencesHolder.userInfo.isEmpty()) {
                 // XXX could dev assert here if query contains parameters but no userInfo
                 put(Query.QUERY_PROPERTY, query)
             } else {
@@ -80,7 +81,7 @@ private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProper
                         put(
                             Query.SETTINGS,
                             JSONObject().apply {
-                                put(Query.PARAMETERS, JSONObject(authInfoHelper.userInfo))
+                                put(Query.PARAMETERS, JSONObject(BaseApp.sharedPreferencesHolder.userInfo))
                             }
                         )
                     }

@@ -11,13 +11,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
-import com.qmobile.qmobileapi.auth.AuthInfoHelper
 import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
 import com.qmobile.qmobileapi.utils.extractJSON
 import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import timber.log.Timber
@@ -30,7 +30,6 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     }
 
     private var authRepository: AuthRepository = AuthRepository(loginApiService)
-    val authInfoHelper = AuthInfoHelper.getInstance(application.applicationContext)
 
     /**
      * LiveData
@@ -54,10 +53,10 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     fun login(email: String = "", password: String = "", onResult: (success: Boolean) -> Unit) {
         dataLoading.value = true
         // Builds the request body for $authenticate request
-        val authRequestBody = authInfoHelper.buildAuthRequestBody(email, password)
+        val authRequestBody = BaseApp.sharedPreferencesHolder.buildAuthRequestBody(email, password)
         // Provides shouldRetryOnError to know if we should redirect the user to login page or
         // if we should retry silently
-        val shouldRetryOnError = authInfoHelper.guestLogin
+        val shouldRetryOnError = BaseApp.runtimeDataHolder.guestLogin
         authRepository.authenticate(
             authRequestBody,
             shouldRetryOnError
@@ -70,7 +69,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
 //                        statusMessage.postValue(authResponse.statusText ?: "")
                         statusMessage = authResponse.statusText ?: ""
                         // Fill SharedPreferences with response details
-                        if (authInfoHelper.handleLoginInfo(authResponse)) {
+                        if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
                             authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
                             onResult(true)
                             return@authenticate
@@ -118,7 +117,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
         authRepository.logout { isSuccess, response, error ->
             dataLoading.value = false
             authenticationState.postValue(AuthenticationStateEnum.LOGOUT)
-            authInfoHelper.sessionToken = ""
+            BaseApp.sharedPreferencesHolder.sessionToken = ""
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
