@@ -18,6 +18,7 @@ import org.json.JSONObject
 data class FieldMapping(
     val binding: String?,
     val choiceList: Any?, // choiceList can be a JSONObject or a JSONArray
+    val type: Any?, // type can be a String or a JSONArray
     val name: String?,
     val imageWidth: Int?, // currently not used, reading the one from layout
     val imageHeight: Int?, // currently not used, reading the one from layout
@@ -55,6 +56,9 @@ data class FieldMapping(
                     ?.toStringMap()
                     ?: fieldMappingJsonObject.getSafeArray("choiceList")
                         .getStringList(), // choiceList can be a JSONObject or a JSONArray
+                type = fieldMappingJsonObject.getSafeString("type")
+                    ?: fieldMappingJsonObject.getSafeArray("type")
+                        .getStringList(), // type can be a String or a JSONArray
                 name = fieldMappingJsonObject.getSafeString("name"),
                 // currently not used, reading the one from layout
                 imageWidth = fieldMappingJsonObject.getSafeInt("imageWidth"),
@@ -66,18 +70,44 @@ data class FieldMapping(
 
     fun getChoiceListString(text: String): String? {
         return when (choiceList) {
-            is Map<*, *> -> {
-                choiceList[text] as? String?
-            }
-            is List<*> -> {
-                text.toIntOrNull()?.let { index ->
-                    if (index < choiceList.size)
-                        choiceList[index] as? String?
-                    else
-                        null
-                }
-            }
+            is Map<*, *> -> getMapValue(choiceList, text)
+            is List<*> -> getListValue(choiceList, text)
             else -> null
         }
+    }
+
+    private fun hasBooleanType(): Boolean = when (type) {
+        is List<*> -> type.contains("boolean")
+        is String -> type == "boolean"
+        else -> false
+    }
+
+    private fun asBooleanStringToBooleanInt(text: String): String? = when (text.lowercase()) {
+        "false" -> "0"
+        "true" -> "1"
+        else -> null
+    }
+
+    private fun getMapValue(choiceList: Map<*, *>, text: String): String? {
+        var value: String? = choiceList[text] as? String?
+        if (value == null && hasBooleanType()) {
+            value = choiceList[asBooleanStringToBooleanInt(text)] as? String?
+        }
+        return value
+    }
+
+    private fun getListValue(choiceList: List<*>, text: String): String? {
+        var value: String? = null
+        text.toIntOrNull()?.let { index ->
+            if (index < choiceList.size)
+                value = choiceList[index] as? String?
+        }
+        if (value == null && hasBooleanType()) {
+            asBooleanStringToBooleanInt(text)?.toIntOrNull()?.let { index ->
+                if (index < choiceList.size)
+                    value = choiceList[index] as? String?
+            }
+        }
+        return value
     }
 }
