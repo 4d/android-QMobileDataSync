@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -35,15 +36,18 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
      * LiveData
      */
 
-    var dataLoading = MutableLiveData<Boolean>().apply { value = false }
+    private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
+    val dataLoading: LiveData<Boolean> = _dataLoading
 
-    val emailValid = MutableLiveData<Boolean>().apply { value = false }
+    private val _emailValid = MutableLiveData<Boolean>().apply { value = false }
+    val emailValid: LiveData<Boolean> = _emailValid
 
     var statusMessage = ""
 
-    val authenticationState: MutableLiveData<AuthenticationStateEnum> by lazy {
+    private val _authenticationState: MutableLiveData<AuthenticationStateEnum> by lazy {
         MutableLiveData<AuthenticationStateEnum>(AuthenticationStateEnum.UNAUTHENTICATED)
     }
+    val authenticationState: LiveData<AuthenticationStateEnum> = _authenticationState
 
     val toastMessage: ToastMessage = ToastMessage()
 
@@ -51,7 +55,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
      * Authenticates
      */
     fun login(email: String = "", password: String = "", onResult: (success: Boolean) -> Unit) {
-        dataLoading.value = true
+        _dataLoading.value = true
         // Builds the request body for $authenticate request
         val authRequestBody = BaseApp.sharedPreferencesHolder.buildAuthRequestBody(email, password)
         // Provides shouldRetryOnError to know if we should redirect the user to login page or
@@ -61,7 +65,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             authRequestBody,
             shouldRetryOnError
         ) { isSuccess, response, error ->
-            dataLoading.value = false
+            _dataLoading.value = false
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
 
@@ -70,7 +74,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         statusMessage = authResponse.statusText ?: ""
                         // Fill SharedPreferences with response details
                         if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
-                            authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
+                            _authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
                             onResult(true)
                             return@authenticate
                         } else {
@@ -85,12 +89,12 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                     }
                 }
                 onResult(false)
-                authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
+                _authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             } else {
                 response?.let { toastMessage.showMessage(it, "LoginViewModel", MessageType.ERROR) }
                 error?.let { toastMessage.showMessage(it, "LoginViewModel", MessageType.ERROR) }
                 onResult(false)
-                authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
+                _authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
         }
     }
@@ -115,8 +119,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
      */
     fun disconnectUser(onResult: (success: Boolean) -> Unit) {
         authRepository.logout { isSuccess, response, error ->
-            dataLoading.value = false
-            authenticationState.postValue(AuthenticationStateEnum.LOGOUT)
+            _dataLoading.value = false
+            _authenticationState.postValue(AuthenticationStateEnum.LOGOUT)
             BaseApp.sharedPreferencesHolder.sessionToken = ""
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
@@ -135,5 +139,13 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     override fun onCleared() {
         super.onCleared()
         authRepository.disposable.dispose()
+    }
+
+    fun setEmailValidState(isValid: Boolean) {
+        _emailValid.postValue(isValid)
+    }
+
+    fun setAuthenticationState(value: AuthenticationStateEnum) {
+        _authenticationState.postValue(value)
     }
 }

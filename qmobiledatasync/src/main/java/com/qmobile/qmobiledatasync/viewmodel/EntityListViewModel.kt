@@ -6,6 +6,7 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
@@ -100,16 +101,21 @@ abstract class EntityListViewModel<T : EntityModel>(
         return livePagedListBuilder.build()
     }*/
 
-    var dataLoading = MutableLiveData<Boolean>().apply { value = false }
+    private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
+    val dataLoading: LiveData<Boolean> = _dataLoading
 
-    open val globalStamp = MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
+    private val _globalStamp = MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
+    val globalStamp: LiveData<Int> = _globalStamp
 
-    val dataSynchronized =
+    private val _dataSynchronized =
         MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
+    val dataSynchronized: LiveData<DataSyncStateEnum> = _dataSynchronized
 
-    val newRelatedEntity = MutableLiveData<ManyToOneRelation>()
+    private val _newRelatedEntity = MutableLiveData<ManyToOneRelation>()
+    val newRelatedEntity: LiveData<ManyToOneRelation> = _newRelatedEntity
 
-    val newRelatedEntities = MutableLiveData<OneToManyRelation>()
+    private val _newRelatedEntities = MutableLiveData<OneToManyRelation>()
+    val newRelatedEntities: LiveData<OneToManyRelation> = _newRelatedEntities
 
     /**
      * Gets all entities more recent than current globalStamp
@@ -121,7 +127,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         var iter = 0
         var totalReceived = 0
 
-        dataLoading.value = true
+        _dataLoading.value = true
 
         fun paging(
             onResult: (shouldSyncData: Boolean) -> Unit
@@ -135,7 +141,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                     if (hasFinished) {
                         onResult(shouldSyncData)
                         if (!shouldSyncData) {
-                            dataLoading.value = false
+                            _dataLoading.value = false
                         }
                         return@performRequest
                     } else {
@@ -146,7 +152,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 } else {
                     onResult(shouldSyncData)
                     if (!shouldSyncData) {
-                        dataLoading.value = false
+                        _dataLoading.value = false
                     }
                     return@performRequest
                 }
@@ -195,7 +201,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
                                     val receivedGlobalStamp = responseJson.getSafeInt("__GlobalStamp") ?: 0
 
-                                    globalStamp.postValue(receivedGlobalStamp)
+                                    _globalStamp.postValue(receivedGlobalStamp)
 
                                     if (receivedGlobalStamp > BaseApp.sharedPreferencesHolder.globalStamp) {
                                         onResult(true, true, receivedFromIter, true)
@@ -213,7 +219,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 }
             } else {
                 // send previous globalStamp value for data sync
-                globalStamp.postValue(0)
+                _globalStamp.postValue(0)
                 response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 onResult(false, true, 0, false)
@@ -301,7 +307,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         relations.forEach { relation ->
             RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)?.let { relatedJson ->
                 if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
-                    checkManyToOneRelation(relation, relatedJson)
+                    emitManyToOneRelation(relation, relatedJson)
                 } else { // relationType == ONE_TO_MANY
                     checkOneToManyRelation(relatedJson)
                 }
@@ -309,8 +315,8 @@ abstract class EntityListViewModel<T : EntityModel>(
         }
     }
 
-    private fun checkManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
-        newRelatedEntity.postValue(
+    private fun emitManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
+        _newRelatedEntity.postValue(
             ManyToOneRelation(
                 entity = relatedJson,
                 className = relation.className
@@ -322,15 +328,19 @@ abstract class EntityListViewModel<T : EntityModel>(
         if (relatedJson.getSafeInt("__COUNT") ?: 0 > 0) {
             relatedJson.getSafeString("__DATACLASS")?.let { dataClass ->
                 relatedJson.getSafeArray("__ENTITIES")?.let { entities ->
-                    newRelatedEntities.postValue(
-                        OneToManyRelation(
-                            entities = entities,
-                            className = dataClass.filter { !it.isWhitespace() }
-                        )
-                    )
+                    emitOneToManyRelation(entities, dataClass)
                 }
             }
         }
+    }
+
+    private fun emitOneToManyRelation(entities: JSONArray, dataClass: String) {
+        _newRelatedEntities.postValue(
+            OneToManyRelation(
+                entities = entities,
+                className = dataClass.filter { !it.isWhitespace() }
+            )
+        )
     }
 
     fun insertNewRelatedEntity(manyToOneRelation: ManyToOneRelation) {
@@ -360,7 +370,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     /**
      * Returns the list of relations of the given table
      */
-    fun getRelationList(): MutableList<Relation> {
+    private fun getRelationList(): MutableList<Relation> {
 
         val relations = mutableListOf<Relation>()
 
@@ -410,5 +420,13 @@ abstract class EntityListViewModel<T : EntityModel>(
             }
         }
         return relations
+    }
+
+    fun setDataSyncState(state: DataSyncStateEnum) {
+        _dataSynchronized.postValue(state)
+    }
+
+    fun setDataLoadingState(startLoading: Boolean) {
+        _dataLoading.value = startLoading
     }
 }

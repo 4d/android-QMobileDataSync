@@ -23,7 +23,7 @@ data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync:
     var job: Job? = null
 
     fun sync(activity: AppCompatActivity) {
-        this.vm.dataSynchronized.postValue(DataSyncStateEnum.SYNCHRONIZING)
+        this.vm.setDataSyncState(DataSyncStateEnum.SYNCHRONIZING)
 
         Timber.d("[Sync] [Table : ${this.vm.getAssociatedTableName()}, isToSync : ${this.isToSync}]")
 
@@ -51,26 +51,6 @@ data class EntityViewModelIsToSync(val vm: EntityListViewModel<*>, var isToSync:
             }
         }
         return mediatorLiveData
-    }
-
-    fun notifyDataSynced() {
-        this.vm.dataSynchronized.postValue(
-            DataSyncStateEnum.SYNCHRONIZED
-        )
-    }
-
-    fun notifyDataUnSynced() {
-        this.vm.dataSynchronized.postValue(
-            DataSyncStateEnum.UNSYNCHRONIZED
-        )
-    }
-
-    fun startDataLoading() {
-        this.vm.dataLoading.value = true
-    }
-
-    fun stopDataLoading() {
-        this.vm.dataLoading.value = false
     }
 }
 
@@ -103,24 +83,24 @@ fun List<EntityViewModelIsToSync>.createMediatorLiveData(
 
 fun List<EntityViewModelIsToSync>.notifyDataSynced() {
     this.forEach { entityViewModelIsToSync ->
-        entityViewModelIsToSync.notifyDataSynced()
+        entityViewModelIsToSync.vm.setDataSyncState(DataSyncStateEnum.SYNCHRONIZED)
     }
 }
 
 fun List<EntityViewModelIsToSync>.notifyDataUnSynced() {
     this.forEach { entityViewModelIsToSync ->
-        entityViewModelIsToSync.notifyDataUnSynced()
+        entityViewModelIsToSync.vm.setDataSyncState(DataSyncStateEnum.UNSYNCHRONIZED)
     }
 }
 
 fun List<EntityViewModelIsToSync>.startDataLoading() {
     this.forEach { entityViewModelIsToSync ->
-        entityViewModelIsToSync.startDataLoading()
+        entityViewModelIsToSync.vm.setDataLoadingState(true)
     }
 }
 
 fun List<EntityViewModelIsToSync>.stopDataLoading() {
     this.forEach { entityViewModelIsToSync ->
-        entityViewModelIsToSync.stopDataLoading()
+        entityViewModelIsToSync.vm.setDataLoadingState(false)
     }
 }

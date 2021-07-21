@@ -21,8 +21,7 @@ class ToastMessage {
 
     // Mutable/LiveData of String resource reference Event
     private val _message = MutableLiveData<Event<ToastMessageHolder>>()
-    val message: LiveData<Event<ToastMessageHolder>>
-        get() = _message
+    val message: LiveData<Event<ToastMessageHolder>> = _message
 
     // Post in background thread
     fun postMessage(message: String, type: MessageType) {
