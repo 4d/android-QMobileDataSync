@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -51,9 +52,12 @@ class DataSyncTest {
     private lateinit var entityViewModelIsToSyncList: MutableList<EntityViewModelIsToSync>
 
     // MutableLiveData for mocked ViewModels
-    private lateinit var sourceIntEmployee: MutableLiveData<Int>
-    private lateinit var sourceIntService: MutableLiveData<Int>
-    private lateinit var sourceIntOffice: MutableLiveData<Int>
+    private val _sourceIntEmployee = MutableLiveData<Int>()
+    private val sourceIntEmployee: LiveData<Int> = _sourceIntEmployee
+    private val _sourceIntService = MutableLiveData<Int>()
+    private val sourceIntService: LiveData<Int> = _sourceIntService
+    private val _sourceIntOffice = MutableLiveData<Int>()
+    private val sourceIntOffice: LiveData<Int> = _sourceIntOffice
 
     // MediatorLiveData
     private lateinit var liveDataMergerEmployee: MediatorLiveData<GlobalStampWithTable>
@@ -93,9 +97,9 @@ class DataSyncTest {
 
         val testValueSet = listOf(123, 456, 789)
 
-        sourceIntEmployee.value = testValueSet[0]
-        sourceIntService.value = testValueSet[1]
-        sourceIntOffice.value = testValueSet[2]
+        _sourceIntEmployee.value = testValueSet[0]
+        _sourceIntService.value = testValueSet[1]
+        _sourceIntOffice.value = testValueSet[2]
 
         assertEquals(testValueSet[0], liveDataMergerEmployee.value?.globalStamp)
         assertEquals(EMPLOYEE_TABLE, liveDataMergerEmployee.value?.tableName)
@@ -234,9 +238,9 @@ class DataSyncTest {
             )
         )
 
-        sourceIntEmployee = MutableLiveData()
-        sourceIntService = MutableLiveData()
-        sourceIntOffice = MutableLiveData()
+//        _sourceIntEmployee = MutableLiveData()
+//        _sourceIntService = MutableLiveData()
+//        _sourceIntOffice = MutableLiveData()
 
         // Initializing MediatorLiveData
         liveDataMergerEmployee = MediatorLiveData()
@@ -308,9 +312,9 @@ class DataSyncTest {
     }
 
     private fun simulateLiveDataInitialization() {
-        sourceIntEmployee.postValue(globalStampValue_0)
-        sourceIntService.postValue(globalStampValue_0)
-        sourceIntOffice.postValue(globalStampValue_0)
+        _sourceIntEmployee.postValue(globalStampValue_0)
+        _sourceIntService.postValue(globalStampValue_0)
+        _sourceIntOffice.postValue(globalStampValue_0)
     }
 
     private fun removeObservers() {
@@ -402,15 +406,15 @@ class DataSyncTest {
         when (entityViewModelIsToSync.vm.getAssociatedTableName()) {
             EMPLOYEE_TABLE -> {
                 println(" -> Table $EMPLOYEE_TABLE, emitting value ${globalStampList[0]}")
-                sourceIntEmployee.postValue(globalStampList[0])
+                _sourceIntEmployee.postValue(globalStampList[0])
             }
             SERVICE_TABLE -> {
                 println(" -> Table $SERVICE_TABLE, emitting value ${globalStampList[1]}")
-                sourceIntService.postValue(globalStampList[1])
+                _sourceIntService.postValue(globalStampList[1])
             }
             OFFICE_TABLE -> {
                 println(" -> Table $OFFICE_TABLE, emitting value ${globalStampList[2]}")
-                sourceIntOffice.postValue(globalStampList[2])
+                _sourceIntOffice.postValue(globalStampList[2])
             }
         }
     }

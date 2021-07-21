@@ -105,7 +105,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     val dataLoading: LiveData<Boolean> = _dataLoading
 
     private val _globalStamp = MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
-    val globalStamp: LiveData<Int> = _globalStamp
+    open val globalStamp: LiveData<Int> = _globalStamp
 
     private val _dataSynchronized =
         MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
