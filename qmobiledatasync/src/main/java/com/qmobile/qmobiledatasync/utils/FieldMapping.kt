@@ -56,9 +56,9 @@ data class FieldMapping(
                     ?.toStringMap()
                     ?: fieldMappingJsonObject.getSafeArray("choiceList")
                         .getStringList(), // choiceList can be a JSONObject or a JSONArray
-                type = fieldMappingJsonObject.getSafeString("type")
-                    ?: fieldMappingJsonObject.getSafeArray("type")
-                        .getStringList(), // type can be a String or a JSONArray
+                type = fieldMappingJsonObject.getSafeArray("type")
+                    ?.getStringList() // type can be a JSONArray or a String
+                    ?: fieldMappingJsonObject.getSafeString("type"),
                 name = fieldMappingJsonObject.getSafeString("name"),
                 // currently not used, reading the one from layout
                 imageWidth = fieldMappingJsonObject.getSafeInt("imageWidth"),
