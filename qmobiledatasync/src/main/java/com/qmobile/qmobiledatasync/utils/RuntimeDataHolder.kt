@@ -20,7 +20,7 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
 
-data class RuntimeDataHolder(
+open class RuntimeDataHolder(
     var initialGlobalStamp: Int,
     var guestLogin: Boolean,
     var remoteUrl: String,
