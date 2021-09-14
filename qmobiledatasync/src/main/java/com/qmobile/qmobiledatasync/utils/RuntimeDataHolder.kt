@@ -74,7 +74,7 @@ open class RuntimeDataHolder(
             val searchableFieldsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
             val actionsJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "actions.json"))
+                JSONObject(readContentFromFile(application.baseContext, "actions_list.json"))
             val queryJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "queries.json"))
 
