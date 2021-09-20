@@ -25,7 +25,7 @@ interface GenericTableFragmentHelper {
     /**
      * Gets the appropriate detail fragment
      */
-    fun getDetailFragment(itemId: String, tableName: String): Fragment
+    fun getDetailFragment(tableName: String): Fragment
 
     /**
      * Sets the appropriate EntityViewModel
