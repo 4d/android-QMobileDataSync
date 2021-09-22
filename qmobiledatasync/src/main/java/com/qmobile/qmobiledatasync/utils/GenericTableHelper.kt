@@ -85,4 +85,9 @@ interface GenericTableHelper {
      * inherited properties
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
+
+    fun getOneToManyRelationsInfo(
+        tableName: String,
+        entity: EntityModel
+    ): Map<String, List<String>>
 }

@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.utils
 import android.view.View
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 
@@ -58,4 +59,6 @@ interface GenericTableFragmentHelper {
      * Provides drawable resources for custom formatters
      */
     fun getDrawableForFormatter(formatName: String, imageName: String): Pair<Int, Int>?
+
+    fun setButtonClick(viewDataBinding: ViewDataBinding, oneToManyRelationMap: Map<String, List<String>>, fragmentManager: FragmentManager, parentTableName: String, childTableName: String, view: View)
 }
