@@ -34,7 +34,7 @@ open class RuntimeDataHolder(
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
     var actions: JSONObject
-    ) {
+) {
 
     companion object {
 
