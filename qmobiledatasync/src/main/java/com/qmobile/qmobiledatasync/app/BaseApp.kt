@@ -35,9 +35,6 @@ open class BaseApp : MultiDexApplication() {
         // Provides navigation graphs id list for navigation
         lateinit var navGraphIds: List<Int>
 
-        // Provides the embedded images
-        lateinit var embeddedFiles: List<String>
-
         // Provides interfaces to get data coming from outside the SDK
         lateinit var daoProvider: DaoProvider
         lateinit var genericTableHelper: GenericTableHelper
