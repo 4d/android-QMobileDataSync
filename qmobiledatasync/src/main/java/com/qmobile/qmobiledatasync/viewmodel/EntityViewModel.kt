@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.LiveData
+import com.qmobile.qmobileapi.model.action.ActionContent
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobiledatastore.data.RoomRelation
@@ -30,4 +31,12 @@ abstract class EntityViewModel<T : EntityModel>(
     open val entity: LiveData<T> = roomRepository.getOne(id)
 
     abstract fun setRelationToLayout(relationName: String, roomRelation: RoomRelation)
+
+    fun sendAction(actionName: String, actionContent: ActionContent) {
+        restRepository.sendAction(
+            actionName,
+            actionContent
+        ) { isSuccess, response, error ->
+        }
+    }
 }
