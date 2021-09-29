@@ -33,7 +33,8 @@ open class RuntimeDataHolder(
     var tableProperties: Map<String, String>,
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
-    var actions: JSONObject
+    var listActions: JSONObject,
+    var currentRecordActions: JSONObject
 ) {
 
     companion object {
@@ -73,8 +74,10 @@ open class RuntimeDataHolder(
                 JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
             val searchableFieldsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
-            val actionsJsonObj =
+            val listActionsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "actions_list.json"))
+            val detailsActionsJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "actions_details.json"))
             val queryJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "queries.json"))
 
@@ -98,7 +101,8 @@ open class RuntimeDataHolder(
                     EMBEDDED_PICTURES_PARENT +
                         File.separator + EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
-                actions = actionsJsonObj
+                listActions = listActionsJsonObj,
+                currentRecordActions = detailsActionsJsonObj
             )
         }
 

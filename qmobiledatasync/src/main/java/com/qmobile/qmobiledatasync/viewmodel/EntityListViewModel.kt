@@ -14,6 +14,7 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.qmobile.qmobileapi.model.action.ActionContent
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
@@ -75,8 +76,11 @@ abstract class EntityListViewModel<T : EntityModel>(
         searchChanel.value = sqLiteQuery
     }
 
-    fun sendAction(actionName: String) {
-        restRepository.sendAction(actionName) { isSuccess, response, error ->
+    fun sendAction(actionName: String, actionContent: ActionContent) {
+        restRepository.sendAction(
+            actionName,
+            actionContent
+        ) { isSuccess, response, error ->
         }
     }
 
