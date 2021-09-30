@@ -14,7 +14,9 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.Gson
 import com.qmobile.qmobileapi.model.action.ActionContent
+import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
@@ -25,6 +27,7 @@ import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.parseJsonToType
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
@@ -76,11 +79,32 @@ abstract class EntityListViewModel<T : EntityModel>(
         searchChanel.value = sqLiteQuery
     }
 
-    fun sendAction(actionName: String, actionContent: ActionContent) {
+    fun sendAction(
+        actionName: String,
+        actionContent: ActionContent,
+        onResult: (shouldSyncData: Boolean?) -> Unit
+    ) {
         restRepository.sendAction(
             actionName,
             actionContent
         ) { isSuccess, response, error ->
+            if (isSuccess) {
+                response?.body()?.let { responseBody ->
+                    retrieveJSONObject(responseBody.string())?.let { responseJson ->
+                        val action = Gson().parseJsonToType<ActionResponse>(responseJson.toString())
+                        if (action?.success == true) {
+                            onResult(action?.dataSynchro)
+                        } else {
+                            toastMessage.showMessage(action?.statusText, getAssociatedTableName())
+                        }
+                    }
+                }
+            } else {
+                response?.let {
+                    toastMessage.showMessage(it, getAssociatedTableName())
+                }
+                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+            }
         }
     }
 
