@@ -36,6 +36,7 @@ import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
+import com.qmobile.qmobiledatasync.toast.MessageType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -94,16 +95,17 @@ abstract class EntityListViewModel<T : EntityModel>(
                         val action = Gson().parseJsonToType<ActionResponse>(responseJson.toString())
                         if (action?.success == true) {
                             onResult(action?.dataSynchro)
+                            toastMessage.showMessage(action?.statusText, getAssociatedTableName(),MessageType.SUCCESS)
                         } else {
-                            toastMessage.showMessage(action?.statusText, getAssociatedTableName())
+                            toastMessage.showMessage(action?.statusText, getAssociatedTableName(),MessageType.ERROR)
                         }
                     }
                 }
             } else {
                 response?.let {
-                    toastMessage.showMessage(it, getAssociatedTableName())
+                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
                 }
-                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+                error?.let { toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR) }
             }
         }
     }
