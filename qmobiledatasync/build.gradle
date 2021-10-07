@@ -36,6 +36,7 @@ dependencies {
     implementation Libs.jackson
 
     // Room
+//    kapt Libs.sqlite_jdbc
     implementation Libs.androidx_room
     implementation Libs.androidx_room_runtime
     kapt Libs.androidx_room_compiler
