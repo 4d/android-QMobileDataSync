@@ -266,7 +266,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         }
     }
 
-    fun decodeDeletedRecords(
+    private fun decodeDeletedRecords(
         entitiesJsonArray: JSONArray?,
         onResult: (entitiesList: List<String>) -> Unit
     ) {

@@ -26,7 +26,7 @@ object LogLevelController {
 
     class LogLevelControllerTree(private val level: Int) : Timber.DebugTree() {
 
-        override fun createStackElementTag(element: StackTraceElement): String? {
+        override fun createStackElementTag(element: StackTraceElement): String {
             return String.format(
                 "Class:%s: Line: %s, Method: %s",
                 super.createStackElementTag(element),

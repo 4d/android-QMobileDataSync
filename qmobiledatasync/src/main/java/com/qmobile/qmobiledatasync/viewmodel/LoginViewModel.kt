@@ -105,7 +105,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     private fun retrieveAuthResponse(jsonString: String): AuthResponse? {
         jsonString.extractJSON()?.let {
             return try {
-                Gson().parseJsonToType<AuthResponse>(it)
+                Gson().parseJsonToType(it)
             } catch (e: JsonSyntaxException) {
                 Timber.w("Failed to decode auth response ${e.localizedMessage}: $jsonString")
                 null

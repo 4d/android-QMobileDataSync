@@ -60,7 +60,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
     }
 }
 
-private fun <T : EntityModel> EntityListViewModel<T>.buildRelationQueryAndProperties(relation: Relation): JSONObject {
+private fun buildRelationQueryAndProperties(relation: Relation): JSONObject {
     return JSONObject().apply {
         val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(relation.className).split(", ")
         relationProperties.filter { it.isNotEmpty() }.forEach { relationProperty ->
