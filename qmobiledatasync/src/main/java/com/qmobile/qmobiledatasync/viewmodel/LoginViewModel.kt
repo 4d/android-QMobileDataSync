@@ -10,14 +10,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
 import com.qmobile.qmobileapi.utils.extractJSON
-import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobileapi.utils.parseToType
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
@@ -105,7 +104,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     private fun retrieveAuthResponse(jsonString: String): AuthResponse? {
         jsonString.extractJSON()?.let {
             return try {
-                Gson().parseJsonToType(it)
+                BaseApp.mapper.parseToType(it)
             } catch (e: JsonSyntaxException) {
                 Timber.w("Failed to decode auth response ${e.localizedMessage}: $jsonString")
                 null
