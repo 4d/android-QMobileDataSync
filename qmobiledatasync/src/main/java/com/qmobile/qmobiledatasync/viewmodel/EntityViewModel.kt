@@ -6,6 +6,7 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import com.google.gson.Gson
 import com.qmobile.qmobileapi.model.action.ActionContent
@@ -37,20 +38,36 @@ abstract class EntityViewModel<T : EntityModel>(
 
     abstract fun setRelationToLayout(relationName: String, roomRelation: RoomRelation)
 
-    fun sendAction(actionName: String, actionContent: ActionContent) {
+    fun sendAction(
+        actionName: String, actionContent: ActionContent,
+        onResult: (actionResponse: ActionResponse?) -> Unit
+    ) {
         restRepository.sendAction(
             actionName,
             actionContent
-        )
-        { isSuccess, response, error ->
+        ) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
                     retrieveJSONObject(responseBody.string())?.let { responseJson ->
-                        val action = Gson().parseJsonToType<ActionResponse>(responseJson.toString())
-                        if (action?.success == true) {
-                            toastMessage.showMessage(action.statusText, getAssociatedTableName(),MessageType.SUCCESS)
+                        val actionResponse =
+                            Gson().parseJsonToType<ActionResponse>(responseJson.toString())
+                        if (actionResponse != null) {
+                            if (actionResponse.success) {
+                                toastMessage.showMessage(
+                                    actionResponse.statusText,
+                                    getAssociatedTableName(),
+                                    MessageType.SUCCESS
+                                )
+                            } else {
+                                toastMessage.showMessage(
+                                    actionResponse.statusText,
+                                    getAssociatedTableName(),
+                                    MessageType.ERROR
+                                )
+                            }
+                            onResult(actionResponse)
                         } else {
-                            toastMessage.showMessage(action?.statusText, getAssociatedTableName(), MessageType.ERROR)
+                            Log.e("EntityViewModel:", "cannot decode ActionResponse from json")
                         }
                     }
                 }
@@ -58,7 +75,13 @@ abstract class EntityViewModel<T : EntityModel>(
                 response?.let {
                     toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
                 }
-                error?.let { toastMessage.showMessage(it, getAssociatedTableName(),  MessageType.ERROR) }
+                error?.let {
+                    toastMessage.showMessage(
+                        it,
+                        getAssociatedTableName(),
+                        MessageType.ERROR
+                    )
+                }
             }
         }
     }

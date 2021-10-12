@@ -6,6 +6,7 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
@@ -83,7 +84,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun sendAction(
         actionName: String,
         actionContent: ActionContent,
-        onResult: (shouldSyncData: Boolean?) -> Unit
+        onResult: (actionResponse: ActionResponse?) -> Unit
     ) {
         restRepository.sendAction(
             actionName,
@@ -92,12 +93,25 @@ abstract class EntityListViewModel<T : EntityModel>(
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
                     retrieveJSONObject(responseBody.string())?.let { responseJson ->
-                        val action = Gson().parseJsonToType<ActionResponse>(responseJson.toString())
-                        if (action?.success == true) {
-                            onResult(action?.dataSynchro)
-                            toastMessage.showMessage(action?.statusText, getAssociatedTableName(),MessageType.SUCCESS)
+                        val actionResponse =
+                            Gson().parseJsonToType<ActionResponse>(responseJson.toString())
+                        if (actionResponse != null) {
+                            if (actionResponse.success) {
+                                toastMessage.showMessage(
+                                    actionResponse.statusText,
+                                    getAssociatedTableName(),
+                                    MessageType.SUCCESS
+                                )
+                            } else {
+                                toastMessage.showMessage(
+                                    actionResponse.statusText,
+                                    getAssociatedTableName(),
+                                    MessageType.ERROR
+                                )
+                            }
+                            onResult(actionResponse)
                         } else {
-                            toastMessage.showMessage(action?.statusText, getAssociatedTableName(),MessageType.ERROR)
+                            Log.e("EntityListViewModel:", "cannot decode ActionResponse from json")
                         }
                     }
                 }
@@ -105,7 +119,13 @@ abstract class EntityListViewModel<T : EntityModel>(
                 response?.let {
                     toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
                 }
-                error?.let { toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR) }
+                error?.let {
+                    toastMessage.showMessage(
+                        it,
+                        getAssociatedTableName(),
+                        MessageType.ERROR
+                    )
+                }
             }
         }
     }
@@ -139,7 +159,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
     val dataLoading: LiveData<Boolean> = _dataLoading
 
-    private val _globalStamp = MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
+    private val _globalStamp =
+        MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
     open val globalStamp: LiveData<Int> = _globalStamp
 
     private val _dataSynchronized =
@@ -234,7 +255,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                             responseJson.getSafeInt("__COUNT")?.let { count ->
                                 if (count <= totalReceived + receivedFromIter) { // it's time to stop
 
-                                    val receivedGlobalStamp = responseJson.getSafeInt("__GlobalStamp") ?: 0
+                                    val receivedGlobalStamp =
+                                        responseJson.getSafeInt("__GlobalStamp") ?: 0
 
                                     _globalStamp.postValue(receivedGlobalStamp)
 
@@ -276,7 +298,8 @@ abstract class EntityListViewModel<T : EntityModel>(
         restRepository: RestRepository,
         onResult: (responseJson: JSONObject) -> Unit
     ) {
-        val predicate = DeletedRecord.buildStampPredicate(BaseApp.sharedPreferencesHolder.deletedRecordsStamp)
+        val predicate =
+            DeletedRecord.buildStampPredicate(BaseApp.sharedPreferencesHolder.deletedRecordsStamp)
         Timber.d("Performing data request, with predicate $predicate")
 
         restRepository.getEntities(
@@ -340,13 +363,14 @@ abstract class EntityListViewModel<T : EntityModel>(
      */
     fun checkRelations(entityJsonString: String) {
         relations.forEach { relation ->
-            RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)?.let { relatedJson ->
-                if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
-                    emitManyToOneRelation(relation, relatedJson)
-                } else { // relationType == ONE_TO_MANY
-                    checkOneToManyRelation(relatedJson)
+            RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
+                ?.let { relatedJson ->
+                    if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
+                        emitManyToOneRelation(relation, relatedJson)
+                    } else { // relationType == ONE_TO_MANY
+                        checkOneToManyRelation(relatedJson)
+                    }
                 }
-            }
         }
     }
 
@@ -409,7 +433,8 @@ abstract class EntityListViewModel<T : EntityModel>(
 
         val relations = mutableListOf<Relation>()
 
-        val reflectedProperties = BaseApp.genericTableHelper.getReflectedProperties<T>(getAssociatedTableName())
+        val reflectedProperties =
+            BaseApp.genericTableHelper.getReflectedProperties<T>(getAssociatedTableName())
 
         val propertyList = reflectedProperties.first.toList()
         val constructorParameters = reflectedProperties.second
