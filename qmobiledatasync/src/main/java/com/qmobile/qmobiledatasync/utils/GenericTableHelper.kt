@@ -86,8 +86,7 @@ interface GenericTableHelper {
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
 
-    fun getOneToManyRelationsInfo(
-        tableName: String,
-        entity: EntityModel
-    ): Map<String, List<String>>
+    fun getOneToManyRelationNames(tableName: String): List<String>
+
+    fun getInverseName(tableName: String, relationName: String): String
 }

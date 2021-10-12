@@ -60,5 +60,9 @@ interface GenericTableFragmentHelper {
      */
     fun getDrawableForFormatter(formatName: String, imageName: String): Pair<Int, Int>?
 
-    fun setButtonClick(viewDataBinding: ViewDataBinding, oneToManyRelationMap: Map<String, List<String>>, fragmentManager: FragmentManager, parentTableName: String, childTableName: String, view: View)
+    fun setupRelationButtonOnClickAction(
+        viewDataBinding: ViewDataBinding,
+        relationName: String,
+        parentItemId: String
+    )
 }
