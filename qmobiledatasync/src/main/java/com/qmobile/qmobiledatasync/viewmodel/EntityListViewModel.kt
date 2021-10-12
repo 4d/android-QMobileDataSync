@@ -84,7 +84,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun sendAction(
         actionName: String,
         actionContent: ActionContent,
-        onResult: (actionResponse: ActionResponse?) -> Unit
+        onResult: (shouldSyncData: Boolean?) -> Unit
     ) {
         restRepository.sendAction(
             actionName,
