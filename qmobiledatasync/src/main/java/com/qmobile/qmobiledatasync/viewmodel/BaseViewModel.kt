@@ -37,7 +37,7 @@ abstract class BaseViewModel<T>(
      * Repositories
      */
 
-    val roomRepository: RoomRepository<T> = RoomRepository(dao)
+    open val roomRepository: RoomRepository<T> = RoomRepository(dao)
     var restRepository: RestRepository =
         RestRepository(originalAssociatedTableName, apiService)
 

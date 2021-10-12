@@ -86,7 +86,7 @@ open class RuntimeDataHolder(
                 dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList()
                     .joinToString(),
                 relationAvailable = appInfoJsonObj.getSafeBoolean("relations") ?: true,
-                queries = Query.buildQueries(queryJsonObj),
+                queries = Query.buildQueries(BaseApp.mapper, queryJsonObj),
                 tableProperties = buildTableProperties(application),
                 customFormatters = FieldMapping.buildCustomFormatterBinding(customFormattersJsonObj),
                 embeddedFiles = listAssetFiles(

@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.app
 import android.app.Application
 import android.content.res.Configuration
 import androidx.multidex.MultiDexApplication
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatastore.db.DaoProvider
 import com.qmobile.qmobiledatasync.utils.GenericTableFragmentHelper
@@ -25,6 +26,8 @@ open class BaseApp : MultiDexApplication() {
         lateinit var sharedPreferencesHolder: SharedPreferencesHolder
 
         lateinit var runtimeDataHolder: RuntimeDataHolder
+
+        lateinit var mapper: ObjectMapper
 
         // Provides the drawable resource id for login page logo
         var loginLogoDrawable: Int? = null

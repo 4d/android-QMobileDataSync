@@ -7,11 +7,9 @@
 package com.qmobile.qmobiledatasync
 
 import android.net.ConnectivityManager
-import android.net.Network
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
-import com.qmobile.qmobileapi.connectivity.NetworkStateMonitor
 import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobiledatasync.viewmodel.ConnectivityViewModel
 import io.reactivex.Single
@@ -33,8 +31,6 @@ class ConnectivityViewModelTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var networkStateMonitor: NetworkStateMonitor
-
     private lateinit var connectivityViewModel: ConnectivityViewModel
 
     @Mock
@@ -42,9 +38,6 @@ class ConnectivityViewModelTest {
 
     @Mock
     lateinit var connectivityManager: ConnectivityManager
-
-    @Mock
-    lateinit var network: Network
 
     @Before
     fun setUp() {
