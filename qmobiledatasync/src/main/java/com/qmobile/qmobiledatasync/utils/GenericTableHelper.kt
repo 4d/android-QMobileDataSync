@@ -88,5 +88,7 @@ interface GenericTableHelper {
 
     fun getOneToManyRelationNames(tableName: String): List<String>
 
+    fun getManyToOneRelationNames(tableName: String): List<String>
+
     fun getInverseName(tableName: String, relationName: String): String
 }
