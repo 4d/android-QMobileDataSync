@@ -34,7 +34,11 @@ interface GenericTableHelper {
     /**
      * Provides the appropriate Entity
      */
-    fun parseEntityFromTable(tableName: String, jsonString: String, fetchedFromRelation: Boolean): EntityModel?
+    fun parseEntityFromTable(
+        tableName: String,
+        jsonString: String,
+        fetchedFromRelation: Boolean
+    ): EntityModel?
 
     /**
      * Provides the appropriate EntityListViewModel
@@ -78,7 +82,10 @@ interface GenericTableHelper {
     /**
      * Provides the relation map extracted from an entity
      */
-    fun getRelationsInfo(tableName: String, entity: EntityModel): Map<String, LiveData<RoomRelation>>
+    fun getManyToOneRelationsInfo(
+        tableName: String,
+        entity: EntityModel
+    ): Map<String, LiveData<RoomRelation>>
 
     /**
      * Returns list of table properties as a String, separated by commas, without EntityModel
@@ -86,9 +93,18 @@ interface GenericTableHelper {
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
 
+    /**
+     * Provides the list of One to Many relations for given tableName
+     */
     fun getOneToManyRelationNames(tableName: String): List<String>
 
+    /**
+     * Provides the list of Many to One relations for given tableName
+     */
     fun getManyToOneRelationNames(tableName: String): List<String>
 
+    /**
+     * Provides the inverseName for any One to Many relation
+     */
     fun getInverseName(tableName: String, relationName: String): String
 }

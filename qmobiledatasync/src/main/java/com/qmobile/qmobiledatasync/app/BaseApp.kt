@@ -12,6 +12,7 @@ import androidx.multidex.MultiDexApplication
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatastore.db.DaoProvider
+import com.qmobile.qmobiledatasync.utils.GenericNavigationResolver
 import com.qmobile.qmobiledatasync.utils.GenericTableFragmentHelper
 import com.qmobile.qmobiledatasync.utils.GenericTableHelper
 import com.qmobile.qmobiledatasync.utils.RuntimeDataHolder
@@ -42,6 +43,7 @@ open class BaseApp : MultiDexApplication() {
         lateinit var daoProvider: DaoProvider
         lateinit var genericTableHelper: GenericTableHelper
         lateinit var genericTableFragmentHelper: GenericTableFragmentHelper
+        lateinit var genericNavigationResolver: GenericNavigationResolver
 
         // Provides if dark mode is enabled
         fun nightMode(): Boolean = if (::instance.isInitialized) {

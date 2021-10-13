@@ -16,6 +16,7 @@ import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobileapi.utils.listAssetFiles
 import com.qmobile.qmobileapi.utils.readContentFromFile
 import com.qmobile.qmobiledatasync.app.BaseApp
+import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
@@ -32,7 +33,9 @@ open class RuntimeDataHolder(
     var queries: Map<String, String>,
     var tableProperties: Map<String, String>,
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
-    var embeddedFiles: List<String>
+    var embeddedFiles: List<String>,
+    var manyToOneRelations: Map<String, List<String>>,
+    var oneToManyRelations: Map<String, List<String>>
 ) {
 
     companion object {
@@ -67,12 +70,14 @@ open class RuntimeDataHolder(
         }
 
         private fun build(application: Application): RuntimeDataHolder {
-            val appInfoJsonObj = JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
+            val appInfoJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
             val customFormattersJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
             val searchableFieldsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
-            val queryJsonObj = JSONObject(readContentFromFile(application.baseContext, "queries.json"))
+            val queryJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "queries.json"))
 
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
@@ -93,7 +98,9 @@ open class RuntimeDataHolder(
                     application.baseContext,
                     EMBEDDED_PICTURES_PARENT +
                         File.separator + EMBEDDED_PICTURES
-                ).filter { !it.endsWith(JSON_EXT) }
+                ).filter { !it.endsWith(JSON_EXT) },
+                manyToOneRelations = buildRelationsMap(RelationTypeEnum.MANY_TO_ONE),
+                oneToManyRelations = buildRelationsMap(RelationTypeEnum.ONE_TO_MANY)
             )
         }
 
@@ -107,9 +114,23 @@ open class RuntimeDataHolder(
             }
             return map
         }
+
+        private fun buildRelationsMap(type: RelationTypeEnum): Map<String, List<String>> {
+            val relationMap = mutableMapOf<String, List<String>>()
+            BaseApp.genericTableHelper.apply {
+                tableNames().forEach { tableName ->
+                    relationMap[tableName] = if (type == RelationTypeEnum.MANY_TO_ONE)
+                        getManyToOneRelationNames(tableName)
+                    else
+                        getOneToManyRelationNames(tableName)
+                }
+            }
+            return relationMap
+        }
     }
 
-    fun getTableProperty(tableName: String): String = tableProperties["${PROPERTIES_PREFIX}_$tableName"] ?: ""
+    fun getTableProperty(tableName: String): String =
+        tableProperties["${PROPERTIES_PREFIX}_$tableName"] ?: ""
 
     fun getQuery(tableName: String): String = queries["${Query.QUERY_PREFIX}_$tableName"] ?: ""
 }
