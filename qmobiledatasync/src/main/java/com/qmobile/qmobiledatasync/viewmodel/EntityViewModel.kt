@@ -9,13 +9,15 @@ package com.qmobile.qmobiledatasync.viewmodel
 import android.util.Log
 import androidx.lifecycle.LiveData
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.model.action.ActionContent
 import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
-import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobileapi.utils.parseToType
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatastore.data.RoomRelation
+import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import timber.log.Timber
 
@@ -49,8 +51,12 @@ abstract class EntityViewModel<T : EntityModel>(
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
                     retrieveJSONObject(responseBody.string())?.let { responseJson ->
-                        val actionResponse =
-                            Gson().parseJsonToType<ActionResponse>(responseJson.toString())
+                        val actionResponse =  try {
+                            BaseApp.mapper.parseToType<ActionResponse>(responseJson.toString())
+                        } catch (e: JsonSyntaxException) {
+                            Timber.w("Failed to decode auth response ${e.localizedMessage}: $responseJson")
+                            null
+                        }
                         if (actionResponse != null) {
                             if (actionResponse.success) {
                                 toastMessage.showMessage(

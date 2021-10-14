@@ -16,6 +16,7 @@ import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.model.action.ActionContent
 import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
@@ -28,7 +29,7 @@ import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
-import com.qmobile.qmobileapi.utils.parseJsonToType
+import com.qmobile.qmobileapi.utils.parseToType
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
@@ -93,8 +94,15 @@ abstract class EntityListViewModel<T : EntityModel>(
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
                     retrieveJSONObject(responseBody.string())?.let { responseJson ->
+
                         val actionResponse =
-                            Gson().parseJsonToType<ActionResponse>(responseJson.toString())
+                         try {
+                            BaseApp.mapper.parseToType<ActionResponse>(responseJson.toString())
+                        } catch (e: JsonSyntaxException) {
+                            Timber.w("Failed to decode auth response ${e.localizedMessage}: $responseJson")
+                            null
+                        }
+
                         if (actionResponse != null) {
                             if (actionResponse.success) {
                                 toastMessage.showMessage(
