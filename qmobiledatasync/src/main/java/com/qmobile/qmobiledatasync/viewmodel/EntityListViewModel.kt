@@ -84,13 +84,12 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     fun sendAction(
         actionName: String,
-        selectedActionId: String?,
+        actionContent: ActionContent,
         onResult: (actionResponse: ActionResponse?) -> Unit
     ) {
-
         restRepository.sendAction(
             actionName,
-            selectedActionId
+            actionContent
         ) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let { responseBody ->

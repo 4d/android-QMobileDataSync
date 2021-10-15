@@ -41,13 +41,12 @@ abstract class EntityViewModel<T : EntityModel>(
     abstract fun setRelationToLayout(relationName: String, roomRelation: RoomRelation)
 
     fun sendAction(
-        actionName: String,
-        selectedActionId: String?,
+        actionName: String, actionContent: ActionContent,
         onResult: (actionResponse: ActionResponse?) -> Unit
     ) {
         restRepository.sendAction(
             actionName,
-            selectedActionId
+            actionContent
         ) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
