@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
@@ -15,10 +14,6 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
-import com.qmobile.qmobileapi.model.action.ActionContent
-import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
@@ -29,7 +24,6 @@ import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
-import com.qmobile.qmobileapi.utils.parseToType
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
@@ -38,7 +32,6 @@ import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
-import com.qmobile.qmobiledatasync.toast.MessageType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -80,62 +73,6 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
         searchChanel.value = sqLiteQuery
-    }
-
-    fun sendAction(
-        actionName: String,
-        actionContent: ActionContent,
-        onResult: (actionResponse: ActionResponse?) -> Unit
-    ) {
-        restRepository.sendAction(
-            actionName,
-            actionContent
-        ) { isSuccess, response, error ->
-            if (isSuccess) {
-                response?.body()?.let { responseBody ->
-                    retrieveJSONObject(responseBody.string())?.let { responseJson ->
-
-                        val actionResponse =
-                         try {
-                            BaseApp.mapper.parseToType<ActionResponse>(responseJson.toString())
-                        } catch (e: JsonSyntaxException) {
-                            Timber.w("Failed to decode auth response ${e.localizedMessage}: $responseJson")
-                            null
-                        }
-
-                        if (actionResponse != null) {
-                            if (actionResponse.success) {
-                                toastMessage.showMessage(
-                                    actionResponse.statusText,
-                                    getAssociatedTableName(),
-                                    MessageType.SUCCESS
-                                )
-                            } else {
-                                toastMessage.showMessage(
-                                    actionResponse.statusText,
-                                    getAssociatedTableName(),
-                                    MessageType.ERROR
-                                )
-                            }
-                            onResult(actionResponse)
-                        } else {
-                            Log.e("EntityListViewModel:", "cannot decode ActionResponse from json")
-                        }
-                    }
-                }
-            } else {
-                response?.let {
-                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
-                }
-                error?.let {
-                    toastMessage.showMessage(
-                        it,
-                        getAssociatedTableName(),
-                        MessageType.ERROR
-                    )
-                }
-            }
-        }
     }
 
     val entityListLiveData =
