@@ -102,9 +102,4 @@ interface GenericTableHelper {
      * Provides the list of Many to One relations for given tableName
      */
     fun getManyToOneRelationNames(tableName: String): List<String>
-
-    /**
-     * Provides the inverseName for any One to Many relation
-     */
-    fun getInverseName(tableName: String, relationName: String): String
 }

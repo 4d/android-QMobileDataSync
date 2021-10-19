@@ -22,7 +22,8 @@ interface GenericNavigationResolver {
     fun setupOneToManyRelationButtonOnClickActionForCell(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        parentItemId: String
+        parentItemId: String,
+        entity: EntityModel // if relationName contains ".", parentItemId is inverseName's key
     )
 
     /**
@@ -40,7 +41,8 @@ interface GenericNavigationResolver {
     fun setupOneToManyRelationButtonOnClickActionForDetail(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        parentItemId: String
+        parentItemId: String,
+        entity: EntityModel // if relationName contains ".", parentItemId is inverseName's key
     )
 
     /**
