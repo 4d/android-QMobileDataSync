@@ -100,7 +100,7 @@ abstract class BaseViewModel<T>(
                             }
                             onResult(actionResponse)
                         } else {
-                            Log.e("EntityListViewModel:", "cannot decode ActionResponse from json")
+                            Timber.e("cannot decode ActionResponse from json")
                         }
                     }
                 }
