@@ -62,10 +62,6 @@ abstract class EntityListViewModel<T : EntityModel>(
     /**
      * LiveData
      */
-//    open var entityList: LiveData<List<T>> = roomRepository.getAll()
-
-//    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
-//        roomRepository.getAllDynamicQuery(sqLiteQuery)
 
     private val searchChanel = MutableStateFlow<SupportSQLiteQuery?>(null)
     // We will use a ConflatedBroadcastChannel as this will only broadcast
@@ -93,20 +89,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         )
         return livePagedListBuilder.build().asFlow()
     }
-
-    private fun getRelationDynamicQueryFlow(sqLiteQuery: SupportSQLiteQuery): Flow<PagedList<T>> {
-        val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
-            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_ROOM_PAGE_SIZE,
-        )
-        return livePagedListBuilder.build().asFlow()
-    }
-
-    /*fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<PagedList<T>> {
-        val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
-            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_PAGE_SIZE,
-        )
-        return livePagedListBuilder.build()
-    }*/
 
     private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
     val dataLoading: LiveData<Boolean> = _dataLoading
