@@ -34,6 +34,8 @@ open class RuntimeDataHolder(
     var tableProperties: Map<String, String>,
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
+    var listActions: JSONObject,
+    var currentRecordActions: JSONObject,
     var manyToOneRelations: Map<String, List<String>>,
     var oneToManyRelations: Map<String, List<String>>
 ) {
@@ -76,6 +78,10 @@ open class RuntimeDataHolder(
                 JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
             val searchableFieldsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
+            val listActionsJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "actions_list.json"))
+            val detailsActionsJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "actions_details.json"))
             val queryJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "queries.json"))
 
@@ -99,6 +105,8 @@ open class RuntimeDataHolder(
                     EMBEDDED_PICTURES_PARENT +
                         File.separator + EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
+                listActions = listActionsJsonObj,
+                currentRecordActions = detailsActionsJsonObj,
                 manyToOneRelations = buildRelationsMap(RelationTypeEnum.MANY_TO_ONE),
                 oneToManyRelations = buildRelationsMap(RelationTypeEnum.ONE_TO_MANY)
             )
