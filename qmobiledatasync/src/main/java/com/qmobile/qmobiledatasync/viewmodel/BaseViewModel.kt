@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.model.action.ActionContent
