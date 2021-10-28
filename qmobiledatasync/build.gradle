@@ -42,7 +42,7 @@ dependencies {
     implementation Libs.sqlite
 
     // Paging
-    implementation Libs.androidx_paging
+    implementation Libs.androidx_paging3
 
     // Utils
     implementation Libs.multidex

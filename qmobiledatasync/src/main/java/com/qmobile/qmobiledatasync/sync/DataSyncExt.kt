@@ -31,6 +31,7 @@ fun DataSync.successfulSynchronization(
     entityViewModelIsToSyncList.startDataLoading()
     entityViewModelIsToSyncList.syncDeletedRecords()
     entityViewModelIsToSyncList.stopDataLoading()
+    entityViewModelIsToSyncList.scheduleRefresh()
     ApiClient.dataSyncFinished()
 }
 

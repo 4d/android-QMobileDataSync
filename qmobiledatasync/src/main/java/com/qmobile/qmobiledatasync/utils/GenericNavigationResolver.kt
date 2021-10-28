@@ -14,7 +14,7 @@ interface GenericNavigationResolver {
     /**
      * Navigates from list form to ViewPager (which displays one detail form)
      */
-    fun navigateFromListToViewPager(viewDataBinding: ViewDataBinding, position: Int)
+    fun navigateFromListToViewPager(viewDataBinding: ViewDataBinding, key: String, query: String, destinationTable: String, currentItemId: String, inverseName: String)
 
     /**
      * Navigates from list form to another list form (One to Many relation)

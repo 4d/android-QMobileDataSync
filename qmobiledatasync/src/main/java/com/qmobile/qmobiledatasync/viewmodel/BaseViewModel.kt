@@ -26,7 +26,7 @@ import timber.log.Timber
  * contains the application context (to retrieve the context call getApplication() ), otherwise use
  * regular ViewModel.
  */
-abstract class BaseViewModel<T>(
+abstract class BaseViewModel<T : Any>(
     private val tableName: String,
     apiService: ApiService
 ) : AndroidViewModel(BaseApp.instance) {
