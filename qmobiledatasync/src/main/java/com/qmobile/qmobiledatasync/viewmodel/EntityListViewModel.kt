@@ -92,7 +92,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 // we only want to query the latest searched string.
                 roomRepository.getAllPagingData(it, PagingConfig(pageSize = DEFAULT_ROOM_PAGE_SIZE, enablePlaceholders = false))
             }.catch { throwable ->
-                Timber.e("Error while getting entityListLiveData in EntityListViewModel of [$tableName]")
+                Timber.e("Error while getting entityListFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
             }
 

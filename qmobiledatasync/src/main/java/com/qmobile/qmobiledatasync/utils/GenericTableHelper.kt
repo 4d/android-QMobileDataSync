@@ -87,6 +87,11 @@ interface GenericTableHelper {
         entity: EntityModel
     ): Map<String, LiveData<RoomRelation>>
 
+    fun getOneToManyRelationsInfo(
+        tableName: String,
+        entity: EntityModel
+    ): Map<String, LiveData<RoomRelation>>
+
     /**
      * Returns list of table properties as a String, separated by commas, without EntityModel
      * inherited properties
