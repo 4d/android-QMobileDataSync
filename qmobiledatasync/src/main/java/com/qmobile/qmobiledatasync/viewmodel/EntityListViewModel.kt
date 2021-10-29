@@ -70,11 +70,6 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val searchChanel = MutableStateFlow<SupportSQLiteQuery?>(null)
     // We will use a ConflatedBroadcastChannel as this will only broadcast
     // the most recent sent element to all the subscribers
-
-    override fun onCleared() {
-        super.onCleared()
-        restRepository.disposable.dispose()
-    }
     
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
         searchChanel.value = sqLiteQuery
@@ -438,5 +433,10 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     fun setDataLoadingState(startLoading: Boolean) {
         _dataLoading.value = startLoading
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        restRepository.disposable.dispose()
     }
 }
