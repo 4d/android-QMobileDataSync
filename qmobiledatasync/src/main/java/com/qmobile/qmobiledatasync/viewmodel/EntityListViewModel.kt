@@ -87,10 +87,16 @@ abstract class EntityListViewModel<T : EntityModel>(
     val entityListFlow =
         searchChanel
             .filterNotNull()
-            .flatMapLatest {
+            .flatMapLatest { query ->
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
-                roomRepository.getAllPagingData(it, PagingConfig(pageSize = DEFAULT_ROOM_PAGE_SIZE, enablePlaceholders = false))
+                roomRepository.getAllPagingData(
+                    sqLiteQuery = query,
+                    pagingConfig = PagingConfig(
+                        pageSize = DEFAULT_ROOM_PAGE_SIZE,
+                        enablePlaceholders = false
+                    )
+                )
             }.catch { throwable ->
                 Timber.e("Error while getting entityListFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
@@ -107,7 +113,8 @@ abstract class EntityListViewModel<T : EntityModel>(
         MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
     val dataSynchronized: LiveData<DataSyncStateEnum> = _dataSynchronized
 
-    private val _scheduleRefresh = MutableLiveData<ScheduleRefreshEnum>().apply { value = ScheduleRefreshEnum.NO }
+    private val _scheduleRefresh =
+        MutableLiveData<ScheduleRefreshEnum>().apply { value = ScheduleRefreshEnum.NO }
     val scheduleRefresh: LiveData<ScheduleRefreshEnum> = _scheduleRefresh
 
     private val _newRelatedEntity = MutableLiveData<ManyToOneRelation>()

@@ -114,24 +114,20 @@ open class RuntimeDataHolder(
 
         private fun buildTableProperties(application: Application): Map<String, String> {
             val map = mutableMapOf<String, String>()
-            BaseApp.genericTableHelper.apply {
-                tableNames().forEach { tableName ->
-                    val properties: String = this.getPropertyListFromTable(tableName, application)
-                    map["${PROPERTIES_PREFIX}_$tableName"] = properties
-                }
+            BaseApp.genericTableHelper.tableNames().forEach { tableName ->
+                val properties: String = BaseApp.genericRelationHelper.getPropertyListFromTable(tableName, application)
+                map["${PROPERTIES_PREFIX}_$tableName"] = properties
             }
             return map
         }
 
         private fun buildRelationsMap(type: RelationTypeEnum): Map<String, List<String>> {
             val relationMap = mutableMapOf<String, List<String>>()
-            BaseApp.genericTableHelper.apply {
-                tableNames().forEach { tableName ->
-                    relationMap[tableName] = if (type == RelationTypeEnum.MANY_TO_ONE)
-                        getManyToOneRelationNames(tableName)
-                    else
-                        getOneToManyRelationNames(tableName)
-                }
+            BaseApp.genericTableHelper.tableNames().forEach { tableName ->
+                relationMap[tableName] = if (type == RelationTypeEnum.MANY_TO_ONE)
+                    BaseApp.genericRelationHelper.getManyToOneRelationNames(tableName)
+                else
+                    BaseApp.genericRelationHelper.getOneToManyRelationNames(tableName)
             }
             return relationMap
         }

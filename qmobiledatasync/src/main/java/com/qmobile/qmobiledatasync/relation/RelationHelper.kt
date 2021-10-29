@@ -86,7 +86,7 @@ object RelationHelper {
         relationType: RelationTypeEnum
     ) {
         val relatedTableName =
-            BaseApp.genericTableHelper.getRelatedTableName(sourceTableName, relationName)
+            BaseApp.genericRelationHelper.getRelatedTableName(sourceTableName, relationName)
         val relationDao: RelationBaseDao<RoomRelation> =
             if (relationType == RelationTypeEnum.MANY_TO_ONE)
                 BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName)
