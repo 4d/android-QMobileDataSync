@@ -71,6 +71,11 @@ abstract class EntityListViewModel<T : EntityModel>(
     // We will use a ConflatedBroadcastChannel as this will only broadcast
     // the most recent sent element to all the subscribers
 
+    override fun onCleared() {
+        super.onCleared()
+        restRepository.disposable.dispose()
+    }
+    
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
         searchChanel.value = sqLiteQuery
     }
