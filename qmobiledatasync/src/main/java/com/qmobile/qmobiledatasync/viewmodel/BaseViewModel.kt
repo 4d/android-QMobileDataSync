@@ -57,11 +57,6 @@ abstract class BaseViewModel<T : Any>(
      */
     val toastMessage: ToastMessage = ToastMessage()
 
-    override fun onCleared() {
-        super.onCleared()
-        restRepository.disposable.dispose()
-    }
-
     fun sendAction(
         actionName: String,
         actionContent: ActionContent,
