@@ -82,17 +82,17 @@ object RelationHelper {
         relationName: String,
         relationId: String,
         sourceTableName: String,
-        map: MutableMap<String, LiveData<RoomRelation>>,
+        inverseName: String = "",
         relationType: RelationTypeEnum
-    ) {
+    ): LiveData<RoomRelation> {
         val relatedTableName =
             BaseApp.genericRelationHelper.getRelatedTableName(sourceTableName, relationName)
         val relationDao: RelationBaseDao<RoomRelation> =
             if (relationType == RelationTypeEnum.MANY_TO_ONE)
-                BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName)
+                BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName, relationName)
             else
-                BaseApp.daoProvider.getRelationDao(relatedTableName, sourceTableName)
-        map[relationName] = relationDao.getRelation(relationId)
+                BaseApp.daoProvider.getRelationDao(relatedTableName, sourceTableName, inverseName)
+        return relationDao.getRelation(relationId)
     }
 
     /**
