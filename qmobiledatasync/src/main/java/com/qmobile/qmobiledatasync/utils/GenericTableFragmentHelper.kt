@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-import android.view.View
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import com.qmobile.qmobileapi.model.entity.EntityModel
@@ -18,14 +17,9 @@ import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 interface GenericTableFragmentHelper {
 
     /**
-     * Navigates from ListView to ViewPager (which displays one DetailView)
-     */
-    fun navigateFromListToViewPager(view: View, position: Int, tableName: String)
-
-    /**
      * Gets the appropriate detail fragment
      */
-    fun getDetailFragment(itemId: String, tableName: String): Fragment
+    fun getDetailFragment(tableName: String): Fragment
 
     /**
      * Sets the appropriate EntityViewModel
@@ -58,4 +52,12 @@ interface GenericTableFragmentHelper {
      * Provides drawable resources for custom formatters
      */
     fun getDrawableForFormatter(formatName: String, imageName: String): Pair<Int, Int>?
+
+    /**
+     * Provides the custom list fragment as list forms are given as a base fragment_list
+     */
+    fun getCustomEntityListFragment(
+        tableName: String,
+        binding: ViewDataBinding
+    ): CustomEntityListFragment
 }

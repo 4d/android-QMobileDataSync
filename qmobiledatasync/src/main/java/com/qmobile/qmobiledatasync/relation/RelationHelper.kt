@@ -82,25 +82,17 @@ object RelationHelper {
         relationName: String,
         relationId: String,
         sourceTableName: String,
-        map: MutableMap<String, LiveData<RoomRelation>>
-    ) {
-        map[relationName] = getManyToOneRelation(
-            relationId = relationId,
-            sourceTableName = sourceTableName,
-            relationName = relationName
-        )
-    }
-
-    private fun getManyToOneRelation(
-        relationId: String,
-        sourceTableName: String,
-        relationName: String
+        inverseName: String = "",
+        relationType: RelationTypeEnum
     ): LiveData<RoomRelation> {
         val relatedTableName =
-            BaseApp.genericTableHelper.getRelatedTableName(sourceTableName, relationName)
+            BaseApp.genericRelationHelper.getRelatedTableName(sourceTableName, relationName)
         val relationDao: RelationBaseDao<RoomRelation> =
-            BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName)
-        return relationDao.getManyToOneRelation(relationId)
+            if (relationType == RelationTypeEnum.MANY_TO_ONE)
+                BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName, relationName)
+            else
+                BaseApp.daoProvider.getRelationDao(relatedTableName, sourceTableName, inverseName)
+        return relationDao.getRelation(relationId)
     }
 
     /**

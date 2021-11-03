@@ -16,6 +16,7 @@ import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobileapi.utils.listAssetFiles
 import com.qmobile.qmobileapi.utils.readContentFromFile
 import com.qmobile.qmobiledatasync.app.BaseApp
+import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
@@ -34,7 +35,9 @@ open class RuntimeDataHolder(
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
     var listActions: JSONObject,
-    var currentRecordActions: JSONObject
+    var currentRecordActions: JSONObject,
+    var manyToOneRelations: Map<String, List<String>>,
+    var oneToManyRelations: Map<String, List<String>>
 ) {
 
     companion object {
@@ -69,7 +72,8 @@ open class RuntimeDataHolder(
         }
 
         private fun build(application: Application): RuntimeDataHolder {
-            val appInfoJsonObj = JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
+            val appInfoJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
             val customFormattersJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
             val searchableFieldsJsonObj =
@@ -102,23 +106,35 @@ open class RuntimeDataHolder(
                         File.separator + EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
                 listActions = listActionsJsonObj,
-                currentRecordActions = detailsActionsJsonObj
+                currentRecordActions = detailsActionsJsonObj,
+                manyToOneRelations = buildRelationsMap(RelationTypeEnum.MANY_TO_ONE),
+                oneToManyRelations = buildRelationsMap(RelationTypeEnum.ONE_TO_MANY)
             )
         }
 
         private fun buildTableProperties(application: Application): Map<String, String> {
             val map = mutableMapOf<String, String>()
-            BaseApp.genericTableHelper.apply {
-                tableNames().forEach { tableName ->
-                    val properties: String = this.getPropertyListFromTable(tableName, application)
-                    map["${PROPERTIES_PREFIX}_$tableName"] = properties
-                }
+            BaseApp.genericTableHelper.tableNames().forEach { tableName ->
+                val properties: String = BaseApp.genericRelationHelper.getPropertyListFromTable(tableName, application)
+                map["${PROPERTIES_PREFIX}_$tableName"] = properties
             }
             return map
         }
+
+        private fun buildRelationsMap(type: RelationTypeEnum): Map<String, List<String>> {
+            val relationMap = mutableMapOf<String, List<String>>()
+            BaseApp.genericTableHelper.tableNames().forEach { tableName ->
+                relationMap[tableName] = if (type == RelationTypeEnum.MANY_TO_ONE)
+                    BaseApp.genericRelationHelper.getManyToOneRelationNames(tableName)
+                else
+                    BaseApp.genericRelationHelper.getOneToManyRelationNames(tableName)
+            }
+            return relationMap
+        }
     }
 
-    fun getTableProperty(tableName: String): String = tableProperties["${PROPERTIES_PREFIX}_$tableName"] ?: ""
+    fun getTableProperty(tableName: String): String =
+        tableProperties["${PROPERTIES_PREFIX}_$tableName"] ?: ""
 
     fun getQuery(tableName: String): String = queries["${Query.QUERY_PREFIX}_$tableName"] ?: ""
 }

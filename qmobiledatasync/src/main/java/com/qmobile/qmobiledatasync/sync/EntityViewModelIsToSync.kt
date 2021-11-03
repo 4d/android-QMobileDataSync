@@ -11,6 +11,7 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
+import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
 import kotlinx.coroutines.Job
@@ -102,5 +103,13 @@ fun List<EntityViewModelIsToSync>.startDataLoading() {
 fun List<EntityViewModelIsToSync>.stopDataLoading() {
     this.forEach { entityViewModelIsToSync ->
         entityViewModelIsToSync.vm.setDataLoadingState(false)
+    }
+}
+
+fun List<EntityViewModelIsToSync>.scheduleRefresh() {
+    this.forEach { entityViewModelIsToSync ->
+        if (entityViewModelIsToSync.vm.scheduleRefresh.value == ScheduleRefreshEnum.SCHEDULE) {
+            entityViewModelIsToSync.vm.setScheduleRefreshState(ScheduleRefreshEnum.PERFORM)
+        }
     }
 }

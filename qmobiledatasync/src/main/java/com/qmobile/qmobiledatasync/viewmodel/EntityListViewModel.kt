@@ -11,7 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.paging.LivePagedListBuilder
-import androidx.paging.PagedList
+import androidx.paging.PagingConfig
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
@@ -32,7 +32,7 @@ import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
-import kotlinx.coroutines.flow.Flow
+import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
@@ -62,15 +62,11 @@ abstract class EntityListViewModel<T : EntityModel>(
     /**
      * LiveData
      */
-//    open var entityList: LiveData<List<T>> = roomRepository.getAll()
-
-//    fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<List<T>> =
-//        roomRepository.getAllDynamicQuery(sqLiteQuery)
 
     private val searchChanel = MutableStateFlow<SupportSQLiteQuery?>(null)
     // We will use a ConflatedBroadcastChannel as this will only broadcast
     // the most recent sent element to all the subscribers
-    
+
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
         searchChanel.value = sqLiteQuery
     }
@@ -81,25 +77,30 @@ abstract class EntityListViewModel<T : EntityModel>(
             .flatMapLatest {
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
-                getAllDynamicQueryFlow(it)
+                LivePagedListBuilder(roomRepository.getAllPagedList(it), DEFAULT_ROOM_PAGE_SIZE)
+                    .build().asFlow()
             }.catch { throwable ->
                 Timber.e("Error while getting entityListLiveData in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
             }.asLiveData()
 
-    private fun getAllDynamicQueryFlow(sqLiteQuery: SupportSQLiteQuery): Flow<PagedList<T>> {
-        val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
-            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_ROOM_PAGE_SIZE,
-        )
-        return livePagedListBuilder.build().asFlow()
-    }
-
-    /*fun getAllDynamicQuery(sqLiteQuery: SupportSQLiteQuery): LiveData<PagedList<T>> {
-        val livePagedListBuilder: LivePagedListBuilder<Int, T> = LivePagedListBuilder(
-            roomRepository.getAllDynamicQuery(sqLiteQuery), DEFAULT_PAGE_SIZE,
-        )
-        return livePagedListBuilder.build()
-    }*/
+    val entityListFlow =
+        searchChanel
+            .filterNotNull()
+            .flatMapLatest { query ->
+                // We use flatMapLatest as we don't want flows of flows and
+                // we only want to query the latest searched string.
+                roomRepository.getAllPagingData(
+                    sqLiteQuery = query,
+                    pagingConfig = PagingConfig(
+                        pageSize = DEFAULT_ROOM_PAGE_SIZE,
+                        enablePlaceholders = false
+                    )
+                )
+            }.catch { throwable ->
+                Timber.e("Error while getting entityListFlow in EntityListViewModel of [$tableName]")
+                Timber.e(throwable.localizedMessage)
+            }
 
     private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
     val dataLoading: LiveData<Boolean> = _dataLoading
@@ -111,6 +112,10 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _dataSynchronized =
         MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
     val dataSynchronized: LiveData<DataSyncStateEnum> = _dataSynchronized
+
+    private val _scheduleRefresh =
+        MutableLiveData<ScheduleRefreshEnum>().apply { value = ScheduleRefreshEnum.NO }
+    val scheduleRefresh: LiveData<ScheduleRefreshEnum> = _scheduleRefresh
 
     private val _newRelatedEntity = MutableLiveData<ManyToOneRelation>()
     val newRelatedEntity: LiveData<ManyToOneRelation> = _newRelatedEntity
@@ -433,6 +438,10 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     fun setDataLoadingState(startLoading: Boolean) {
         _dataLoading.value = startLoading
+    }
+
+    fun setScheduleRefreshState(scheduleRefresh: ScheduleRefreshEnum) {
+        _scheduleRefresh.postValue(scheduleRefresh)
     }
 
     override fun onCleared() {
