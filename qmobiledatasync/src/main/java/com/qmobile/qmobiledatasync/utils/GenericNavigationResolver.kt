@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.utils
 
 import androidx.databinding.ViewDataBinding
 import com.qmobile.qmobileapi.model.entity.EntityModel
+import com.qmobile.qmobiledatastore.data.RoomData
 
 /**
  * Interface providing different elements depending of the generated type
@@ -33,7 +34,8 @@ interface GenericNavigationResolver {
         viewDataBinding: ViewDataBinding,
         relationName: String,
         parentItemId: String,
-        entity: EntityModel // if relationName contains ".", parentItemId is inverseName's key
+        entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
+        anyRelatedEntity: RoomData? = null
     )
 
     /**
@@ -52,7 +54,8 @@ interface GenericNavigationResolver {
         viewDataBinding: ViewDataBinding,
         relationName: String,
         parentItemId: String,
-        entity: EntityModel // if relationName contains ".", parentItemId is inverseName's key
+        entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
+        anyRelatedEntity: RoomData? = null
     )
 
     /**
