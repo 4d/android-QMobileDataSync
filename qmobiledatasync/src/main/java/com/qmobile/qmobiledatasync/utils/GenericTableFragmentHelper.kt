@@ -59,5 +59,5 @@ interface GenericTableFragmentHelper {
     fun getCustomEntityListFragment(
         tableName: String,
         binding: ViewDataBinding
-    ): CustomEntityListFragment
+    ): CustomEntityListFragment?
 }
