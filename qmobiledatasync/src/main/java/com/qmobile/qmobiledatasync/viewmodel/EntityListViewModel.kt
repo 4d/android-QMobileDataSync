@@ -146,9 +146,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 if (isSuccess) {
                     if (hasFinished) {
                         onResult(shouldSyncData)
-                        if (!shouldSyncData) {
-                            _dataLoading.value = false
-                        }
+                        _dataLoading.value = false
                         return@performRequest
                     } else {
                         iter++
@@ -157,9 +155,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                     }
                 } else {
                     onResult(shouldSyncData)
-                    if (!shouldSyncData) {
-                        _dataLoading.value = false
-                    }
+                    _dataLoading.value = false
                     return@performRequest
                 }
             }
