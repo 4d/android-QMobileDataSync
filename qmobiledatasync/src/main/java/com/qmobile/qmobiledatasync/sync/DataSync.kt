@@ -10,7 +10,7 @@ import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
-import com.qmobile.qmobileapi.auth.LoginRequiredCallback
+import com.qmobile.qmobileapi.utils.LoginRequiredCallback
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
@@ -94,7 +94,7 @@ class DataSync(
                 if (received.incrementAndGet() == nbToReceive) {
 
                     if (loginRequired.getAndSet(false)) {
-                        loginRequiredCallback?.loginRequired()
+                        loginRequiredCallback?.invoke()
                     } else {
 
                         // Get the max globalStamp between received ones, and stored one

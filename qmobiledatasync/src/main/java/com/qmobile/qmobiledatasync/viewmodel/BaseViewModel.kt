@@ -7,19 +7,16 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
-import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.model.action.ActionContent
 import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
-import com.qmobile.qmobileapi.utils.parseToType
-import com.qmobile.qmobileapi.utils.retrieveJSONObject
+import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
-import timber.log.Timber
 
 /**
  * If you need to use context inside your viewmodel you should use AndroidViewModel, because it
@@ -32,7 +29,8 @@ abstract class BaseViewModel<T : Any>(
 ) : AndroidViewModel(BaseApp.instance) {
 
     open fun getAssociatedTableName(): String = tableName
-    private val originalAssociatedTableName = BaseApp.genericTableHelper.originalTableName(tableName)
+    private val originalAssociatedTableName =
+        BaseApp.genericTableHelper.originalTableName(tableName)
 
     /**
      * DAO
@@ -44,7 +42,7 @@ abstract class BaseViewModel<T : Any>(
      * Repositories
      */
 
-    open val roomRepository: RoomRepository<T> = RoomRepository(dao)
+    val roomRepository: RoomRepository<T> = RoomRepository(dao)
     var restRepository: RestRepository =
         RestRepository(originalAssociatedTableName, apiService)
 
@@ -68,34 +66,24 @@ abstract class BaseViewModel<T : Any>(
         ) { isSuccess, response, error ->
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
-                    retrieveJSONObject(responseBody.string())?.let { responseJson ->
-
-                        val actionResponse =
-                            try {
-                                BaseApp.mapper.parseToType<ActionResponse>(responseJson.toString())
-                            } catch (e: JsonSyntaxException) {
-                                Timber.w("Failed to decode auth response ${e.localizedMessage}: $responseJson")
-                                null
-                            }
-
-                        if (actionResponse != null) {
-                            if (actionResponse.success) {
-                                toastMessage.showMessage(
-                                    actionResponse.statusText,
-                                    getAssociatedTableName(),
-                                    MessageType.SUCCESS
-                                )
-                            } else {
-                                toastMessage.showMessage(
-                                    actionResponse.statusText,
-                                    getAssociatedTableName(),
-                                    MessageType.ERROR
-                                )
-                            }
-                            onResult(actionResponse)
+                    retrieveResponseObject<ActionResponse>(
+                        BaseApp.mapper,
+                        responseBody.string()
+                    )?.let { actionResponse ->
+                        if (actionResponse.success) {
+                            toastMessage.showMessage(
+                                actionResponse.statusText,
+                                getAssociatedTableName(),
+                                MessageType.SUCCESS
+                            )
                         } else {
-                            Timber.e("cannot decode ActionResponse from json")
+                            toastMessage.showMessage(
+                                actionResponse.statusText,
+                                getAssociatedTableName(),
+                                MessageType.ERROR
+                            )
                         }
+                        onResult(actionResponse)
                     }
                 }
             } else {
@@ -103,11 +91,7 @@ abstract class BaseViewModel<T : Any>(
                     toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
                 }
                 error?.let {
-                    toastMessage.showMessage(
-                        it,
-                        getAssociatedTableName(),
-                        MessageType.ERROR
-                    )
+                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
                 }
             }
         }
