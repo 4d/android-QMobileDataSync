@@ -15,8 +15,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.sync.DataSync
-import com.qmobile.qmobiledatasync.sync.EntityViewModelIsToSync
 import com.qmobile.qmobiledatasync.sync.GlobalStampWithTable
+import com.qmobile.qmobiledatasync.sync.resetIsToSync
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
@@ -49,7 +49,7 @@ class DataSyncTest {
     private var iteration = 1
     private val sharedPreferencesGlobalStamp = 120
     private lateinit var globalStampList: MutableList<Int>
-    private lateinit var entityViewModelIsToSyncList: MutableList<EntityViewModelIsToSync>
+    private lateinit var entityListViewModelList: MutableList<EntityListViewModel<*>>
 
     // MutableLiveData for mocked ViewModels
     private val _sourceIntEmployee = MutableLiveData<Int>()
@@ -65,10 +65,10 @@ class DataSyncTest {
     private lateinit var liveDataMergerOffice: MediatorLiveData<GlobalStampWithTable>
 
     // Custom closures
-    private lateinit var setupObservableClosure: (List<EntityViewModelIsToSync>, Observer<GlobalStampWithTable>) -> Unit
-    private lateinit var syncClosure: (EntityViewModelIsToSync) -> Unit
-    private lateinit var successfulSyncClosure: (Int, List<EntityViewModelIsToSync>) -> Unit
-    private lateinit var unsuccessfulSyncClosure: (List<EntityViewModelIsToSync>) -> Unit
+    private lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, Observer<GlobalStampWithTable>) -> Unit
+    private lateinit var syncClosure: (EntityListViewModel<*>) -> Unit
+    private lateinit var successfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit
+    private lateinit var unsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit
 
     // Mocks
     @Mock
@@ -143,7 +143,7 @@ class DataSyncTest {
 
         setClosures()
 
-        dataSync.setObserver(entityViewModelIsToSyncList, null)
+        dataSync.setObserver(entityListViewModelList, null)
 
         simulateLiveDataInitialization()
     }
@@ -180,7 +180,7 @@ class DataSyncTest {
 
         setClosures()
 
-        dataSync.setObserver(entityViewModelIsToSyncList, null)
+        dataSync.setObserver(entityListViewModelList, null)
 
         simulateLiveDataInitialization()
     }
@@ -217,26 +217,11 @@ class DataSyncTest {
 
     private fun initObservation() {
         // Initializing and filling EntityViewModelIsToSync list
-        entityViewModelIsToSyncList = mutableListOf()
-
-        entityViewModelIsToSyncList.add(
-            EntityViewModelIsToSync(
-                entityListViewModelEmployee,
-                true
-            )
-        )
-        entityViewModelIsToSyncList.add(
-            EntityViewModelIsToSync(
-                entityListViewModelService,
-                true
-            )
-        )
-        entityViewModelIsToSyncList.add(
-            EntityViewModelIsToSync(
-                entityListViewModelOffice,
-                true
-            )
-        )
+        entityListViewModelList = mutableListOf()
+        entityListViewModelList.add(entityListViewModelEmployee)
+        entityListViewModelList.add(entityListViewModelService)
+        entityListViewModelList.add(entityListViewModelOffice)
+        entityListViewModelList.resetIsToSync()
 
 //        _sourceIntEmployee = MutableLiveData()
 //        _sourceIntService = MutableLiveData()
@@ -323,11 +308,10 @@ class DataSyncTest {
         liveDataMergerOffice.removeObserver(dataSync.globalStampObserver)
     }
 
-    private fun sync(entityViewModelIsToSync: EntityViewModelIsToSync) {
-        println("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+    private fun sync(entityListViewModel: EntityListViewModel<*>) {
+        println("[Sync] [Table : ${entityListViewModel.getAssociatedTableName()}, isToSync : ${entityListViewModel.isToSync.get()}]")
 
-        if (entityViewModelIsToSync.isToSync) {
-            entityViewModelIsToSync.isToSync = false
+        if (entityListViewModel.isToSync.getAndSet(false)) {
 
             if (dataSync.received.get() == 0)
                 assertLiveDataValues(iteration)
@@ -343,15 +327,14 @@ class DataSyncTest {
                 iteration++
             }
 
-            emitGlobalStamp(entityViewModelIsToSync, globalStampList)
+            emitGlobalStamp(entityListViewModel, globalStampList)
         }
     }
 
-    private fun syncToInfiniteAndBeyond(entityViewModelIsToSync: EntityViewModelIsToSync) {
-        println("[Sync] [Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, isToSync : ${entityViewModelIsToSync.isToSync}]")
+    private fun syncToInfiniteAndBeyond(entityListViewModel: EntityListViewModel<*>) {
+        println("[Sync] [Table : ${entityListViewModel.getAssociatedTableName()}, isToSync : ${entityListViewModel.isToSync.get()}]")
 
-        if (entityViewModelIsToSync.isToSync) {
-            entityViewModelIsToSync.isToSync = false
+        if (entityListViewModel.isToSync.getAndSet(false)) {
 
             globalStampList = mutableListOf(
                 dataSync.maxGlobalStamp + 1,
@@ -363,7 +346,7 @@ class DataSyncTest {
                 iteration++
             }
 
-            emitGlobalStamp(entityViewModelIsToSync, globalStampList)
+            emitGlobalStamp(entityListViewModel, globalStampList)
         }
     }
 
@@ -400,10 +383,10 @@ class DataSyncTest {
     }
 
     private fun emitGlobalStamp(
-        entityViewModelIsToSync: EntityViewModelIsToSync,
+        entityListViewModel: EntityListViewModel<*>,
         globalStampList: List<Int>
     ) {
-        when (entityViewModelIsToSync.vm.getAssociatedTableName()) {
+        when (entityListViewModel.getAssociatedTableName()) {
             EMPLOYEE_TABLE -> {
                 println(" -> Table $EMPLOYEE_TABLE, emitting value ${globalStampList[0]}")
                 _sourceIntEmployee.postValue(globalStampList[0])

@@ -6,6 +6,7 @@
 
 package com.qmobile.qmobiledatasync.sync
 
+import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -36,13 +37,13 @@ object DataSyncUtils {
 
     fun checkIfAtLeastOneTableToSync(
         maxGlobalStamp: Int,
-        entityViewModelIsToSyncList: List<EntityViewModelIsToSync>
+        entityListViewModelList: List<EntityListViewModel<*>>
     ): Boolean {
         var isAtLeastOneToSync = false
-        entityViewModelIsToSyncList.forEach { entityViewModelIsToSync ->
-            val vmGs = entityViewModelIsToSync.vm.globalStamp.value ?: 0
+        entityListViewModelList.forEach { entityListViewModel ->
+            val vmGs = entityListViewModel.globalStamp.value ?: 0
             if (vmGs < maxGlobalStamp) {
-                entityViewModelIsToSync.isToSync = true
+                entityListViewModel.isToSync.set(true)
                 isAtLeastOneToSync = true
             }
         }
