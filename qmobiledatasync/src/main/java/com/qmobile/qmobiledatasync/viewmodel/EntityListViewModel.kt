@@ -126,7 +126,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _newRelatedEntities = MutableLiveData<OneToManyRelation>()
     val newRelatedEntities: LiveData<OneToManyRelation> = _newRelatedEntities
 
-    val isToSync = AtomicBoolean(false)
+    open val isToSync = AtomicBoolean(false)
 
     /**
      * Gets all entities more recent than current globalStamp

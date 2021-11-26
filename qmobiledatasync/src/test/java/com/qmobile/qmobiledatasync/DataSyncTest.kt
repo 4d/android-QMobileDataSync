@@ -29,6 +29,7 @@ import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.P])
@@ -221,6 +222,12 @@ class DataSyncTest {
         entityListViewModelList.add(entityListViewModelEmployee)
         entityListViewModelList.add(entityListViewModelService)
         entityListViewModelList.add(entityListViewModelOffice)
+        val employeeIsToSync = AtomicBoolean()
+        val serviceIsToSync = AtomicBoolean()
+        val officeIsToSync = AtomicBoolean()
+        Mockito.`when`(entityListViewModelEmployee.isToSync).thenReturn(employeeIsToSync)
+        Mockito.`when`(entityListViewModelService.isToSync).thenReturn(serviceIsToSync)
+        Mockito.`when`(entityListViewModelOffice.isToSync).thenReturn(officeIsToSync)
         entityListViewModelList.resetIsToSync()
 
 //        _sourceIntEmployee = MutableLiveData()
