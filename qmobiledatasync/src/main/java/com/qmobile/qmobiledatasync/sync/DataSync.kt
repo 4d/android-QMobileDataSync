@@ -10,8 +10,9 @@ import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
-import com.qmobile.qmobileapi.auth.LoginRequiredCallback
+import com.qmobile.qmobileapi.utils.LoginRequiredCallback
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
+import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -38,10 +39,10 @@ class DataSync(
     lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
 
     // Default closures
-    lateinit var setupObservableClosure: (List<EntityViewModelIsToSync>, Observer<GlobalStampWithTable>) -> Unit
-    lateinit var syncClosure: (EntityViewModelIsToSync) -> Unit
-    lateinit var successfulSyncClosure: (Int, List<EntityViewModelIsToSync>) -> Unit
-    lateinit var unsuccessfulSyncClosure: (List<EntityViewModelIsToSync>) -> Unit
+    lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, Observer<GlobalStampWithTable>) -> Unit
+    lateinit var syncClosure: (EntityListViewModel<*>) -> Unit
+    lateinit var successfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit
+    lateinit var unsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit
 
     init {
         initClosures()
@@ -49,14 +50,14 @@ class DataSync(
 
     @Suppress("LongMethod")
     fun setObserver(
-        entityViewModelIsToSyncList: List<EntityViewModelIsToSync>,
+        entityListViewModelList: List<EntityListViewModel<*>>,
         alreadyRefreshedTable: String?
     ) {
 
         received = AtomicInteger(0)
         val viewModelStillInitializing = AtomicBoolean(true)
         val requestPerformed = AtomicInteger(0)
-        val nbToReceiveForInitializing = AtomicInteger(entityViewModelIsToSyncList.size)
+        val nbToReceiveForInitializing = AtomicInteger(entityListViewModelList.size)
         val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
 
         globalStampObserver = Observer { globalStampWithTable ->
@@ -80,10 +81,10 @@ class DataSync(
                 )
                 Timber.d("Current globalStamps list :")
 
-                entityViewModelIsToSyncList.forEach { entityViewModelIsToSync ->
+                entityListViewModelList.forEach { entityListViewModel ->
                     Timber.d(
-                        " - Table : ${entityViewModelIsToSync.vm.getAssociatedTableName()}, " +
-                            "GlobalStamp : ${entityViewModelIsToSync.vm.globalStamp.value}"
+                        " - Table : ${entityListViewModel.getAssociatedTableName()}, " +
+                            "GlobalStamp : ${entityListViewModel.globalStamp.value}"
                     )
                 }
 
@@ -94,7 +95,7 @@ class DataSync(
                 if (received.incrementAndGet() == nbToReceive) {
 
                     if (loginRequired.getAndSet(false)) {
-                        loginRequiredCallback?.loginRequired()
+                        loginRequiredCallback?.invoke()
                     } else {
 
                         // Get the max globalStamp between received ones, and stored one
@@ -108,18 +109,18 @@ class DataSync(
                         val isAtLeastOneToSync =
                             DataSyncUtils.checkIfAtLeastOneTableToSync(
                                 maxGlobalStamp,
-                                entityViewModelIsToSyncList
+                                entityListViewModelList
                             )
 
                         if (isAtLeastOneToSync) {
                             Timber.d("[There is at least one table that requires data synchronization]")
                             if (DataSyncUtils.canPerformNewSync(received, requestPerformed, numberOfRequestMaxLimit)) {
-                                syncTables(entityViewModelIsToSyncList)
+                                syncTables(entityListViewModelList)
                             } else {
-                                unsuccessfulSyncClosure(entityViewModelIsToSyncList)
+                                unsuccessfulSyncClosure(entityListViewModelList)
                             }
                         } else {
-                            successfulSyncClosure(maxGlobalStamp, entityViewModelIsToSyncList)
+                            successfulSyncClosure(maxGlobalStamp, entityListViewModelList)
                         }
                     }
                 }
@@ -134,19 +135,19 @@ class DataSync(
                 )
                 if (DataSyncUtils.canStartSync(received, nbToReceiveForInitializing, viewModelStillInitializing)) {
                     // first sync
-                    syncTables(entityViewModelIsToSyncList)
+                    syncTables(entityListViewModelList)
                 }
             }
         }
 
-        setupObservableClosure(entityViewModelIsToSyncList, globalStampObserver)
+        setupObservableClosure(entityListViewModelList, globalStampObserver)
     }
 
     //    @Synchronized + isToSync: AtomicBoolean ?
-    private fun syncTables(entityViewModelIsToSyncList: List<EntityViewModelIsToSync>) {
-        this.nbToReceive = entityViewModelIsToSyncList.filter { it.isToSync }.size
+    private fun syncTables(entityListViewModelList: List<EntityListViewModel<*>>) {
+        this.nbToReceive = entityListViewModelList.filter { it.isToSync.get() }.size
         this.numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
-        entityViewModelIsToSyncList.filter { it.isToSync }.forEach { syncRequired ->
+        entityListViewModelList.filter { it.isToSync.get() }.forEach { syncRequired ->
             syncClosure(syncRequired)
         }
     }

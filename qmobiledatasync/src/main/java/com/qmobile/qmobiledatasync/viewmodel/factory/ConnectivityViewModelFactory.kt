@@ -21,7 +21,7 @@ class ConnectivityViewModelFactory(
     private val accessibilityApiService: AccessibilityApiService
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return ConnectivityViewModel(
             application,
             connectivityManager,
