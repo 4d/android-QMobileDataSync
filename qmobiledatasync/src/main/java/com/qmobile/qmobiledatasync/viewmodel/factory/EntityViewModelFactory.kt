@@ -20,7 +20,7 @@ class EntityViewModelFactory(
     private val apiService: ApiService
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
 
         val key = tableName + VIEWMODEL_BASENAME + id
 

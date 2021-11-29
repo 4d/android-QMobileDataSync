@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
@@ -32,6 +33,7 @@ import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
+import com.qmobile.qmobiledatasync.sync.GlobalStampWithTable
 import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
@@ -41,6 +43,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.net.URLEncoder
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.full.findAnnotation
 
 abstract class EntityListViewModel<T : EntityModel>(
@@ -123,6 +126,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _newRelatedEntities = MutableLiveData<OneToManyRelation>()
     val newRelatedEntities: LiveData<OneToManyRelation> = _newRelatedEntities
 
+    open val isToSync = AtomicBoolean(false)
+
     /**
      * Gets all entities more recent than current globalStamp
      */
@@ -146,9 +151,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 if (isSuccess) {
                     if (hasFinished) {
                         onResult(shouldSyncData)
-                        if (!shouldSyncData) {
-                            _dataLoading.value = false
-                        }
+                        _dataLoading.value = false
                         return@performRequest
                     } else {
                         iter++
@@ -157,9 +160,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                     }
                 } else {
                     onResult(shouldSyncData)
-                    if (!shouldSyncData) {
-                        _dataLoading.value = false
-                    }
+                    _dataLoading.value = false
                     return@performRequest
                 }
             }
@@ -447,5 +448,16 @@ abstract class EntityListViewModel<T : EntityModel>(
     override fun onCleared() {
         super.onCleared()
         restRepository.disposable.dispose()
+    }
+
+    fun createMediatorLiveData(): MediatorLiveData<GlobalStampWithTable> {
+
+        val mediatorLiveData = MediatorLiveData<GlobalStampWithTable>()
+        mediatorLiveData.addSource(globalStamp) {
+            if (it != null) {
+                mediatorLiveData.value = GlobalStampWithTable(getAssociatedTableName(), it)
+            }
+        }
+        return mediatorLiveData
     }
 }

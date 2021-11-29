@@ -10,13 +10,11 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.JsonSyntaxException
 import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
-import com.qmobile.qmobileapi.utils.extractJSON
-import com.qmobile.qmobileapi.utils.parseToType
+import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
@@ -68,8 +66,11 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             if (isSuccess) {
                 response?.body()?.let { responseBody ->
 
-                    retrieveAuthResponse(responseBody.string())?.let { authResponse ->
-//                        statusMessage.postValue(authResponse.statusText ?: "")
+                    retrieveResponseObject<AuthResponse>(
+                        BaseApp.mapper,
+                        responseBody.string()
+                    )?.let { authResponse ->
+
                         statusMessage = authResponse.statusText ?: ""
                         // Fill SharedPreferences with response details
                         if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
@@ -96,21 +97,6 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                 _authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
             }
         }
-    }
-
-    /**
-     * Decode auth response
-     */
-    private fun retrieveAuthResponse(jsonString: String): AuthResponse? {
-        jsonString.extractJSON()?.let {
-            return try {
-                BaseApp.mapper.parseToType(it)
-            } catch (e: JsonSyntaxException) {
-                Timber.w("Failed to decode auth response ${e.localizedMessage}: $jsonString")
-                null
-            }
-        }
-        return null
     }
 
     /**
