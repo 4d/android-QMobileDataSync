@@ -27,6 +27,11 @@ interface GenericNavigationResolver {
         inverseName: String
     )
 
+    fun navigateToActionParameters(
+        viewDataBinding: ViewDataBinding,
+        destinationTable: String
+    )
+
     /**
      * Navigates from list form to another list form (One to Many relation)
      */
