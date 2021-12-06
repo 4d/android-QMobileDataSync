@@ -27,7 +27,7 @@ interface GenericNavigationResolver {
         inverseName: String
     )
 
-    fun navigateToActionParameters(
+    fun navigateToActionForm(
         viewDataBinding: ViewDataBinding,
         destinationTable: String
     )
