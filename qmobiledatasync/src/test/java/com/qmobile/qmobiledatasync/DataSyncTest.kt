@@ -15,9 +15,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.sync.DataSync
-import com.qmobile.qmobiledatasync.sync.GlobalStampWithTable
+import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.resetIsToSync
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Before
@@ -53,20 +55,20 @@ class DataSyncTest {
     private lateinit var entityListViewModelList: MutableList<EntityListViewModel<*>>
 
     // MutableLiveData for mocked ViewModels
-    private val _sourceIntEmployee = MutableLiveData<Int>()
-    private val sourceIntEmployee: LiveData<Int> = _sourceIntEmployee
-    private val _sourceIntService = MutableLiveData<Int>()
-    private val sourceIntService: LiveData<Int> = _sourceIntService
-    private val _sourceIntOffice = MutableLiveData<Int>()
-    private val sourceIntOffice: LiveData<Int> = _sourceIntOffice
+    private val _sourceIntEmployee = MutableStateFlow(GlobalStamp("Employee", 0))
+    private val sourceIntEmployee: StateFlow<GlobalStamp> = _sourceIntEmployee
+    private val _sourceIntService = MutableStateFlow(GlobalStamp("Service", 0))
+    private val sourceIntService: StateFlow<GlobalStamp> = _sourceIntService
+    private val _sourceIntOffice = MutableStateFlow(GlobalStamp("Office", 0))
+    private val sourceIntOffice: StateFlow<GlobalStamp> = _sourceIntOffice
 
     // MediatorLiveData
-    private lateinit var liveDataMergerEmployee: MediatorLiveData<GlobalStampWithTable>
-    private lateinit var liveDataMergerService: MediatorLiveData<GlobalStampWithTable>
-    private lateinit var liveDataMergerOffice: MediatorLiveData<GlobalStampWithTable>
+    private lateinit var liveDataMergerEmployee: MediatorLiveData<GlobalStamp>
+    private lateinit var liveDataMergerService: MediatorLiveData<GlobalStamp>
+    private lateinit var liveDataMergerOffice: MediatorLiveData<GlobalStamp>
 
     // Custom closures
-    private lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, Observer<GlobalStampWithTable>) -> Unit
+    private lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, Observer<GlobalStamp>) -> Unit
     private lateinit var syncClosure: (EntityListViewModel<*>) -> Unit
     private lateinit var successfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit
     private lateinit var unsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit
@@ -98,17 +100,17 @@ class DataSyncTest {
 
         val testValueSet = listOf(123, 456, 789)
 
-        _sourceIntEmployee.value = testValueSet[0]
-        _sourceIntService.value = testValueSet[1]
-        _sourceIntOffice.value = testValueSet[2]
+        _sourceIntEmployee.value = GlobalStamp("Employee", testValueSet[0])
+        _sourceIntService.value = GlobalStamp("Employee", testValueSet[1])
+        _sourceIntOffice.value = GlobalStamp("Employee", testValueSet[2])
 
-        assertEquals(testValueSet[0], liveDataMergerEmployee.value?.globalStamp)
+        assertEquals(testValueSet[0], liveDataMergerEmployee.value?.stampValue)
         assertEquals(EMPLOYEE_TABLE, liveDataMergerEmployee.value?.tableName)
 
-        assertEquals(testValueSet[1], liveDataMergerService.value?.globalStamp)
+        assertEquals(testValueSet[1], liveDataMergerService.value?.stampValue)
         assertEquals(SERVICE_TABLE, liveDataMergerService.value?.tableName)
 
-        assertEquals(testValueSet[2], liveDataMergerOffice.value?.globalStamp)
+        assertEquals(testValueSet[2], liveDataMergerOffice.value?.stampValue)
         assertEquals(OFFICE_TABLE, liveDataMergerOffice.value?.tableName)
     }
 
@@ -243,7 +245,7 @@ class DataSyncTest {
         liveDataMergerEmployee.addSource(sourceIntEmployee) {
             if (it != null) {
                 liveDataMergerEmployee.value =
-                    GlobalStampWithTable(
+                    GlobalStamp(
                         EMPLOYEE_TABLE,
                         it
                     )
@@ -252,7 +254,7 @@ class DataSyncTest {
         liveDataMergerService.addSource(sourceIntService) {
             if (it != null) {
                 liveDataMergerService.value =
-                    GlobalStampWithTable(
+                    GlobalStamp(
                         SERVICE_TABLE,
                         it
                     )
@@ -261,7 +263,7 @@ class DataSyncTest {
         liveDataMergerOffice.addSource(sourceIntOffice) {
             if (it != null) {
                 liveDataMergerOffice.value =
-                    GlobalStampWithTable(
+                    GlobalStamp(
                         OFFICE_TABLE,
                         it
                     )
@@ -360,33 +362,33 @@ class DataSyncTest {
     private fun assertLiveDataValues(iteration: Int) {
         when (iteration) {
             1 -> {
-                assertEquals(globalStampValue_0, entityListViewModelEmployee.globalStamp.value)
-                assertEquals(globalStampValue_0, entityListViewModelService.globalStamp.value)
-                assertEquals(globalStampValue_0, entityListViewModelOffice.globalStamp.value)
+                assertEquals(globalStampValue_0, entityListViewModelEmployee.globalStamp.value.stampValue)
+                assertEquals(globalStampValue_0, entityListViewModelService.globalStamp.value.stampValue)
+                assertEquals(globalStampValue_0, entityListViewModelOffice.globalStamp.value.stampValue)
             }
             2 -> {
                 assertEquals(
                     globalStampValueSet_1[0],
-                    entityListViewModelEmployee.globalStamp.value
+                    entityListViewModelEmployee.globalStamp.value.stampValue
                 )
-                assertEquals(globalStampValueSet_1[1], entityListViewModelService.globalStamp.value)
-                assertEquals(globalStampValueSet_1[2], entityListViewModelOffice.globalStamp.value)
+                assertEquals(globalStampValueSet_1[1], entityListViewModelService.globalStamp.value.stampValue)
+                assertEquals(globalStampValueSet_1[2], entityListViewModelOffice.globalStamp.value.stampValue)
             }
             3 -> {
                 assertEquals(
                     globalStampValueSet_2[0],
-                    entityListViewModelEmployee.globalStamp.value
+                    entityListViewModelEmployee.globalStamp.value.stampValue
                 )
-                assertEquals(globalStampValueSet_2[1], entityListViewModelService.globalStamp.value)
-                assertEquals(globalStampValueSet_2[2], entityListViewModelOffice.globalStamp.value)
+                assertEquals(globalStampValueSet_2[1], entityListViewModelService.globalStamp.value.stampValue)
+                assertEquals(globalStampValueSet_2[2], entityListViewModelOffice.globalStamp.value.stampValue)
             }
         }
     }
 
     private fun assertSuccess() {
-        assertEquals(globalStampValueSet_3[0], entityListViewModelEmployee.globalStamp.value)
-        assertEquals(globalStampValueSet_3[1], entityListViewModelService.globalStamp.value)
-        assertEquals(globalStampValueSet_3[2], entityListViewModelOffice.globalStamp.value)
+        assertEquals(globalStampValueSet_3[0], entityListViewModelEmployee.globalStamp.value.stampValue)
+        assertEquals(globalStampValueSet_3[1], entityListViewModelService.globalStamp.value.stampValue)
+        assertEquals(globalStampValueSet_3[2], entityListViewModelOffice.globalStamp.value.stampValue)
     }
 
     private fun emitGlobalStamp(

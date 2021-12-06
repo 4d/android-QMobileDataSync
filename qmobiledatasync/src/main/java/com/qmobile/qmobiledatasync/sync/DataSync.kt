@@ -8,18 +8,21 @@ package com.qmobile.qmobiledatasync.sync
 
 import android.annotation.SuppressLint
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
 import com.qmobile.qmobileapi.utils.LoginRequiredCallback
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
+import com.qmobile.qmobiledatasync.utils.collectWhenStarted
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
+import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 @SuppressLint("BinaryOperationInTimber")
 class DataSync(
-    val activity: AppCompatActivity,
+    val lifecycleOwner: LifecycleOwner,
     val sharedPreferencesHolder: SharedPreferencesHolder,
     private val loginRequiredCallback: LoginRequiredCallback? = null
 ) {
@@ -34,12 +37,12 @@ class DataSync(
     lateinit var received: AtomicInteger
     val loginRequired = AtomicBoolean(false)
 
-    lateinit var globalStampObserver: Observer<GlobalStampWithTable>
+    lateinit var globalStampObserver: suspend (value: GlobalStamp) -> Unit
 
-    lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
+//    lateinit var mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStamp>>
 
     // Default closures
-    lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, Observer<GlobalStampWithTable>) -> Unit
+    lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, suspend (value: GlobalStamp) -> Unit) -> Unit
     lateinit var syncClosure: (EntityListViewModel<*>) -> Unit
     lateinit var successfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit
     lateinit var unsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit
@@ -58,89 +61,108 @@ class DataSync(
         val viewModelStillInitializing = AtomicBoolean(true)
         val requestPerformed = AtomicInteger(0)
         val nbToReceiveForInitializing = AtomicInteger(entityListViewModelList.size)
-        val receivedSyncedTableGS = mutableListOf<GlobalStampWithTable>()
+        val receivedSyncedTableGS = mutableListOf<GlobalStamp>()
 
-        globalStampObserver = Observer { globalStampWithTable ->
-            if (!viewModelStillInitializing.get()) {
+        globalStampObserver = { globalStamp: GlobalStamp ->
+//            if (!viewModelStillInitializing.get()) {
 
                 // For a forced data synchronization, we want to ignore the observation of the
                 // received globalStamp for this table. It is well saved in the viewModel, but we
                 // don't want to treat its reception here.
-                if (globalStampWithTable.tableName == alreadyRefreshedTable) {
+                if (globalStamp.tableName == alreadyRefreshedTable) {
                     Timber.d(
                         "[Ignoring received observable for Table : " +
-                            "${globalStampWithTable.tableName} with GlobalStamp : " +
-                            "${globalStampWithTable.globalStamp}]"
+                                "${globalStamp.tableName} with GlobalStamp : " +
+                                "${globalStamp.stampValue}]"
                     )
-                    return@Observer
-                }
+                } else {
 
-                Timber.d(
-                    "[NEW] [Table : ${globalStampWithTable.tableName}, " +
-                        "GlobalStamp : ${globalStampWithTable.globalStamp}]"
-                )
-                Timber.d("Current globalStamps list :")
-
-                entityListViewModelList.forEach { entityListViewModel ->
                     Timber.d(
-                        " - Table : ${entityListViewModel.getAssociatedTableName()}, " +
-                            "GlobalStamp : ${entityListViewModel.globalStamp.value}"
+                        "[NEW] [Table : ${globalStamp.tableName}, " +
+                                "GlobalStamp : ${globalStamp.stampValue}]"
                     )
-                }
+                    Timber.d("Current globalStamps list :")
 
-                Timber.d("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
+                    entityListViewModelList.forEach { entityListViewModel ->
+                        Timber.d(
+                            " - Table : ${entityListViewModel.getAssociatedTableName()}, " +
+                                    "GlobalStamp : ${entityListViewModel.globalStamp.value.stampValue}"
+                        )
+                    }
 
-                receivedSyncedTableGS.add(globalStampWithTable)
+                    Timber.d("[GlobalStamps received : ${received.get() + 1}/$nbToReceive]")
 
-                if (received.incrementAndGet() == nbToReceive) {
+                    receivedSyncedTableGS.add(globalStamp)
 
-                    if (loginRequired.getAndSet(false)) {
-                        loginRequiredCallback?.invoke()
-                    } else {
+                    if (received.incrementAndGet() == nbToReceive) {
 
-                        // Get the max globalStamp between received ones, and stored one
-                        maxGlobalStamp =
-                            DataSyncUtils.getMaxGlobalStamp(
-                                receivedSyncedTableGS,
-                                sharedPreferencesHolder.globalStamp
-                            )
-                        Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
-
-                        val isAtLeastOneToSync =
-                            DataSyncUtils.checkIfAtLeastOneTableToSync(
-                                maxGlobalStamp,
-                                entityListViewModelList
-                            )
-
-                        if (isAtLeastOneToSync) {
-                            Timber.d("[There is at least one table that requires data synchronization]")
-                            if (DataSyncUtils.canPerformNewSync(received, requestPerformed, numberOfRequestMaxLimit)) {
-                                syncTables(entityListViewModelList)
-                            } else {
-                                unsuccessfulSyncClosure(entityListViewModelList)
-                            }
+                        if (loginRequired.getAndSet(false)) {
+                            loginRequiredCallback?.invoke()
                         } else {
-                            successfulSyncClosure(maxGlobalStamp, entityListViewModelList)
+
+                            // Get the max globalStamp between received ones, and stored one
+                            maxGlobalStamp =
+                                DataSyncUtils.getMaxGlobalStamp(
+                                    receivedSyncedTableGS,
+                                    sharedPreferencesHolder.globalStamp
+                                )
+                            Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
+
+                            val isAtLeastOneToSync =
+                                DataSyncUtils.checkIfAtLeastOneTableToSync(
+                                    maxGlobalStamp,
+                                    entityListViewModelList
+                                )
+
+                            if (isAtLeastOneToSync) {
+                                Timber.d("[There is at least one table that requires data synchronization]")
+                                if (DataSyncUtils.canPerformNewSync(
+                                        received,
+                                        requestPerformed,
+                                        numberOfRequestMaxLimit
+                                    )
+                                ) {
+                                    syncTables(entityListViewModelList)
+                                } else {
+                                    unsuccessfulSyncClosure(entityListViewModelList)
+                                }
+                            } else {
+                                successfulSyncClosure(maxGlobalStamp, entityListViewModelList)
+                            }
                         }
                     }
                 }
-            } else {
-                Timber.d(
-                    "[INITIALIZING] [Table : ${globalStampWithTable.tableName}, " +
-                        "GlobalStamp : ${globalStampWithTable.globalStamp}]"
-                )
-                Timber.d(
-                    "[GlobalStamps received for initializing : " +
-                        "${received.get() + 1}/${nbToReceiveForInitializing.get()}]"
-                )
-                if (DataSyncUtils.canStartSync(received, nbToReceiveForInitializing, viewModelStillInitializing)) {
-                    // first sync
-                    syncTables(entityListViewModelList)
-                }
-            }
+//            } else {
+//                Timber.d(
+//                    "[INITIALIZING] [Table : ${globalStamp.tableName}, " +
+//                            "GlobalStamp : ${globalStamp.stampValue}]"
+//                )
+//                Timber.d(
+//                    "[GlobalStamps received for initializing : " +
+//                            "${received.get() + 1}/${nbToReceiveForInitializing.get()}]"
+//                )
+//                if (DataSyncUtils.canStartSync(received, nbToReceiveForInitializing, viewModelStillInitializing)) {
+//                    // first sync
+//                        Timber.d("syncTables")
+//                    syncTables(entityListViewModelList)
+//                }
+//            }
         }
 
-        setupObservableClosure(entityListViewModelList, globalStampObserver)
+//        setupObservableClosure(entityListViewModelList, globalStampObserver)
+//        entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
+//            lifecycleOwner.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
+//        }
+
+        Timber.d("syncTables")
+        syncTables(entityListViewModelList)
+    }
+
+    fun observe(entityListViewModel: EntityListViewModel<*>) {
+        lifecycleOwner.collectWhenStarted(flow = entityListViewModel.globalStamp, action = globalStampObserver)
+    }
+    fun unObserve(entityListViewModel: EntityListViewModel<*>) {
+//        lifecycleOwner.collectWhenStarted(flow = entityListViewModel.globalStamp, action = {})
     }
 
     //    @Synchronized + isToSync: AtomicBoolean ?

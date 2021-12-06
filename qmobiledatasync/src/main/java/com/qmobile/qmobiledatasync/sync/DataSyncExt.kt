@@ -8,17 +8,27 @@ package com.qmobile.qmobiledatasync.sync
 
 import androidx.lifecycle.Observer
 import com.qmobile.qmobileapi.network.ApiClient
+import com.qmobile.qmobiledatasync.utils.collectWhenStarted
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 
 fun DataSync.setupObservable(
     entityListViewModelList: List<EntityListViewModel<*>>,
-    globalStampObserver: Observer<GlobalStampWithTable>
+    globalStampObserver: suspend (value: GlobalStamp) -> Unit
 ) {
-    mediatorLiveDataList = mutableListOf()
-    entityListViewModelList.createMediatorLiveData(mediatorLiveDataList)
-    // observe merged LiveData
-    mediatorLiveDataList.setObservers(activity, globalStampObserver)
+//    mediatorLiveDataList = mutableListOf()
+//    entityListViewModelList.createMediatorLiveData(mediatorLiveDataList)
+//    // observe merged LiveData
+//    mediatorLiveDataList.setObservers(activity, globalStampObserver)
+        entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
+        lifecycleOwner.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
+    }
+
+//    flows.setObserverss(lifecycleOwner, globalStampObserver)
 }
 
 fun DataSync.successfulSynchronization(
@@ -26,7 +36,8 @@ fun DataSync.successfulSynchronization(
     entityListViewModelList: List<EntityListViewModel<*>>
 ) {
     Timber.i("[Synchronization performed, all tables are up-to-date]")
-    mediatorLiveDataList.removeObservers(activity)
+//    mediatorLiveDataList.removeObservers(activity)
+    entityListViewModelList.forEach { unObserve(it) }
     sharedPreferencesHolder.globalStamp = maxGlobalStamp
     entityListViewModelList.notifyDataSynced()
     entityListViewModelList.startDataLoading()
@@ -43,7 +54,8 @@ fun DataSync.unsuccessfulSynchronization(
         "[Number of request max limit has been reached. " +
             "Data synchronization is ending with tables not synchronized]"
     )
-    mediatorLiveDataList.removeObservers(activity)
+//    mediatorLiveDataList.removeObservers(activity)
+    entityListViewModelList.forEach { unObserve(it) }
     entityListViewModelList.notifyDataUnSynced()
     ApiClient.dataSyncFinished()
 }
@@ -52,7 +64,7 @@ fun DataSync.unsuccessfulSynchronization(
 fun DataSync.unsuccessfulSynchronizationNeedsLogin(
     entityListViewModelList: List<EntityListViewModel<*>>
 ) {
-    mediatorLiveDataList.removeObservers(activity)
+//    mediatorLiveDataList.removeObservers(activity)
     entityListViewModelList.notifyDataUnSynced()
 }
 
@@ -60,7 +72,7 @@ fun DataSync.unsuccessfulSynchronizationNeedsLogin(
 fun DataSync.initClosures() {
 
     // Set mediatorLiveData to observe every table
-    val defaultSetupObservableClosure: (List<EntityListViewModel<*>>, Observer<GlobalStampWithTable>) -> Unit =
+    val defaultSetupObservableClosure: (List<EntityListViewModel<*>>, suspend (value: GlobalStamp) -> Unit) -> Unit =
         { entityListViewModelList, globalStampObserver ->
             setupObservable(entityListViewModelList, globalStampObserver)
         }

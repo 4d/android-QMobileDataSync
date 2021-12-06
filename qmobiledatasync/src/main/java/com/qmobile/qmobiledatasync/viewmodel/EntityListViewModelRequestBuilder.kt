@@ -19,7 +19,7 @@ import kotlin.math.max
  */
 fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 
-    var gs = globalStamp.value ?: BaseApp.sharedPreferencesHolder.globalStamp
+    var gs = globalStamp.value.stampValue
 
     val isDumpedTable = BaseApp.runtimeDataHolder.dumpedTables.split(", ").contains(getAssociatedTableName())
 

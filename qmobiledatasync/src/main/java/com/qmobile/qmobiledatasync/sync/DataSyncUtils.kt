@@ -41,7 +41,7 @@ object DataSyncUtils {
     ): Boolean {
         var isAtLeastOneToSync = false
         entityListViewModelList.forEach { entityListViewModel ->
-            val vmGs = entityListViewModel.globalStamp.value ?: 0
+            val vmGs = entityListViewModel.globalStamp.value.stampValue
             if (vmGs < maxGlobalStamp) {
                 entityListViewModel.isToSync.set(true)
                 isAtLeastOneToSync = true
@@ -51,10 +51,10 @@ object DataSyncUtils {
     }
 
     fun getMaxGlobalStamp(
-        receivedSyncedTableGS: List<GlobalStampWithTable>,
+        receivedSyncedTableGS: List<GlobalStamp>,
         authInfoHelperGlobalStamp: Int
     ): Int = maxOf(
-        receivedSyncedTableGS.map { it.globalStamp }.maxByOrNull { it } ?: 0,
+        receivedSyncedTableGS.map { it.stampValue }.maxByOrNull { it } ?: 0,
         authInfoHelperGlobalStamp
     )
 }

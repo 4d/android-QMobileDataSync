@@ -6,9 +6,7 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.paging.LivePagedListBuilder
@@ -33,9 +31,13 @@ import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
-import com.qmobile.qmobiledatasync.sync.GlobalStampWithTable
+import com.qmobile.qmobiledatasync.sync.GlobalStamp
+import com.qmobile.qmobiledatasync.sync.newGlobalStamp
 import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -105,26 +107,23 @@ abstract class EntityListViewModel<T : EntityModel>(
                 Timber.e(throwable.localizedMessage)
             }
 
-    private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
-    val dataLoading: LiveData<Boolean> = _dataLoading
+    private val _dataLoading = MutableStateFlow(false)
+    val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    private val _globalStamp =
-        MutableLiveData<Int>().apply { value = BaseApp.sharedPreferencesHolder.globalStamp }
-    open val globalStamp: LiveData<Int> = _globalStamp
+    private val _globalStamp = MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
+    open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
 
-    private val _dataSynchronized =
-        MutableLiveData<DataSyncStateEnum>().apply { value = DataSyncStateEnum.UNSYNCHRONIZED }
-    val dataSynchronized: LiveData<DataSyncStateEnum> = _dataSynchronized
+    private val _dataSynchronized = MutableStateFlow(DataSyncStateEnum.UNSYNCHRONIZED)
+    val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
 
-    private val _scheduleRefresh =
-        MutableLiveData<ScheduleRefreshEnum>().apply { value = ScheduleRefreshEnum.NO }
-    val scheduleRefresh: LiveData<ScheduleRefreshEnum> = _scheduleRefresh
+    private val _scheduleRefresh = MutableStateFlow(ScheduleRefreshEnum.NO)
+    val scheduleRefresh: StateFlow<ScheduleRefreshEnum> = _scheduleRefresh
 
-    private val _newRelatedEntity = MutableLiveData<ManyToOneRelation>()
-    val newRelatedEntity: LiveData<ManyToOneRelation> = _newRelatedEntity
+    private val _newRelatedEntity = MutableStateFlow<ManyToOneRelation?>(null)
+    val newRelatedEntity: StateFlow<ManyToOneRelation?> = _newRelatedEntity
 
-    private val _newRelatedEntities = MutableLiveData<OneToManyRelation>()
-    val newRelatedEntities: LiveData<OneToManyRelation> = _newRelatedEntities
+    private val _newRelatedEntities = MutableStateFlow<OneToManyRelation?>(null)
+    val newRelatedEntities: StateFlow<OneToManyRelation?> = _newRelatedEntities
 
     open val isToSync = AtomicBoolean(false)
 
@@ -209,7 +208,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                                     val receivedGlobalStamp =
                                         responseJson.getSafeInt("__GlobalStamp") ?: 0
 
-                                    _globalStamp.postValue(receivedGlobalStamp)
+                                    _globalStamp.value = newGlobalStamp(receivedGlobalStamp)
 
                                     if (receivedGlobalStamp > BaseApp.sharedPreferencesHolder.globalStamp) {
                                         onResult(true, true, receivedFromIter, true)
@@ -227,7 +226,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 }
             } else {
                 // send previous globalStamp value for data sync
-                _globalStamp.postValue(0)
+                _globalStamp.value = newGlobalStamp(0)
                 response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
                 onResult(false, true, 0, false)
@@ -326,12 +325,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     private fun emitManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
-        _newRelatedEntity.postValue(
-            ManyToOneRelation(
-                entity = relatedJson,
-                className = relation.className
-            )
-        )
+        _newRelatedEntity.value =
+            ManyToOneRelation(entity = relatedJson, className = relation.className)
     }
 
     private fun checkOneToManyRelation(relatedJson: JSONObject) {
@@ -345,12 +340,9 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     private fun emitOneToManyRelation(entities: JSONArray, dataClass: String) {
-        _newRelatedEntities.postValue(
-            OneToManyRelation(
-                entities = entities,
-                className = dataClass.filter { !it.isWhitespace() }
-            )
-        )
+        _newRelatedEntities.value = OneToManyRelation(
+            entities = entities,
+            className = dataClass.filter { !it.isWhitespace() })
     }
 
     fun insertNewRelatedEntity(manyToOneRelation: ManyToOneRelation) {
@@ -434,7 +426,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     fun setDataSyncState(state: DataSyncStateEnum) {
-        _dataSynchronized.postValue(state)
+        _dataSynchronized.value = state
     }
 
     fun setDataLoadingState(startLoading: Boolean) {
@@ -442,7 +434,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     fun setScheduleRefreshState(scheduleRefresh: ScheduleRefreshEnum) {
-        _scheduleRefresh.postValue(scheduleRefresh)
+        _scheduleRefresh.value = scheduleRefresh
     }
 
     override fun onCleared() {
@@ -450,14 +442,27 @@ abstract class EntityListViewModel<T : EntityModel>(
         restRepository.disposable.dispose()
     }
 
-    fun createMediatorLiveData(): MediatorLiveData<GlobalStampWithTable> {
+    fun createMediatorLiveData(): MediatorLiveData<GlobalStamp> {
 
-        val mediatorLiveData = MediatorLiveData<GlobalStampWithTable>()
+        val mediatorLiveData = MediatorLiveData<GlobalStamp>()
+//        mediatorLiveData.addSource(globalStamp) {
+//            if (it != null) {
+//                mediatorLiveData.value = GlobalStamp(getAssociatedTableName(), it)
+//            }
+//        }
+        return mediatorLiveData
+    }
+
+    /*fun createMediatorLiveData2(): MediatorLiveData<GlobalStamp> {
+
+        val flow1: Flow<GlobalStamp> =
+
+        val mediatorLiveData = MediatorLiveData<GlobalStamp>()
         mediatorLiveData.addSource(globalStamp) {
             if (it != null) {
-                mediatorLiveData.value = GlobalStampWithTable(getAssociatedTableName(), it)
+                mediatorLiveData.value = GlobalStamp(getAssociatedTableName(), it)
             }
         }
         return mediatorLiveData
-    }
+    }*/
 }

@@ -28,7 +28,7 @@ abstract class BaseViewModel<T : Any>(
     apiService: ApiService
 ) : AndroidViewModel(BaseApp.instance) {
 
-    open fun getAssociatedTableName(): String = tableName
+    fun getAssociatedTableName(): String = tableName
     private val originalAssociatedTableName =
         BaseApp.genericTableHelper.originalTableName(tableName)
 

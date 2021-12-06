@@ -33,7 +33,7 @@ fun List<EntityListViewModel<*>>.deleteRecord(deletedRecordJson: JSONObject?) {
 }
 
 fun List<EntityListViewModel<*>>.createMediatorLiveData(
-    mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStampWithTable>>
+    mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStamp>>
 ) {
     this.forEach { entityListViewModel ->
         val mediatorLiveData = entityListViewModel.createMediatorLiveData()
@@ -78,3 +78,6 @@ fun List<EntityListViewModel<*>>.resetIsToSync() {
         entityListViewModel.isToSync.set(true)
     }
 }
+
+fun EntityListViewModel<*>.newGlobalStamp(globalStamp: Int): GlobalStamp =
+    GlobalStamp(this.getAssociatedTableName(), globalStamp)
