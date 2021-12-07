@@ -6,29 +6,18 @@
 
 package com.qmobile.qmobiledatasync.sync
 
-import androidx.lifecycle.Observer
 import com.qmobile.qmobileapi.network.ApiClient
 import com.qmobile.qmobiledatasync.utils.collectWhenStarted
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import timber.log.Timber
 
 fun DataSync.setupObservable(
     entityListViewModelList: List<EntityListViewModel<*>>,
     globalStampObserver: suspend (value: GlobalStamp) -> Unit
 ) {
-//    mediatorLiveDataList = mutableListOf()
-//    entityListViewModelList.createMediatorLiveData(mediatorLiveDataList)
-//    // observe merged LiveData
-//    mediatorLiveDataList.setObservers(activity, globalStampObserver)
-        entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
+    entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
         lifecycleOwner.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
     }
-
-//    flows.setObserverss(lifecycleOwner, globalStampObserver)
 }
 
 fun DataSync.successfulSynchronization(
@@ -36,8 +25,6 @@ fun DataSync.successfulSynchronization(
     entityListViewModelList: List<EntityListViewModel<*>>
 ) {
     Timber.i("[Synchronization performed, all tables are up-to-date]")
-//    mediatorLiveDataList.removeObservers(activity)
-    entityListViewModelList.forEach { unObserve(it) }
     sharedPreferencesHolder.globalStamp = maxGlobalStamp
     entityListViewModelList.notifyDataSynced()
     entityListViewModelList.startDataLoading()
@@ -47,25 +34,15 @@ fun DataSync.successfulSynchronization(
     ApiClient.dataSyncFinished()
 }
 
-fun DataSync.unsuccessfulSynchronization(
+fun unsuccessfulSynchronization(
     entityListViewModelList: List<EntityListViewModel<*>>
 ) {
     Timber.e(
         "[Number of request max limit has been reached. " +
             "Data synchronization is ending with tables not synchronized]"
     )
-//    mediatorLiveDataList.removeObservers(activity)
-    entityListViewModelList.forEach { unObserve(it) }
     entityListViewModelList.notifyDataUnSynced()
     ApiClient.dataSyncFinished()
-}
-
-// Stop observing before going back to login page
-fun DataSync.unsuccessfulSynchronizationNeedsLogin(
-    entityListViewModelList: List<EntityListViewModel<*>>
-) {
-//    mediatorLiveDataList.removeObservers(activity)
-    entityListViewModelList.notifyDataUnSynced()
 }
 
 // Closures are used to change the data sync algorithm behavior in unit test
@@ -80,10 +57,11 @@ fun DataSync.initClosures() {
     setupObservableClosure = defaultSetupObservableClosure
 
     // Synchronization api requests
-    val defaultSyncClosure: (EntityListViewModel<*>) -> Unit = { entityListViewModel ->
-//        entityListViewModel.sync(this.activity)
-        entityListViewModel.setDataSyncState(DataSyncStateEnum.SYNCHRONIZING)
-    }
+    val defaultSyncClosure: (EntityListViewModel<*>, Boolean) -> Unit =
+        { entityListViewModel, reSync ->
+            val state = if (reSync) DataSyncStateEnum.RESYNC else DataSyncStateEnum.SYNCHRONIZING
+            entityListViewModel.setDataSyncState(state)
+        }
 
     syncClosure = defaultSyncClosure
 

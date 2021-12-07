@@ -6,13 +6,14 @@
 
 package com.qmobile.qmobiledatasync.sync
 
-import androidx.lifecycle.MediatorLiveData
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
 import org.json.JSONObject
+import timber.log.Timber
+import java.util.UUID
 
 fun List<EntityListViewModel<*>>.syncDeletedRecords() {
     // We pick first viewModel to perform a deletedRecords request, but it could be any viewModel.
@@ -24,20 +25,21 @@ fun List<EntityListViewModel<*>>.syncDeletedRecords() {
     }
 }
 
+fun List<EntityListViewModel<*>>.printGlobalStamp() {
+    Timber.d("Current globalStamps list :")
+    this.forEach { entityListViewModel ->
+        Timber.d(
+            " - Table : ${entityListViewModel.getAssociatedTableName()}, " +
+                "GlobalStamp : ${entityListViewModel.globalStamp.value.stampValue}"
+        )
+    }
+}
+
 fun List<EntityListViewModel<*>>.deleteRecord(deletedRecordJson: JSONObject?) {
     deletedRecordJson?.getSafeString("__PrimaryKey")?.let { recordKey ->
         deletedRecordJson.getSafeString("__TableName")?.let { tableName ->
             this.findLast { tableName == it.getAssociatedTableName() }?.deleteOne(recordKey)
         }
-    }
-}
-
-fun List<EntityListViewModel<*>>.createMediatorLiveData(
-    mediatorLiveDataList: MutableList<MediatorLiveData<GlobalStamp>>
-) {
-    this.forEach { entityListViewModel ->
-        val mediatorLiveData = entityListViewModel.createMediatorLiveData()
-        mediatorLiveDataList.add(mediatorLiveData)
     }
 }
 
@@ -80,4 +82,10 @@ fun List<EntityListViewModel<*>>.resetIsToSync() {
 }
 
 fun EntityListViewModel<*>.newGlobalStamp(globalStamp: Int): GlobalStamp =
-    GlobalStamp(this.getAssociatedTableName(), globalStamp)
+    GlobalStamp(
+        tableName = this.getAssociatedTableName(),
+        stampValue = globalStamp,
+        dataSyncProcess = this.dataSynchronized.value == DataSyncStateEnum.SYNCHRONIZING ||
+            this.dataSynchronized.value == DataSyncStateEnum.RESYNC,
+        uuid = UUID.randomUUID()
+    )

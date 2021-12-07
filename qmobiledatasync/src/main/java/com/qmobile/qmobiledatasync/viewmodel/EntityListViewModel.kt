@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.paging.LivePagedListBuilder
@@ -34,8 +33,6 @@ import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.newGlobalStamp
 import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -110,11 +107,11 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    private val _globalStamp = MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
-    open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
-
     private val _dataSynchronized = MutableStateFlow(DataSyncStateEnum.UNSYNCHRONIZED)
     val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
+
+    private val _globalStamp = MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
+    open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
 
     private val _scheduleRefresh = MutableStateFlow(ScheduleRefreshEnum.NO)
     val scheduleRefresh: StateFlow<ScheduleRefreshEnum> = _scheduleRefresh
@@ -342,7 +339,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     private fun emitOneToManyRelation(entities: JSONArray, dataClass: String) {
         _newRelatedEntities.value = OneToManyRelation(
             entities = entities,
-            className = dataClass.filter { !it.isWhitespace() })
+            className = dataClass.filter { !it.isWhitespace() }
+        )
     }
 
     fun insertNewRelatedEntity(manyToOneRelation: ManyToOneRelation) {
@@ -441,28 +439,4 @@ abstract class EntityListViewModel<T : EntityModel>(
         super.onCleared()
         restRepository.disposable.dispose()
     }
-
-    fun createMediatorLiveData(): MediatorLiveData<GlobalStamp> {
-
-        val mediatorLiveData = MediatorLiveData<GlobalStamp>()
-//        mediatorLiveData.addSource(globalStamp) {
-//            if (it != null) {
-//                mediatorLiveData.value = GlobalStamp(getAssociatedTableName(), it)
-//            }
-//        }
-        return mediatorLiveData
-    }
-
-    /*fun createMediatorLiveData2(): MediatorLiveData<GlobalStamp> {
-
-        val flow1: Flow<GlobalStamp> =
-
-        val mediatorLiveData = MediatorLiveData<GlobalStamp>()
-        mediatorLiveData.addSource(globalStamp) {
-            if (it != null) {
-                mediatorLiveData.value = GlobalStamp(getAssociatedTableName(), it)
-            }
-        }
-        return mediatorLiveData
-    }*/
 }

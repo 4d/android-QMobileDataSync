@@ -9,17 +9,21 @@ package com.qmobile.qmobiledatasync
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.resetIsToSync
+import com.qmobile.qmobiledatasync.utils.collectWhenStarted
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals
 import org.junit.Assert.fail
 import org.junit.Before
@@ -31,6 +35,7 @@ import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(RobolectricTestRunner::class)
@@ -55,11 +60,11 @@ class DataSyncTest {
     private lateinit var entityListViewModelList: MutableList<EntityListViewModel<*>>
 
     // MutableLiveData for mocked ViewModels
-    private val _sourceIntEmployee = MutableStateFlow(GlobalStamp("Employee", 0))
+    private val _sourceIntEmployee = MutableStateFlow(GlobalStamp("Employee", 0, true, UUID.randomUUID()))
     private val sourceIntEmployee: StateFlow<GlobalStamp> = _sourceIntEmployee
-    private val _sourceIntService = MutableStateFlow(GlobalStamp("Service", 0))
+    private val _sourceIntService = MutableStateFlow(GlobalStamp("Service", 0, true, UUID.randomUUID()))
     private val sourceIntService: StateFlow<GlobalStamp> = _sourceIntService
-    private val _sourceIntOffice = MutableStateFlow(GlobalStamp("Office", 0))
+    private val _sourceIntOffice = MutableStateFlow(GlobalStamp("Office", 0, true, UUID.randomUUID()))
     private val sourceIntOffice: StateFlow<GlobalStamp> = _sourceIntOffice
 
     // MediatorLiveData
@@ -100,9 +105,9 @@ class DataSyncTest {
 
         val testValueSet = listOf(123, 456, 789)
 
-        _sourceIntEmployee.value = GlobalStamp("Employee", testValueSet[0])
-        _sourceIntService.value = GlobalStamp("Employee", testValueSet[1])
-        _sourceIntOffice.value = GlobalStamp("Employee", testValueSet[2])
+        _sourceIntEmployee.value = GlobalStamp("Employee", testValueSet[0], true, UUID.randomUUID())
+        _sourceIntService.value = GlobalStamp("Employee", testValueSet[1], true, UUID.randomUUID())
+        _sourceIntOffice.value = GlobalStamp("Employee", testValueSet[2], true, UUID.randomUUID())
 
         assertEquals(testValueSet[0], liveDataMergerEmployee.value?.stampValue)
         assertEquals(EMPLOYEE_TABLE, liveDataMergerEmployee.value?.tableName)
@@ -146,7 +151,7 @@ class DataSyncTest {
 
         setClosures()
 
-        dataSync.setObserver(entityListViewModelList, null)
+        dataSync.setObserver(entityListViewModelList)
 
         simulateLiveDataInitialization()
     }
@@ -183,7 +188,7 @@ class DataSyncTest {
 
         setClosures()
 
-        dataSync.setObserver(entityListViewModelList, null)
+        dataSync.setObserver(entityListViewModelList)
 
         simulateLiveDataInitialization()
     }
@@ -273,6 +278,13 @@ class DataSyncTest {
         liveDataMergerEmployee.observeForever {}
         liveDataMergerService.observeForever {}
         liveDataMergerOffice.observeForever {}
+        sourceIntEmployee
+        activity.lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                flow.collect(action)
+            }
+        }
+        TesTLife.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
     }
 
     private fun mockForDataSync() {
