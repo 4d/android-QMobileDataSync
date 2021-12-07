@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-import android.view.View
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import com.qmobile.qmobileapi.model.entity.EntityModel
