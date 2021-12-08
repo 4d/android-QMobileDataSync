@@ -33,6 +33,7 @@ import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.newGlobalStamp
 import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
+import com.qmobile.qmobiledatasync.utils.getViewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -60,6 +61,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     val relations = getRelationList()
+
+    open val coroutineScope = getViewModelScope()
 
     /**
      * LiveData
@@ -108,7 +111,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     val dataLoading: StateFlow<Boolean> = _dataLoading
 
     private val _dataSynchronized = MutableStateFlow(DataSyncStateEnum.UNSYNCHRONIZED)
-    val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
+    open val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
 
     private val _globalStamp = MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
     open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
@@ -271,7 +274,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         }
     }
 
-    private fun decodeDeletedRecords(
+    fun decodeDeletedRecords(
         entitiesJsonArray: JSONArray?,
         onResult: (entitiesList: List<String>) -> Unit
     ) {

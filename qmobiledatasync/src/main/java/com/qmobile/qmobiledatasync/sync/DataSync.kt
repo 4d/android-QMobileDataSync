@@ -87,8 +87,6 @@ class DataSync(
                         if (isAtLeastOneToSync) {
                             Timber.d("[There is at least one table that requires data synchronization]")
                             if (canPerformNewSync()) {
-                                entityListViewModelList.filter { it.isToSync.get() }
-                                    .forEach { it.setDataSyncState(DataSyncStateEnum.UNSYNCHRONIZED) }
                                 syncTables(entityListViewModelList, true)
                             } else {
                                 unsuccessfulSyncClosure(entityListViewModelList)
