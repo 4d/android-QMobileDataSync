@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @SuppressLint("BinaryOperationInTimber")
 class DataSync(
     val lifecycleOwner: LifecycleOwner,
+    val entityListViewModelList: List<EntityListViewModel<*>>,
     val sharedPreferencesHolder: SharedPreferencesHolder,
     private val loginRequiredCallback: LoginRequiredCallback? = null
 ) {
@@ -26,7 +27,7 @@ class DataSync(
         const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
     }
 
-    var nbToReceive = 0
+    private var nbToReceive = 0
     var maxGlobalStamp = 0
     private var numberOfRequestMaxLimit = 0
     lateinit var received: AtomicInteger
@@ -38,19 +39,17 @@ class DataSync(
     lateinit var globalStampObserver: suspend (value: GlobalStamp) -> Unit
 
     // Default closures
-    lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, suspend (value: GlobalStamp) -> Unit) -> Unit
+    lateinit var setupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit
     lateinit var syncClosure: (EntityListViewModel<*>, Boolean) -> Unit
-    lateinit var successfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit
-    lateinit var unsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit
+    lateinit var successfulSyncClosure: (Int) -> Unit
+    lateinit var unsuccessfulSyncClosure: () -> Unit
 
     init {
         initClosures()
     }
 
-    @Suppress("LongMethod")
-    fun setObserver(
-        entityListViewModelList: List<EntityListViewModel<*>>
-    ) {
+    fun perform() {
+
         resetDataSyncVariables()
 
         globalStampObserver = { globalStamp: GlobalStamp ->
@@ -74,37 +73,41 @@ class DataSync(
 
                 if (received.incrementAndGet() == nbToReceive) {
 
-                    if (loginRequired.getAndSet(false)) {
-                        loginRequiredCallback?.invoke()
-                    } else {
-
-                        // Get the max globalStamp between received ones, and stored one
-                        maxGlobalStamp = getMaxGlobalStamp(receivedSyncedTableGS)
-                        Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
-
-                        val isAtLeastOneToSync = checkIfAtLeastOneTableToSync(maxGlobalStamp, entityListViewModelList)
-
-                        if (isAtLeastOneToSync) {
-                            Timber.d("[There is at least one table that requires data synchronization]")
-                            if (canPerformNewSync()) {
-                                syncTables(entityListViewModelList, true)
-                            } else {
-                                unsuccessfulSyncClosure(entityListViewModelList)
-                            }
-                        } else {
-                            successfulSyncClosure(maxGlobalStamp, entityListViewModelList)
-                        }
-                    }
+                    analyzeGlobalStamps()
                 }
             }
         }
 
-        syncTables(entityListViewModelList)
+        syncTables()
 
         if (!globalStampAlreadyObserved) {
-            setupObservableClosure(entityListViewModelList, globalStampObserver)
+            setupObservableClosure(globalStampObserver)
         }
         globalStampAlreadyObserved = true
+    }
+
+    private fun analyzeGlobalStamps() {
+
+        if (loginRequired.getAndSet(false)) {
+            loginRequiredCallback?.invoke()
+        } else {
+            // Get the max globalStamp between received ones, and stored one
+            maxGlobalStamp = getMaxGlobalStamp(receivedSyncedTableGS)
+            Timber.d("[maxGlobalStamp = $maxGlobalStamp]")
+
+            val isAtLeastOneToSync = checkIfAtLeastOneTableToSync(maxGlobalStamp)
+
+            if (isAtLeastOneToSync) {
+                Timber.d("[There is at least one table that requires data synchronization]")
+                if (canPerformNewSync()) {
+                    syncTables(true)
+                } else {
+                    unsuccessfulSyncClosure()
+                }
+            } else {
+                successfulSyncClosure(maxGlobalStamp)
+            }
+        }
     }
 
     private fun resetDataSyncVariables() {
@@ -113,10 +116,7 @@ class DataSync(
         receivedSyncedTableGS = mutableListOf()
     }
 
-    private fun syncTables(
-        entityListViewModelList: List<EntityListViewModel<*>>,
-        reSync: Boolean = false
-    ) {
+    private fun syncTables(reSync: Boolean = false) {
         this.nbToReceive = entityListViewModelList.filter { it.isToSync.get() }.size
         this.numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
         entityListViewModelList.filter { it.isToSync.get() }.forEach { syncRequired ->
@@ -132,8 +132,7 @@ class DataSync(
     )
 
     private fun checkIfAtLeastOneTableToSync(
-        maxGlobalStamp: Int,
-        entityListViewModelList: List<EntityListViewModel<*>>
+        maxGlobalStamp: Int
     ): Boolean {
         var isAtLeastOneToSync = false
         entityListViewModelList.forEach { entityListViewModel ->

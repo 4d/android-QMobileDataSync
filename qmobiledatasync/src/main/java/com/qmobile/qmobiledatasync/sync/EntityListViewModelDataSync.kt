@@ -13,7 +13,6 @@ import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
 import org.json.JSONObject
 import timber.log.Timber
-import java.util.UUID
 
 fun List<EntityListViewModel<*>>.syncDeletedRecords() {
     // We pick first viewModel to perform a deletedRecords request, but it could be any viewModel.
@@ -80,12 +79,3 @@ fun List<EntityListViewModel<*>>.resetIsToSync() {
         entityListViewModel.isToSync.set(true)
     }
 }
-
-fun EntityListViewModel<*>.newGlobalStamp(globalStamp: Int): GlobalStamp =
-    GlobalStamp(
-        tableName = this.getAssociatedTableName(),
-        stampValue = globalStamp,
-        dataSyncProcess = this.dataSynchronized.value == DataSyncStateEnum.SYNCHRONIZING ||
-            this.dataSynchronized.value == DataSyncStateEnum.RESYNC,
-        uuid = UUID.randomUUID()
-    )

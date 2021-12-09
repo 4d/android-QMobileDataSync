@@ -8,8 +8,6 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.qmobile.qmobileapi.auth.AuthenticationStateEnum
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
@@ -18,6 +16,8 @@ import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
 
 class LoginViewModel(application: Application, loginApiService: LoginApiService) :
@@ -33,18 +33,16 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
      * LiveData
      */
 
-    private val _dataLoading = MutableLiveData<Boolean>().apply { value = false }
-    val dataLoading: LiveData<Boolean> = _dataLoading
+    private val _dataLoading = MutableStateFlow(false)
+    val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    private val _emailValid = MutableLiveData<Boolean>().apply { value = false }
-    val emailValid: LiveData<Boolean> = _emailValid
+    private val _emailValid = MutableStateFlow(false)
+    val emailValid: StateFlow<Boolean> = _emailValid
 
     var statusMessage = ""
 
-    private val _authenticationState: MutableLiveData<AuthenticationStateEnum> by lazy {
-        MutableLiveData<AuthenticationStateEnum>(AuthenticationStateEnum.UNAUTHENTICATED)
-    }
-    val authenticationState: LiveData<AuthenticationStateEnum> = _authenticationState
+    private val _authenticationState = MutableStateFlow(AuthenticationStateEnum.UNAUTHENTICATED)
+    val authenticationState: StateFlow<AuthenticationStateEnum> = _authenticationState
 
     val toastMessage: ToastMessage = ToastMessage()
 
@@ -74,7 +72,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         statusMessage = authResponse.statusText ?: ""
                         // Fill SharedPreferences with response details
                         if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
-                            _authenticationState.postValue(AuthenticationStateEnum.AUTHENTICATED)
+                            _authenticationState.value = AuthenticationStateEnum.AUTHENTICATED
                             onResult(true)
                             return@authenticate
                         } else {
@@ -89,12 +87,12 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                     }
                 }
                 onResult(false)
-                _authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
+                _authenticationState.value = AuthenticationStateEnum.INVALID_AUTHENTICATION
             } else {
                 response?.let { toastMessage.showMessage(it, "LoginViewModel", MessageType.ERROR) }
                 error?.let { toastMessage.showMessage(it, "LoginViewModel", MessageType.ERROR) }
                 onResult(false)
-                _authenticationState.postValue(AuthenticationStateEnum.INVALID_AUTHENTICATION)
+                _authenticationState.value = AuthenticationStateEnum.INVALID_AUTHENTICATION
             }
         }
     }
@@ -105,7 +103,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     fun disconnectUser(onResult: (success: Boolean) -> Unit) {
         authRepository.logout { isSuccess, response, error ->
             _dataLoading.value = false
-            _authenticationState.postValue(AuthenticationStateEnum.LOGOUT)
+            _authenticationState.value = AuthenticationStateEnum.LOGOUT
             BaseApp.sharedPreferencesHolder.sessionToken = ""
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
@@ -127,10 +125,10 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     }
 
     fun setEmailValidState(isValid: Boolean) {
-        _emailValid.postValue(isValid)
+        _emailValid.value = isValid
     }
 
     fun setAuthenticationState(value: AuthenticationStateEnum) {
-        _authenticationState.postValue(value)
+        _authenticationState.value = value
     }
 }

@@ -11,8 +11,7 @@ import com.qmobile.qmobiledatasync.utils.collectWhenStarted
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import timber.log.Timber
 
-fun DataSync.setupObservable(
-    entityListViewModelList: List<EntityListViewModel<*>>,
+fun DataSync.setupCollect(
     globalStampObserver: suspend (value: GlobalStamp) -> Unit
 ) {
     entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
@@ -21,8 +20,7 @@ fun DataSync.setupObservable(
 }
 
 fun DataSync.successfulSynchronization(
-    maxGlobalStamp: Int,
-    entityListViewModelList: List<EntityListViewModel<*>>
+    maxGlobalStamp: Int
 ) {
     Timber.i("[Synchronization performed, all tables are up-to-date]")
     sharedPreferencesHolder.globalStamp = maxGlobalStamp
@@ -34,9 +32,7 @@ fun DataSync.successfulSynchronization(
     ApiClient.dataSyncFinished()
 }
 
-fun unsuccessfulSynchronization(
-    entityListViewModelList: List<EntityListViewModel<*>>
-) {
+fun DataSync.unsuccessfulSynchronization() {
     Timber.e(
         "[Number of request max limit has been reached. " +
             "Data synchronization is ending with tables not synchronized]"
@@ -48,10 +44,9 @@ fun unsuccessfulSynchronization(
 // Closures are used to change the data sync algorithm behavior in unit test
 fun DataSync.initClosures() {
 
-    // Set mediatorLiveData to observe every table
-    val defaultSetupObservableClosure: (List<EntityListViewModel<*>>, suspend (value: GlobalStamp) -> Unit) -> Unit =
-        { entityListViewModelList, globalStampObserver ->
-            setupObservable(entityListViewModelList, globalStampObserver)
+    val defaultSetupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit =
+        { globalStampObserver ->
+            setupCollect(globalStampObserver)
         }
 
     setupObservableClosure = defaultSetupObservableClosure
@@ -66,17 +61,17 @@ fun DataSync.initClosures() {
     syncClosure = defaultSyncClosure
 
     // Successful end of synchronization
-    val defaultSuccessfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit =
-        { maxGlobalStamp, entityListViewModelList ->
-            successfulSynchronization(maxGlobalStamp, entityListViewModelList)
+    val defaultSuccessfulSyncClosure: (Int) -> Unit =
+        { maxGlobalStamp ->
+            successfulSynchronization(maxGlobalStamp)
         }
 
     successfulSyncClosure = defaultSuccessfulSyncClosure
 
     // Unsuccessful end of synchronization
-    val defaultUnsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit =
-        { entityListViewModelList ->
-            unsuccessfulSynchronization(entityListViewModelList)
+    val defaultUnsuccessfulSyncClosure: () -> Unit =
+        {
+            unsuccessfulSynchronization()
         }
 
     unsuccessfulSyncClosure = defaultUnsuccessfulSyncClosure

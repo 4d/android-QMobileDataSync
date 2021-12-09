@@ -75,10 +75,10 @@ class DataSyncTest {
     private val sourceIntOffice: StateFlow<GlobalStamp> = _sourceIntOffice
 
     // Custom closures
-    private lateinit var setupObservableClosure: (List<EntityListViewModel<*>>, suspend (value: GlobalStamp) -> Unit) -> Unit
+    private lateinit var setupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit
     private lateinit var syncClosure: (EntityListViewModel<*>, Boolean) -> Unit
-    private lateinit var successfulSyncClosure: (Int, List<EntityListViewModel<*>>) -> Unit
-    private lateinit var unsuccessfulSyncClosure: (List<EntityListViewModel<*>>) -> Unit
+    private lateinit var successfulSyncClosure: (Int) -> Unit
+    private lateinit var unsuccessfulSyncClosure: () -> Unit
 
     // Mocks
     @Mock
@@ -124,12 +124,13 @@ class DataSyncTest {
 
         dataSync = DataSync(
             activity,
+            entityListViewModelList,
             sharedPreferencesHolder
         )
 
         mockForDataSync()
 
-        setupObservableClosure = { _, _ ->
+        setupObservableClosure = { _ ->
             observeMergedLiveData()
         }
 
@@ -145,19 +146,19 @@ class DataSyncTest {
             )
         }
 
-        successfulSyncClosure = { _, _ ->
+        successfulSyncClosure = { _ ->
             println("[Synchronization performed, all tables are up-to-date]")
             assertSuccess()
         }
 
-        unsuccessfulSyncClosure = { _ ->
+        unsuccessfulSyncClosure = {
             println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
             fail()
         }
 
         setClosures()
 
-        dataSync.setObserver(entityListViewModelList)
+        dataSync.perform()
     }
 
     @Test
@@ -170,12 +171,13 @@ class DataSyncTest {
 
         dataSync = DataSync(
             activity,
+            entityListViewModelList,
             sharedPreferencesHolder
         )
 
         mockForDataSync()
 
-        setupObservableClosure = { _, _ ->
+        setupObservableClosure = { _ ->
             observeMergedLiveData()
         }
 
@@ -188,19 +190,19 @@ class DataSyncTest {
             syncToInfiniteAndBeyond(entityViewModelIsToSync)
         }
 
-        successfulSyncClosure = { _, _ ->
+        successfulSyncClosure = { _ ->
             println("[Synchronization performed, all tables are up-to-date]")
             fail()
         }
 
-        unsuccessfulSyncClosure = { _ ->
+        unsuccessfulSyncClosure = {
             println("[Number of request max limit has been reached. Data synchronization is ending with tables not synchronized]")
             assertEquals(16, syncIterationMap.values.sum())
         }
 
         setClosures()
 
-        dataSync.setObserver(entityListViewModelList)
+        dataSync.perform()
     }
 
     /*@Test

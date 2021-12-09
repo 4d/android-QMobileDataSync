@@ -7,9 +7,10 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.asFlow
-import androidx.lifecycle.asLiveData
 import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
@@ -31,14 +32,18 @@ import com.qmobile.qmobiledatasync.relation.RelationHelper
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
-import com.qmobile.qmobiledatasync.sync.newGlobalStamp
 import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
 import com.qmobile.qmobiledatasync.utils.getViewModelScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.shareIn
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
@@ -62,21 +67,21 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     val relations = getRelationList()
 
-    open val coroutineScope = getViewModelScope()
+    val coroutineScope = getViewModelScope()
 
     /**
      * LiveData
      */
 
     private val searchChanel = MutableStateFlow<SupportSQLiteQuery?>(null)
-    // We will use a ConflatedBroadcastChannel as this will only broadcast
+    // We will use a StateFlow as this will only broadcast
     // the most recent sent element to all the subscribers
 
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
         searchChanel.value = sqLiteQuery
     }
 
-    val entityListLiveData =
+    val entityListPagedListSharedFlow: SharedFlow<PagedList<T>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest {
@@ -85,11 +90,11 @@ abstract class EntityListViewModel<T : EntityModel>(
                 LivePagedListBuilder(roomRepository.getAllPagedList(it), DEFAULT_ROOM_PAGE_SIZE)
                     .build().asFlow()
             }.catch { throwable ->
-                Timber.e("Error while getting entityListLiveData in EntityListViewModel of [$tableName]")
+                Timber.e("Error while getting entityListPagedListSharedFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
-            }.asLiveData()
+            }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
-    val entityListFlow =
+    val entityListPagingDataFlow: Flow<PagingData<T>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest { query ->
@@ -103,7 +108,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                     )
                 )
             }.catch { throwable ->
-                Timber.e("Error while getting entityListFlow in EntityListViewModel of [$tableName]")
+                Timber.e("Error while getting entityListPagingDataFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
             }
 
@@ -113,17 +118,18 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _dataSynchronized = MutableStateFlow(DataSyncStateEnum.UNSYNCHRONIZED)
     open val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
 
-    private val _globalStamp = MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
+    private val _globalStamp =
+        MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
     open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
 
     private val _scheduleRefresh = MutableStateFlow(ScheduleRefreshEnum.NO)
     val scheduleRefresh: StateFlow<ScheduleRefreshEnum> = _scheduleRefresh
 
-    private val _newRelatedEntity = MutableStateFlow<ManyToOneRelation?>(null)
-    val newRelatedEntity: StateFlow<ManyToOneRelation?> = _newRelatedEntity
+    private val _newRelatedEntity = MutableSharedFlow<ManyToOneRelation>(replay = 1)
+    val newRelatedEntity: SharedFlow<ManyToOneRelation> = _newRelatedEntity
 
-    private val _newRelatedEntities = MutableStateFlow<OneToManyRelation?>(null)
-    val newRelatedEntities: StateFlow<OneToManyRelation?> = _newRelatedEntities
+    private val _newRelatedEntities = MutableSharedFlow<OneToManyRelation>(replay = 1)
+    val newRelatedEntities: SharedFlow<OneToManyRelation> = _newRelatedEntities
 
     open val isToSync = AtomicBoolean(false)
 
@@ -325,8 +331,12 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     private fun emitManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
-        _newRelatedEntity.value =
-            ManyToOneRelation(entity = relatedJson, className = relation.className)
+        _newRelatedEntity.tryEmit(
+            ManyToOneRelation(
+                entity = relatedJson,
+                className = relation.className
+            )
+        )
     }
 
     private fun checkOneToManyRelation(relatedJson: JSONObject) {
@@ -340,9 +350,11 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     private fun emitOneToManyRelation(entities: JSONArray, dataClass: String) {
-        _newRelatedEntities.value = OneToManyRelation(
-            entities = entities,
-            className = dataClass.filter { !it.isWhitespace() }
+        _newRelatedEntities.tryEmit(
+            OneToManyRelation(
+                entities = entities,
+                className = dataClass.filter { !it.isWhitespace() }
+            )
         )
     }
 
@@ -442,4 +454,13 @@ abstract class EntityListViewModel<T : EntityModel>(
         super.onCleared()
         restRepository.disposable.dispose()
     }
+
+    private fun newGlobalStamp(globalStamp: Int): GlobalStamp =
+        GlobalStamp(
+            tableName = this.getAssociatedTableName(),
+            stampValue = globalStamp,
+            dataSyncProcess = this.dataSynchronized.value == DataSyncStateEnum.SYNCHRONIZING ||
+                this.dataSynchronized.value == DataSyncStateEnum.RESYNC,
+            uuid = null
+        )
 }

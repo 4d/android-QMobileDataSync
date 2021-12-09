@@ -12,5 +12,5 @@ data class GlobalStamp(
     val tableName: String,
     val stampValue: Int,
     val dataSyncProcess: Boolean,
-    val uuid: UUID
+    val uuid: UUID?
 )
