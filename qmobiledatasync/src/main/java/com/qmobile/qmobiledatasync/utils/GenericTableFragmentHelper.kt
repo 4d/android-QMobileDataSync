@@ -34,6 +34,12 @@ interface GenericTableFragmentHelper {
      */
     fun layoutType(tableName: String): String
 
+
+    /**
+     * Provides if horizontal swipe on items is allowed
+     */
+    fun isSwipeAllowed(tableName: String): Boolean
+
     /**
      * Sets relations to the appropriate list form
      */
