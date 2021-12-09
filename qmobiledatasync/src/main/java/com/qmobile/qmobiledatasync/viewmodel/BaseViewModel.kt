@@ -7,7 +7,6 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
-import com.qmobile.qmobileapi.model.action.ActionContent
 import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
@@ -57,7 +56,7 @@ abstract class BaseViewModel<T : Any>(
 
     fun sendAction(
         actionName: String,
-        actionContent: ActionContent,
+        actionContent: MutableMap<String, Any>,
         onResult: (actionResponse: ActionResponse?) -> Unit
     ) {
         restRepository.sendAction(
