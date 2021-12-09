@@ -26,12 +26,7 @@ interface GenericNavigationResolver {
         currentItemId: String,
         inverseName: String
     )
-
-    fun navigateToActionForm(
-        viewDataBinding: ViewDataBinding,
-        destinationTable: String
-    )
-
+    
     /**
      * Navigates from list form to another list form (One to Many relation)
      */
@@ -70,5 +65,13 @@ interface GenericNavigationResolver {
         viewDataBinding: ViewDataBinding,
         relationName: String,
         entity: EntityModel
+    )
+
+    /**
+     * Navigates from list form to action form
+     */
+    fun navigateToActionForm(
+        viewDataBinding: ViewDataBinding,
+        destinationTable: String
     )
 }
