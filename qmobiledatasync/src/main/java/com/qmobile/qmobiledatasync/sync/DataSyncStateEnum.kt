@@ -7,5 +7,5 @@
 package com.qmobile.qmobiledatasync.sync
 
 enum class DataSyncStateEnum {
-    SYNCHRONIZED, UNSYNCHRONIZED, SYNCHRONIZING
+    SYNCHRONIZED, UNSYNCHRONIZED, SYNCHRONIZING, RESYNC
 }

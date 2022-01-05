@@ -26,7 +26,7 @@ interface GenericNavigationResolver {
         currentItemId: String,
         inverseName: String
     )
-    
+
     /**
      * Navigates from list form to another list form (One to Many relation)
      */

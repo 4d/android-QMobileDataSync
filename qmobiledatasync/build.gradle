@@ -55,6 +55,8 @@ dependencies {
     testImplementation Libs.androidx_core_testing
     testImplementation Libs.androidx_junit
     testImplementation Libs.junit
+    testImplementation Libs.kotlin_coroutines_test
+    testImplementation Libs.lifecycle_testing
     testImplementation Libs.mockito
     testImplementation Libs.robolectric
 }

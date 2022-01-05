@@ -6,10 +6,10 @@
 
 package com.qmobile.qmobiledatasync.toast
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.qmobile.qmobileapi.utils.HttpCode
 import com.qmobile.qmobileapi.utils.getSafeString
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Response
@@ -19,25 +19,18 @@ import java.net.SocketTimeoutException
 
 class ToastMessage {
 
-    // Mutable/LiveData of String resource reference Event
-    private val _message = MutableLiveData<Event<ToastMessageHolder>>()
-    val message: LiveData<Event<ToastMessageHolder>> = _message
+    private val _message = MutableSharedFlow<Event<ToastMessageHolder>>(replay = 1)
+    val message: SharedFlow<Event<ToastMessageHolder>> = _message
 
-    // Post in background thread
-    fun postMessage(message: String, type: MessageType) {
-        _message.postValue(Event(ToastMessageHolder(message, type)))
-    }
-
-    // Post in main thread
-    private fun setMessage(message: String, type: MessageType) {
-        _message.value = Event(ToastMessageHolder(message, type))
+    fun emitMessage(message: String, type: MessageType) {
+        _message.tryEmit(Event(ToastMessageHolder(message, type)))
     }
 
     fun showMessage(entry: Any?, info: String?, type: MessageType = MessageType.NEUTRAL) {
         Timber.e("Error for $info: $entry")
         when (entry) {
             is String -> {
-                setMessage(entry, type)
+                emitMessage(entry, type)
             }
             is Response<*> -> {
                 handleErrorResponse(entry, info, type)
@@ -70,23 +63,23 @@ class ToastMessage {
         }
 
         if (message.isNotEmpty()) {
-            setMessage(message, MessageType.WARNING)
+            emitMessage(message, MessageType.WARNING)
         } else {
             HttpCode.reason(code)?.let { reason ->
                 message = "$reason ($code)"
             } ?: kotlin.run {
                 message = "${HttpCode.message(code)} ($code)"
             }
-            setMessage(message, type)
+            emitMessage(message, type)
         }
     }
 
     private fun handleErrorThrowable(entry: Throwable, type: MessageType) {
         if (entry is SocketTimeoutException) {
-            setMessage(HttpCode.message(HttpCode.requestTimeout), type)
+            emitMessage(HttpCode.message(HttpCode.requestTimeout), type)
         } else {
             entry.localizedMessage?.let { message ->
-                setMessage(message, type)
+                emitMessage(message, type)
             }
         }
     }

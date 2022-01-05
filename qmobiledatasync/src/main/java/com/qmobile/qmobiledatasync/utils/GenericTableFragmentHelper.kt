@@ -34,7 +34,6 @@ interface GenericTableFragmentHelper {
      */
     fun layoutType(tableName: String): String
 
-
     /**
      * Provides if horizontal swipe on items is allowed
      */
