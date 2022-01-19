@@ -21,6 +21,12 @@ interface GenericRelationHelper {
      */
     fun getRelatedTableName(sourceTableName: String, relationName: String): String
 
+
+    /**
+     * Retrieves the table name of inverse relation
+     */
+    fun getParentRelationName(sourceTableName: String, relationName: String): String
+
     /**
      * Provides the many to one relation map extracted from an entity
      */
@@ -43,6 +49,7 @@ interface GenericRelationHelper {
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
 
+
     /**
      * Provides the list of One to Many relations for given tableName
      */
@@ -52,4 +59,5 @@ interface GenericRelationHelper {
      * Provides the list of Many to One relations for given tableName
      */
     fun getManyToOneRelationNames(tableName: String): List<String>
+
 }
