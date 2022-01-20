@@ -22,7 +22,7 @@ interface GenericRelationHelper {
     fun getRelatedTableName(sourceTableName: String, relationName: String): String
 
     /**
-     * Retrieves the table name of inverse relation
+     * Retrieves the inverse relation name
      */
     fun getParentRelationName(sourceTableName: String, relationName: String): String
 
