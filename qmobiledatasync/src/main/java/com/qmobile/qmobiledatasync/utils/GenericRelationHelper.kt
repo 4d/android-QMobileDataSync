@@ -24,7 +24,7 @@ interface GenericRelationHelper {
     /**
      * Retrieves the inverse relation name
      */
-    fun getParentRelationName(sourceTableName: String, relationName: String): String
+    fun getInverseRelationName(sourceTableName: String, relationName: String): String
 
     /**
      * Provides the many to one relation map extracted from an entity
