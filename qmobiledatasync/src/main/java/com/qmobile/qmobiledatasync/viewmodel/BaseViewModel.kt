@@ -108,11 +108,13 @@ abstract class BaseViewModel<T : Any>(
             { parameterName, response ->
                 if (response.isSuccessful) {
                     val body = response.body()?.string()
-                    retrieveResponseObject<UploadImageResponse>(
-                        BaseApp.mapper,
-                        body!!
-                    )?.let {
-                        onImageUploaded(parameterName, it.id)
+                    body?.let {
+                        retrieveResponseObject<UploadImageResponse>(
+                            BaseApp.mapper,
+                            it
+                        )?.let {
+                            onImageUploaded(parameterName, it.id)
+                        }
                     }
                 }
             }
