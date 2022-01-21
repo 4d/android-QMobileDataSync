@@ -7,8 +7,8 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobileapi.model.queries.Query
 import com.qmobile.qmobileapi.utils.GLOBALSTAMP_PROPERTY
+import com.qmobile.qmobileapi.utils.Query
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject

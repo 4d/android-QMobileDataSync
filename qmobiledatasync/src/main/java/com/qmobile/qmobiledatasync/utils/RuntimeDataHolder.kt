@@ -7,10 +7,11 @@
 package com.qmobile.qmobiledatasync.utils
 
 import android.app.Application
-import com.qmobile.qmobileapi.model.queries.Query
+import com.qmobile.qmobileapi.utils.Query
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeBoolean
 import com.qmobile.qmobileapi.utils.getSafeInt
+import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobileapi.utils.listAssetFiles
@@ -34,7 +35,7 @@ open class RuntimeDataHolder(
     var tableProperties: Map<String, String>,
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
-    var listActions: JSONObject,
+    var tableActions: JSONObject,
     var currentRecordActions: JSONObject,
     var manyToOneRelations: Map<String, List<String>>,
     var oneToManyRelations: Map<String, List<String>>
@@ -78,10 +79,8 @@ open class RuntimeDataHolder(
                 JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
             val searchableFieldsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
-            val listActionsJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "actions_list.json"))
-            val detailsActionsJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "actions_details.json"))
+            val actionsJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "actions.json"))
             val queryJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "queries.json"))
 
@@ -97,7 +96,7 @@ open class RuntimeDataHolder(
                 dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList()
                     .joinToString(),
                 relationAvailable = appInfoJsonObj.getSafeBoolean("relations") ?: true,
-                queries = Query.buildQueries(BaseApp.mapper, queryJsonObj),
+                queries = buildQueries(queryJsonObj),
                 tableProperties = buildTableProperties(application),
                 customFormatters = FieldMapping.buildCustomFormatterBinding(customFormattersJsonObj),
                 embeddedFiles = listAssetFiles(
@@ -105,8 +104,8 @@ open class RuntimeDataHolder(
                     EMBEDDED_PICTURES_PARENT +
                         File.separator + EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
-                listActions = listActionsJsonObj,
-                currentRecordActions = detailsActionsJsonObj,
+                tableActions = actionsJsonObj.getSafeObject("table") ?: JSONObject(),
+                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord") ?: JSONObject(),
                 manyToOneRelations = buildRelationsMap(RelationTypeEnum.MANY_TO_ONE),
                 oneToManyRelations = buildRelationsMap(RelationTypeEnum.ONE_TO_MANY)
             )
@@ -130,6 +129,16 @@ open class RuntimeDataHolder(
                     BaseApp.genericRelationHelper.getOneToManyRelationNames(tableName)
             }
             return relationMap
+        }
+
+        private fun buildQueries(queryJsonObj: JSONObject): Map<String, String> {
+            val map = mutableMapOf<String, String>()
+            queryJsonObj.keys().forEach { tableName ->
+                queryJsonObj.getSafeString(tableName)?.let { query ->
+                    map["${Query.QUERY_PREFIX}_$tableName"] = query
+                }
+            }
+            return map
         }
     }
 
