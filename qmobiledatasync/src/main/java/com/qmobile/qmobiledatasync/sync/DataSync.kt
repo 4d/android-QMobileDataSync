@@ -15,7 +15,7 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-@SuppressLint("BinaryOperationInTimber")
+// @SuppressLint("BinaryOperationInTimber")
 class DataSync(
     val lifecycleOwner: LifecycleOwner,
     val entityListViewModelList: List<EntityListViewModel<*>>,
