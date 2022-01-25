@@ -99,7 +99,7 @@ abstract class BaseViewModel<T : Any>(
     }
 
     fun uploadImage(
-        imagesToUpload: List<Pair<String, RequestBody?>>,
+        imagesToUpload: Map<String, RequestBody?>,
         onImageUploaded: (parameterName: String, receivedId: String) -> Unit,
         onAllUploadFinished: () -> Unit
     ) {
@@ -112,8 +112,8 @@ abstract class BaseViewModel<T : Any>(
                         retrieveResponseObject<UploadImageResponse>(
                             BaseApp.mapper,
                             it
-                        )?.let {
-                            onImageUploaded(parameterName, it.id)
+                        )?.let {response->
+                            onImageUploaded(parameterName, response.id)
                         }
                     }
                 }
