@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.sync
 
-import android.annotation.SuppressLint
 import androidx.lifecycle.LifecycleOwner
 import com.qmobile.qmobileapi.utils.LoginRequiredCallback
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
@@ -15,7 +14,6 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-@SuppressLint("BinaryOperationInTimber")
 class DataSync(
     val lifecycleOwner: LifecycleOwner,
     val entityListViewModelList: List<EntityListViewModel<*>>,
@@ -30,7 +28,7 @@ class DataSync(
     private var nbToReceive = 0
     var maxGlobalStamp = 0
     private var numberOfRequestMaxLimit = 0
-    lateinit var received: AtomicInteger
+    private lateinit var received: AtomicInteger
     private lateinit var requestPerformed: AtomicInteger
     private lateinit var receivedSyncedTableGS: MutableList<GlobalStamp>
     val loginRequired = AtomicBoolean(false)
