@@ -10,7 +10,6 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.qmobile.qmobileapi.model.entity.EntityModel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 /**

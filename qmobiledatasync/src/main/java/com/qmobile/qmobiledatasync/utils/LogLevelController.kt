@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import timber.log.Timber
+import java.util.Locale
 
 object LogLevelController {
     /**
@@ -28,7 +29,8 @@ object LogLevelController {
 
         override fun createStackElementTag(element: StackTraceElement): String {
             return String.format(
-                "Class:%s: Line: %s, Method: %s",
+                locale = Locale.getDefault(),
+                format = "Class:%s: Line: %s, Method: %s",
                 super.createStackElementTag(element),
                 element.lineNumber,
                 element.methodName
