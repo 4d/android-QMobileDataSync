@@ -72,6 +72,10 @@ interface GenericNavigationResolver {
      */
     fun navigateToActionForm(
         viewDataBinding: ViewDataBinding,
-        destinationTable: String
+        destinationTable: String,
+        navBarTitle: String,
+        inverseName: String,
+        parentItemId: String,
+        fromRelation: Boolean
     )
 }
