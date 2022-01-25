@@ -7,7 +7,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import timber.log.Timber
-import java.util.*
+import java.util.Locale
 
 object LogLevelController {
     /**
