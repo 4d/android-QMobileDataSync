@@ -10,12 +10,15 @@ import androidx.lifecycle.AndroidViewModel
 import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
+import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
+import okhttp3.RequestBody
 
 /**
  * If you need to use context inside your viewmodel you should use AndroidViewModel, because it
@@ -93,6 +96,37 @@ abstract class BaseViewModel<T : Any>(
                     toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
                 }
             }
+        }
+    }
+
+    fun uploadImage(
+        imagesToUpload: Map<String, RequestBody?>,
+        onImageUploaded: (parameterName: String, receivedId: String) -> Unit,
+        onAllUploadFinished: () -> Unit
+    ) {
+        restRepository.uploadImage(
+            imagesToUpload,
+            { isSuccess, parameterName, response, error ->
+                if (isSuccess) {
+                    response?.body()?.let { responseBody ->
+
+                        retrieveJSONObject(responseBody.string())?.let { responseJson ->
+                            responseJson.getSafeString("ID")?.let { id ->
+                                onImageUploaded(parameterName, id)
+                            }
+                        }
+                    }
+                } else {
+                    response?.let {
+                        toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                    }
+                    error?.let {
+                        toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                    }
+                }
+            }
+        ) {
+            onAllUploadFinished()
         }
     }
 }
