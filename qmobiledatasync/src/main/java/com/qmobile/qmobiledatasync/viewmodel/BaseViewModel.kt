@@ -112,7 +112,7 @@ abstract class BaseViewModel<T : Any>(
                         retrieveResponseObject<UploadImageResponse>(
                             BaseApp.mapper,
                             it
-                        )?.let {response->
+                        )?.let { response ->
                             onImageUploaded(parameterName, response.id)
                         }
                     }
