@@ -21,7 +21,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 
     var gs = globalStamp.value.stampValue
 
-    val isDumpedTable = BaseApp.runtimeDataHolder.dumpedTables.split(", ").contains(getAssociatedTableName())
+    val isDumpedTable = BaseApp.runtimeDataHolder.dumpedTables.contains(getAssociatedTableName())
 
     if (isDumpedTable)
         gs = max(gs, BaseApp.runtimeDataHolder.initialGlobalStamp)
