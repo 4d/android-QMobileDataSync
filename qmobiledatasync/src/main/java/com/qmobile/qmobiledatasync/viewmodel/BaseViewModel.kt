@@ -8,13 +8,13 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
 import com.qmobile.qmobileapi.model.action.ActionResponse
+import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
-import com.qmobile.qmobileapi.utils.getSafeString
-import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.utils.DELETED_RECORDS
 import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
+import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
