@@ -36,7 +36,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
             predicate.dropLast(1) + " AND ($query)\""
         }
     }
-    return if (predicate.isEmpty()) null else predicate
+    return predicate.ifEmpty { null }
 }
 
 fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject {
