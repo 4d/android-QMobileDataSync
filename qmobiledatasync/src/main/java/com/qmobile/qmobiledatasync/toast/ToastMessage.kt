@@ -27,7 +27,7 @@ class ToastMessage {
     }
 
     fun showMessage(entry: Any?, info: String?, type: MessageType = MessageType.NEUTRAL) {
-        Timber.e("Error for $info: $entry")
+        Timber.d("Error for $info: $entry")
         when (entry) {
             is String -> {
                 emitMessage(entry, type)
