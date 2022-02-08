@@ -23,7 +23,7 @@ interface GenericNavigationResolver {
         key: String,
         query: String,
         destinationTable: String,
-        currentItemId: String,
+        parentItemId: String,
         inverseName: String
     )
 
@@ -33,7 +33,7 @@ interface GenericNavigationResolver {
     fun setupOneToManyRelationButtonOnClickActionForCell(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        parentItemId: String,
+        itemId: String,
         entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
         anyRelatedEntity: RoomData? = null
     )
@@ -53,7 +53,7 @@ interface GenericNavigationResolver {
     fun setupOneToManyRelationButtonOnClickActionForDetail(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        parentItemId: String,
+        itemId: String,
         entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
         anyRelatedEntity: RoomData? = null
     )
@@ -68,14 +68,15 @@ interface GenericNavigationResolver {
     )
 
     /**
-     * Navigates from list form to action form
+     * Navigates from list or detail form to action form
      */
     fun navigateToActionForm(
         viewDataBinding: ViewDataBinding,
+        tableName: String,
+        itemId: String,
         destinationTable: String,
-        navBarTitle: String,
-        inverseName: String,
         parentItemId: String,
-        fromRelation: Boolean
+        inverseName: String,
+        navbarTitle: String
     )
 }
