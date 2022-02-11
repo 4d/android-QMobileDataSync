@@ -25,6 +25,7 @@ import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
 import com.qmobile.qmobiledatasync.relation.OneToManyRelation
 import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
+import com.qmobile.qmobiledatasync.relation.RelationHelper.getRelations
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
@@ -59,8 +60,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         private const val DEFAULT_ROOM_PAGE_SIZE = 60
         private const val DEFAULT_REST_PAGE_SIZE = 50
     }
-
-    val relations = RelationHelper.getRelationList<T>(tableName)
 
     val coroutineScope = getViewModelScope()
 
@@ -263,10 +262,10 @@ abstract class EntityListViewModel<T : EntityModel>(
      * to be added in the appropriate Room dao
      */
     fun checkRelations(entityJsonString: String) {
-        relations.forEach { relation ->
-            RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
+        getRelations(getAssociatedTableName()).forEach { relation ->
+            RelationHelper.getRelatedEntity(entityJsonString, relation.name)
                 ?.let { relatedJson ->
-                    if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
+                    if (relation.type == RelationTypeEnum.MANY_TO_ONE) {
                         emitManyToOneRelation(relation, relatedJson)
                     } else { // relationType == ONE_TO_MANY
                         checkOneToManyRelation(relatedJson)
@@ -279,7 +278,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         _newRelatedEntity.tryEmit(
             ManyToOneRelation(
                 entity = relatedJson,
-                className = relation.className
+                className = relation.dest
             )
         )
     }

@@ -11,6 +11,7 @@ import com.qmobile.qmobileapi.utils.GLOBALSTAMP_PROPERTY
 import com.qmobile.qmobileapi.utils.Query
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
+import com.qmobile.qmobiledatasync.relation.RelationHelper.getRelations
 import org.json.JSONObject
 import kotlin.math.max
 
@@ -53,8 +54,8 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
         // Adding relations
         if (BaseApp.runtimeDataHolder.relationAvailable) {
-            relations.forEach { relation ->
-                put(relation.relationName, buildRelationQueryAndProperties(relation))
+            getRelations(getAssociatedTableName()).forEach { relation ->
+                put(relation.name, buildRelationQueryAndProperties(relation))
             }
         }
     }
@@ -62,13 +63,13 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
 private fun buildRelationQueryAndProperties(relation: Relation): JSONObject {
     return JSONObject().apply {
-        val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(relation.className).split(", ")
+        val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(relation.dest).split(", ")
         relationProperties.filter { it.isNotEmpty() }.forEach { relationProperty ->
             if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
                 put(relationProperty.removeSuffix(Relation.SUFFIX), true)
             }
         }
-        val query: String = BaseApp.runtimeDataHolder.getQuery(relation.className)
+        val query: String = BaseApp.runtimeDataHolder.getQuery(relation.dest)
         if (query.isNotEmpty()) {
             if (BaseApp.sharedPreferencesHolder.userInfo.isEmpty()) {
                 // XXX could dev assert here if query contains parameters but no userInfo

@@ -28,9 +28,9 @@ interface GenericNavigationResolver {
     )
 
     /**
-     * Navigates from list form to another list form (One to Many relation)
+     * Navigates from list or detail form to a relation list form (One to Many relation)
      */
-    fun setupOneToManyRelationButtonOnClickActionForCell(
+    fun setupOneToManyRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
         itemId: String,
@@ -39,29 +39,9 @@ interface GenericNavigationResolver {
     )
 
     /**
-     * Navigates from list form to a detail form (Many to One relation)
+     * Navigates from list or detail form to a relation detail form (Many to One relation)
      */
-    fun setupManyToOneRelationButtonOnClickActionForCell(
-        viewDataBinding: ViewDataBinding,
-        relationName: String,
-        entity: EntityModel
-    )
-
-    /**
-     * Navigates from detail form to a list form (One to Many relation)
-     */
-    fun setupOneToManyRelationButtonOnClickActionForDetail(
-        viewDataBinding: ViewDataBinding,
-        relationName: String,
-        itemId: String,
-        entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
-        anyRelatedEntity: RoomData? = null
-    )
-
-    /**
-     * Navigates from detail form to another detail form (Many to One relation)
-     */
-    fun setupManyToOneRelationButtonOnClickActionForDetail(
+    fun setupManyToOneRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
         entity: EntityModel

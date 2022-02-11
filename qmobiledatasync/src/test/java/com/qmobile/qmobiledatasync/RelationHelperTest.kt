@@ -12,6 +12,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.relation.RelationHelper
+import com.qmobile.qmobiledatasync.utils.ReflectionUtils
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -60,7 +61,7 @@ class RelationHelperTest {
 
         properties.toList().forEach { property ->
 
-            val manyToOneRelation = RelationHelper.isManyToOneRelation(
+            val manyToOneRelation = ReflectionUtils.getManyToOneRelation(
                 property,
                 application,
                 tableNames
@@ -94,7 +95,7 @@ class RelationHelperTest {
 
         properties.toList().forEach { property ->
 
-            val oneToManyRelation = RelationHelper.isOneToManyRelation(
+            val oneToManyRelation = ReflectionUtils.getOneToManyRelation(
                 property,
                 application,
                 tableNames
@@ -113,27 +114,27 @@ class RelationHelperTest {
         // Many to One relation
         var jsonObject = RelationHelper.getRelatedEntity(
             entityJsonString = employeeEntitiesString,
-            relationName = "service"
+            name = "service"
         )
         Assert.assertNotNull(jsonObject)
 
         val subJsonObject = RelationHelper.getRelatedEntity(
             entityJsonString = jsonObject.toString(),
-            relationName = "employees"
+            name = "employees"
         )
         Assert.assertNotNull(subJsonObject)
 
         // One to Many relation
         jsonObject = RelationHelper.getRelatedEntity(
             entityJsonString = employeeEntitiesString,
-            relationName = "serviceManaged"
+            name = "serviceManaged"
         )
         Assert.assertNotNull(jsonObject)
 
         // Unknown relationName
         jsonObject = RelationHelper.getRelatedEntity(
             entityJsonString = employeeEntitiesString,
-            relationName = "xxx"
+            name = "xxx"
         )
         Assert.assertNull(jsonObject)
     }

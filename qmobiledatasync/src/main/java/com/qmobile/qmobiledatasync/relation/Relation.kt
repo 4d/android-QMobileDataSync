@@ -7,11 +7,12 @@
 package com.qmobile.qmobiledatasync.relation
 
 data class Relation(
-    val relationName: String,
-    val className: String,
-    val relationType: RelationTypeEnum
+    val source: String,
+    val dest: String,
+    val name: String,
+    val inverse: String,
+    val type: RelationTypeEnum
 ) {
-
     companion object {
         const val SUFFIX = ".*"
     }

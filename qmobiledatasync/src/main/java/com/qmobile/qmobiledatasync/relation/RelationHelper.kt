@@ -6,180 +6,97 @@
 
 package com.qmobile.qmobiledatasync.relation
 
-import android.app.Application
+import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LiveData
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.utils.getSafeObject
-import com.qmobile.qmobiledatastore.dao.RelationBaseDao
+import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.app.BaseApp
 import org.json.JSONObject
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.findAnnotation
 
 object RelationHelper {
 
     /**
      * Retrieve the related type from its relation name. This method uses reflection
      */
-    fun getRelatedEntity(entityJsonString: String, relationName: String): JSONObject? {
-        val relationJsonObject = JSONObject(entityJsonString)
-        return relationJsonObject.getSafeObject(relationName)
-    }
+    fun getRelatedEntity(entityJsonString: String, name: String): JSONObject? =
+        JSONObject(entityJsonString).getSafeObject(name)
+
+    fun getRelations(source: String): List<Relation> =
+        BaseApp.runtimeDataHolder.relations.filter { it.source == source }
+
+    fun getManyToOneRelations(source: String): List<Relation> =
+        BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == RelationTypeEnum.MANY_TO_ONE }
+
+    fun getOneToManyRelations(source: String): List<Relation> =
+        BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == RelationTypeEnum.ONE_TO_MANY }
+
+    fun getDest(source: String, name: String): String? =
+        BaseApp.runtimeDataHolder.relations.firstOrNull { it.source == source && it.name == name }?.dest
+
+    fun getInverse(source: String, name: String): String? =
+        BaseApp.runtimeDataHolder.relations.firstOrNull { it.source == source && it.name == name }?.inverse
 
     /**
-     * Checks if the given type is among tableNames list and therefore is a many-to-one relation.
-     * If it is a many-to-one relation, it returns the related Class name
+     * Provides the relation map extracted from an entity
      */
-    fun <T : EntityModel> isManyToOneRelation(
-        property: KProperty1<T, *>,
-        application: Application,
-        tableNames: List<String>
-    ): String? {
-        val type = property.toString().split(":")[1].removeSuffix("?")
-        if (type.contains(application.packageName)) {
-            val customType =
-                type.replace(" ${application.packageName}.data.model.entity.", "")
-            if (customType in tableNames) {
-                return customType
+    fun getRelationsLiveData(source: String, entity: EntityModel): Map<Relation, LiveData<RoomRelation>> {
+        val map = mutableMapOf<Relation, LiveData<RoomRelation>>()
+
+        entity.__KEY?.let { key ->
+            getOneToManyRelations(source).forEach { relation ->
+                val relationDao = BaseApp.daoProvider.getRelationDao(relation.dest, source, relation.inverse)
+                map[relation] = relationDao.getRelation(key)
             }
         }
-        return null
+        getManyToOneRelations(source).forEach { relation ->
+            BaseApp.genericRelationHelper.getRelationId(source, relation.name, entity)?.let { relationId ->
+                val relationDao = BaseApp.daoProvider.getRelationDao(source, relation.dest, relation.name)
+                map[relation] = relationDao.getRelation(relationId)
+            }
+        }
+        return map
     }
 
-    /**
-     * Checks if the given type is Entities and therefore is a one-to-many relation.
-     * If it is a one-to-many relation, it returns the related Class name
-     */
-    fun <T : EntityModel> isOneToManyRelation(
-        property: KProperty1<T, *>,
-        application: Application,
-        tableNames: List<String>
-    ): String? {
-        val type = property.toString().split(":")[1].removeSuffix("?")
-        val entitiesPrefix = " ${Entities::class.java.canonicalName}"
-        if (type.contains(entitiesPrefix)) {
-
-            val canonicalType = type.removePrefix(entitiesPrefix).filter { it !in "<>?" }
-            if (canonicalType.contains(application.packageName)) {
-                val customType =
-                    canonicalType.replace(
-                        "${application.packageName}.data.model.entity.",
-                        ""
+    fun refreshOneToManyNavForNavbarTitle(
+        source: String,
+        binding: ViewDataBinding,
+        entity: EntityModel,
+        anyRelatedEntity: RoomData
+    ) {
+        entity.__KEY?.let { itemId ->
+            getOneToManyRelations(source).forEach { relation ->
+                if (relation.name.contains(".")) {
+                    BaseApp.genericNavigationResolver.setupOneToManyRelationButtonOnClickAction(
+                        viewDataBinding = binding,
+                        relationName = relation.name,
+                        itemId = itemId,
+                        entity = entity,
+                        anyRelatedEntity = anyRelatedEntity
                     )
-                if (customType in tableNames) {
-                    return customType
                 }
             }
         }
-        return null
     }
 
-    fun addRelation(
-        relationName: String,
-        relationId: String,
-        sourceTableName: String,
-        inverseName: String = "",
-        relationType: RelationTypeEnum
-    ): LiveData<RoomRelation> {
-        val relatedTableName =
-            BaseApp.genericRelationHelper.getRelatedTableName(sourceTableName, relationName)
-        val relationDao: RelationBaseDao<RoomRelation> =
-            if (relationType == RelationTypeEnum.MANY_TO_ONE)
-                BaseApp.daoProvider.getRelationDao(sourceTableName, relatedTableName, relationName)
-            else
-                BaseApp.daoProvider.getRelationDao(relatedTableName, sourceTableName, inverseName)
-        return relationDao.getRelation(relationId)
-    }
-
-    /**
-     * Returns list of table properties as a String, separated by commas, without EntityModel
-     * inherited properties
-     */
-    fun <T : EntityModel> getPropertyListString(
-        tableName: String,
-        application: Application
-    ): String {
-
-        val entityModelProperties = EntityModel::class.declaredMemberProperties.map { it.name }
-        val tableNames = BaseApp.genericTableHelper.tableNames()
-
-        val reflectedProperties = BaseApp.genericTableHelper.getReflectedProperties<T>(tableName)
-
-        val propertyList = reflectedProperties.first.toList()
-        val constructorParameters = reflectedProperties.second
-
-        val names = mutableListOf<String>()
-        propertyList.forEach eachProperty@{ property ->
-
-            val propertyName: String = property.name
-
-            val serializedName: String? = constructorParameters?.find { it.name == propertyName }
-                ?.findAnnotation<JsonProperty>()?.value
-
-            var name: String = serializedName ?: propertyName
-
-            if (isManyToOneRelation(property, application, tableNames) != null ||
-                isOneToManyRelation(property, application, tableNames) != null
-            ) {
-                name += Relation.SUFFIX
-            }
-            names.add(name)
-        }
-
-        val difference = names.toSet().minus(entityModelProperties.toSet())
-        return difference.toString().filter { it !in "[]" }
-    }
-
-    /**
-     * Returns the list of relations of the given table
-     */
-    fun <T : EntityModel> getRelationList(tableName: String): MutableList<Relation> {
-
-        val relations = mutableListOf<Relation>()
-
-        val reflectedProperties =
-            BaseApp.genericTableHelper.getReflectedProperties<T>(tableName)
-
-        val propertyList = reflectedProperties.first.toList()
-        val constructorParameters = reflectedProperties.second
-
-        propertyList.forEach eachProperty@{ property ->
-
-            val propertyName: String = property.name
-
-            val serializedName: String? = constructorParameters?.find { it.name == propertyName }
-                ?.findAnnotation<JsonProperty>()?.value
-
-            val name: String = serializedName ?: propertyName
-
-            val manyToOneRelation =
-                isManyToOneRelation(property, BaseApp.instance, BaseApp.genericTableHelper.tableNames())
-            if (manyToOneRelation != null) {
-                relations.add(
-                    Relation(
-                        relationName = name,
-                        className = manyToOneRelation,
-                        relationType = RelationTypeEnum.MANY_TO_ONE
-                    )
+    fun setupRelationNavigation(source: String, binding: ViewDataBinding, entity: EntityModel) {
+        entity.__KEY?.let { itemId ->
+            getOneToManyRelations(source).forEach { relation ->
+                BaseApp.genericNavigationResolver.setupOneToManyRelationButtonOnClickAction(
+                    viewDataBinding = binding,
+                    relationName = relation.name,
+                    itemId = itemId,
+                    entity = entity
                 )
-                return@eachProperty
             }
-            val oneToManyRelation =
-                isOneToManyRelation(property, BaseApp.instance, BaseApp.genericTableHelper.tableNames())
-            if (oneToManyRelation != null) {
-                relations.add(
-                    Relation(
-                        relationName = name,
-                        className = oneToManyRelation,
-                        relationType = RelationTypeEnum.ONE_TO_MANY
-                    )
+            getManyToOneRelations(source).forEach { relation ->
+                BaseApp.genericNavigationResolver.setupManyToOneRelationButtonOnClickAction(
+                    viewDataBinding = binding,
+                    relationName = relation.name,
+                    entity = entity
                 )
             }
         }
-        return relations
     }
 }
