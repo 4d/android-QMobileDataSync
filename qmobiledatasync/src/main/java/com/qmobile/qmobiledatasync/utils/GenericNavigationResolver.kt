@@ -78,4 +78,6 @@ interface GenericNavigationResolver {
         parentItemId: String,
         fromRelation: Boolean
     )
+
+    fun navigateToBarCodeScanner(viewDataBinding: ViewDataBinding, position: Int)
 }
