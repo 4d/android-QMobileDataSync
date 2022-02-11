@@ -12,12 +12,8 @@ import androidx.paging.PagedList
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
-import com.qmobile.qmobileapi.repository.RestRepository
-import com.qmobile.qmobileapi.utils.DELETED_RECORDS
 import com.qmobile.qmobileapi.utils.UTF8
 import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
@@ -49,7 +45,6 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.net.URLEncoder
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.reflect.full.findAnnotation
 
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
@@ -65,7 +60,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         private const val DEFAULT_REST_PAGE_SIZE = 50
     }
 
-    val relations = getRelationList()
+    val relations = RelationHelper.getRelationList<T>(tableName)
 
     val coroutineScope = getViewModelScope()
 
@@ -240,56 +235,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         }
     }
 
-    fun getDeletedRecords(
-        onResult: (entitiesList: List<String>) -> Unit
-    ) {
-        getDeletedRecords(restRepository) { responseJson ->
-            decodeDeletedRecords(responseJson.getSafeArray("__ENTITIES")) { entitiesList ->
-                onResult(entitiesList)
-            }
-        }
-    }
-
-    private fun getDeletedRecords(
-        restRepository: RestRepository,
-        onResult: (responseJson: JSONObject) -> Unit
-    ) {
-        val predicate =
-            DeletedRecord.buildStampPredicate(BaseApp.sharedPreferencesHolder.deletedRecordsStamp)
-        Timber.d("Performing data request, with predicate $predicate")
-
-        restRepository.getEntities(
-            tableName = DELETED_RECORDS,
-            filter = predicate
-        ) { isSuccess, response, error ->
-            if (isSuccess) {
-                response?.body()?.let { responseBody ->
-
-                    retrieveJSONObject(responseBody.string())?.let { responseJson ->
-
-                        BaseApp.sharedPreferencesHolder.deletedRecordsStamp =
-                            BaseApp.sharedPreferencesHolder.globalStamp
-
-                        onResult(responseJson)
-                    }
-                }
-            } else {
-                response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
-                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
-            }
-        }
-    }
-
-    private fun decodeDeletedRecords(
-        entitiesJsonArray: JSONArray?,
-        onResult: (entitiesList: List<String>) -> Unit
-    ) {
-        val entitiesList: List<String>? = entitiesJsonArray?.getObjectListAsString()
-        entitiesList?.let {
-            onResult(entitiesList)
-        }
-    }
-
     /**
      * Decodes the list of entities retrieved
      */
@@ -382,62 +327,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         }
     }
 
-    /**
-     * Returns the list of relations of the given table
-     */
-    private fun getRelationList(): MutableList<Relation> {
-
-        val relations = mutableListOf<Relation>()
-
-        val reflectedProperties =
-            BaseApp.genericTableHelper.getReflectedProperties<T>(getAssociatedTableName())
-
-        val propertyList = reflectedProperties.first.toList()
-        val constructorParameters = reflectedProperties.second
-
-        propertyList.forEach eachProperty@{ property ->
-
-            val propertyName: String = property.name
-
-            val serializedName: String? = constructorParameters?.find { it.name == propertyName }
-                ?.findAnnotation<JsonProperty>()?.value
-
-            val name: String = serializedName ?: propertyName
-
-            val manyToOneRelation = RelationHelper.isManyToOneRelation(
-                property,
-                BaseApp.instance,
-                BaseApp.genericTableHelper.tableNames()
-            )
-            if (manyToOneRelation != null) {
-                relations.add(
-                    Relation(
-                        relationName = name,
-                        className = manyToOneRelation,
-                        relationType = RelationTypeEnum.MANY_TO_ONE
-                    )
-                )
-                return@eachProperty
-            }
-            val oneToManyRelation =
-                RelationHelper.isOneToManyRelation(
-                    property,
-                    BaseApp.instance,
-                    BaseApp.genericTableHelper.tableNames()
-                )
-            if (oneToManyRelation != null) {
-                relations.add(
-                    Relation(
-                        relationName = name,
-                        className = oneToManyRelation,
-                        relationType = RelationTypeEnum.ONE_TO_MANY
-                    )
-                )
-            }
-        }
-        return relations
-    }
-
     fun setDataSyncState(state: DataSyncStateEnum) {
         _dataSynchronized.value = state
     }
@@ -448,11 +337,6 @@ abstract class EntityListViewModel<T : EntityModel>(
 
     fun setScheduleRefreshState(scheduleRefresh: ScheduleRefreshEnum) {
         _scheduleRefresh.value = scheduleRefresh
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        restRepository.disposable.dispose()
     }
 
     private fun newGlobalStamp(globalStamp: Int): GlobalStamp =

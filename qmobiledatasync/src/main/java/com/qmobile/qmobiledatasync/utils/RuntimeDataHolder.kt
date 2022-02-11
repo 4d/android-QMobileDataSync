@@ -28,7 +28,7 @@ open class RuntimeDataHolder(
     var searchField: JSONObject,
     var sdkVersion: String,
     var logLevel: Int,
-    var dumpedTables: String,
+    var dumpedTables: List<String>,
     var relationAvailable: Boolean = true,
     var queries: Map<String, String>,
     var tableProperties: Map<String, String>,
@@ -94,8 +94,7 @@ open class RuntimeDataHolder(
                 searchField = searchableFieldsJsonObj,
                 sdkVersion = sdkVersion,
                 logLevel = appInfoJsonObj.getSafeInt("logLevel") ?: DEFAULT_LOG_LEVEL,
-                dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList()
-                    .joinToString(),
+                dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList(),
                 relationAvailable = appInfoJsonObj.getSafeBoolean("relations") ?: true,
                 queries = Query.buildQueries(BaseApp.mapper, queryJsonObj),
                 tableProperties = buildTableProperties(application),

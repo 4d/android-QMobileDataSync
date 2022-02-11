@@ -133,4 +133,54 @@ object RelationHelper {
         val difference = names.toSet().minus(entityModelProperties.toSet())
         return difference.toString().filter { it !in "[]" }
     }
+
+    /**
+     * Returns the list of relations of the given table
+     */
+    fun <T : EntityModel> getRelationList(tableName: String): MutableList<Relation> {
+
+        val relations = mutableListOf<Relation>()
+
+        val reflectedProperties =
+            BaseApp.genericTableHelper.getReflectedProperties<T>(tableName)
+
+        val propertyList = reflectedProperties.first.toList()
+        val constructorParameters = reflectedProperties.second
+
+        propertyList.forEach eachProperty@{ property ->
+
+            val propertyName: String = property.name
+
+            val serializedName: String? = constructorParameters?.find { it.name == propertyName }
+                ?.findAnnotation<JsonProperty>()?.value
+
+            val name: String = serializedName ?: propertyName
+
+            val manyToOneRelation =
+                isManyToOneRelation(property, BaseApp.instance, BaseApp.genericTableHelper.tableNames())
+            if (manyToOneRelation != null) {
+                relations.add(
+                    Relation(
+                        relationName = name,
+                        className = manyToOneRelation,
+                        relationType = RelationTypeEnum.MANY_TO_ONE
+                    )
+                )
+                return@eachProperty
+            }
+            val oneToManyRelation =
+                isOneToManyRelation(property, BaseApp.instance, BaseApp.genericTableHelper.tableNames())
+            if (oneToManyRelation != null) {
+                relations.add(
+                    Relation(
+                        relationName = name,
+                        className = oneToManyRelation,
+                        relationType = RelationTypeEnum.ONE_TO_MANY
+                    )
+                )
+            }
+        }
+        return relations
+    }
+
 }

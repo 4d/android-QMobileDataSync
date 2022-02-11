@@ -9,8 +9,13 @@ package com.qmobile.qmobiledatasync.viewmodel
 import androidx.lifecycle.AndroidViewModel
 import com.qmobile.qmobileapi.model.action.ActionResponse
 import com.qmobile.qmobileapi.model.action.UploadImageResponse
+import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
+import com.qmobile.qmobileapi.utils.DELETED_RECORDS
+import com.qmobile.qmobileapi.utils.getObjectListAsString
+import com.qmobile.qmobileapi.utils.getSafeArray
+import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.repository.RoomRepository
@@ -18,6 +23,9 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import okhttp3.RequestBody
+import org.json.JSONArray
+import org.json.JSONObject
+import timber.log.Timber
 
 /**
  * If you need to use context inside your viewmodel you should use AndroidViewModel, because it
@@ -55,6 +63,11 @@ abstract class BaseViewModel<T : Any>(
      * LiveData
      */
     val toastMessage: ToastMessage = ToastMessage()
+
+    override fun onCleared() {
+        super.onCleared()
+        restRepository.disposable.dispose()
+    }
 
     fun sendAction(
         actionName: String,
@@ -112,7 +125,7 @@ abstract class BaseViewModel<T : Any>(
                         retrieveResponseObject<UploadImageResponse>(
                             BaseApp.mapper,
                             it
-                        )?.let {response->
+                        )?.let { response ->
                             onImageUploaded(parameterName, response.id)
                         }
                     }
@@ -120,6 +133,56 @@ abstract class BaseViewModel<T : Any>(
             }
         ) {
             onAllUploadFinished()
+        }
+    }
+
+    fun getDeletedRecords(
+        onResult: (entitiesList: List<String>) -> Unit
+    ) {
+        getDeletedRecords(restRepository) { responseJson ->
+            decodeDeletedRecords(responseJson.getSafeArray("__ENTITIES")) { entitiesList ->
+                onResult(entitiesList)
+            }
+        }
+    }
+
+    private fun getDeletedRecords(
+        restRepository: RestRepository,
+        onResult: (responseJson: JSONObject) -> Unit
+    ) {
+        val predicate =
+            DeletedRecord.buildStampPredicate(BaseApp.sharedPreferencesHolder.deletedRecordsStamp)
+        Timber.d("Performing data request, with predicate $predicate")
+
+        restRepository.getEntities(
+            tableName = DELETED_RECORDS,
+            filter = predicate
+        ) { isSuccess, response, error ->
+            if (isSuccess) {
+                response?.body()?.let { responseBody ->
+
+                    retrieveJSONObject(responseBody.string())?.let { responseJson ->
+
+                        BaseApp.sharedPreferencesHolder.deletedRecordsStamp =
+                            BaseApp.sharedPreferencesHolder.globalStamp
+
+                        onResult(responseJson)
+                    }
+                }
+            } else {
+                response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+            }
+        }
+    }
+
+    private fun decodeDeletedRecords(
+        entitiesJsonArray: JSONArray?,
+        onResult: (entitiesList: List<String>) -> Unit
+    ) {
+        val entitiesList: List<String>? = entitiesJsonArray?.getObjectListAsString()
+        entitiesList?.let {
+            onResult(entitiesList)
         }
     }
 }
