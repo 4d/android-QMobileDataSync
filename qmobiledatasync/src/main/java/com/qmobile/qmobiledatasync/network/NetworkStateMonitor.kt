@@ -43,7 +43,7 @@ open class NetworkStateMonitor(private val connectivityManager: ConnectivityMana
         try {
             connectivityManager.unregisterNetworkCallback(networkStateObject)
         } catch (e: IllegalArgumentException) {
-            Timber.d(e.localizedMessage)
+            Timber.d(e.message.orEmpty())
             Timber.d("NetworkCallback for Wi-fi was not registered or already unregistered")
         }
     }
