@@ -14,7 +14,13 @@ import com.qmobile.qmobiledatasync.relation.Relation
  */
 interface GenericRelationHelper {
 
+    /**
+     * Returns the list of relations
+     */
     fun getRelations(): List<Relation>
 
+    /**
+     * Get relation Id for a given entity
+     */
     fun getRelationId(tableName: String, relationName: String, entity: EntityModel): String?
 }
