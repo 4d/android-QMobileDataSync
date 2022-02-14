@@ -18,14 +18,11 @@ import com.qmobile.qmobileapi.utils.UTF8
 import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
-import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.app.BaseApp
-import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
-import com.qmobile.qmobiledatasync.relation.OneToManyRelation
-import com.qmobile.qmobiledatasync.relation.Relation
+import com.qmobile.qmobiledatasync.relation.JSONRelation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
-import com.qmobile.qmobiledatasync.relation.RelationHelper.getRelations
 import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
 import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
@@ -119,11 +116,8 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _scheduleRefresh = MutableStateFlow(ScheduleRefreshEnum.NO)
     val scheduleRefresh: StateFlow<ScheduleRefreshEnum> = _scheduleRefresh
 
-    private val _newRelatedEntity = MutableSharedFlow<ManyToOneRelation>(replay = 1)
-    val newRelatedEntity: SharedFlow<ManyToOneRelation> = _newRelatedEntity
-
-    private val _newRelatedEntities = MutableSharedFlow<OneToManyRelation>(replay = 1)
-    val newRelatedEntities: SharedFlow<OneToManyRelation> = _newRelatedEntities
+    private val _jsonRelation = MutableSharedFlow<JSONRelation>(replay = 1)
+    val jsonRelation: SharedFlow<JSONRelation> = _jsonRelation
 
     open val isToSync = AtomicBoolean(false)
 
@@ -262,68 +256,22 @@ abstract class EntityListViewModel<T : EntityModel>(
      * to be added in the appropriate Room dao
      */
     fun checkRelations(entityJsonString: String) {
-        getRelations(getAssociatedTableName()).forEach { relation ->
-            RelationHelper.getRelatedEntity(entityJsonString, relation.name)
-                ?.let { relatedJson ->
-                    if (relation.type == RelationTypeEnum.MANY_TO_ONE) {
-                        emitManyToOneRelation(relation, relatedJson)
-                    } else { // relationType == ONE_TO_MANY
-                        checkOneToManyRelation(relatedJson)
-                    }
-                }
-        }
-    }
-
-    private fun emitManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
-        _newRelatedEntity.tryEmit(
-            ManyToOneRelation(
-                entity = relatedJson,
-                className = relation.dest
-            )
-        )
-    }
-
-    private fun checkOneToManyRelation(relatedJson: JSONObject) {
-        if (relatedJson.getSafeInt("__COUNT") ?: 0 > 0) {
-            relatedJson.getSafeString("__DATACLASS")?.let { dataClass ->
-                relatedJson.getSafeArray("__ENTITIES")?.let { entities ->
-                    emitOneToManyRelation(entities, dataClass)
-                }
+        RelationHelper.getRelations(getAssociatedTableName()).forEach { relation ->
+            JSONObject(entityJsonString).getSafeObject(relation.name)?.let { relatedJson ->
+                val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null)
+                    JSONRelation(relatedJson, relation.dest, RelationTypeEnum.MANY_TO_ONE)
+                else
+                    JSONRelation(relatedJson, relation.dest, RelationTypeEnum.ONE_TO_MANY)
+                _jsonRelation.tryEmit(jsonRelation)
             }
         }
     }
 
-    private fun emitOneToManyRelation(entities: JSONArray, dataClass: String) {
-        _newRelatedEntities.tryEmit(
-            OneToManyRelation(
-                entities = entities,
-                className = dataClass.filter { !it.isWhitespace() }
-            )
-        )
-    }
-
-    fun insertNewRelatedEntity(manyToOneRelation: ManyToOneRelation) {
-        val entity = BaseApp.genericTableHelper.parseEntityFromTable(
-            tableName = manyToOneRelation.className,
-            jsonString = manyToOneRelation.entity.toString(),
-            fetchedFromRelation = true
-        )
-        entity?.let {
-            this.insert(entity)
-        }
-    }
-
-    fun insertNewRelatedEntities(oneToManyRelation: OneToManyRelation) {
-        oneToManyRelation.entities.getObjectListAsString().forEach { entityString ->
-            val entity = BaseApp.genericTableHelper.parseEntityFromTable(
-                tableName = oneToManyRelation.className,
-                jsonString = entityString,
-                fetchedFromRelation = true
-            )
-            entity?.let {
-                this.insert(entity)
-            }
-        }
+    fun insertRelation(jsonRelation: JSONRelation) {
+        if (jsonRelation.type == RelationTypeEnum.ONE_TO_MANY)
+            jsonRelation.getEntities().forEach { this.insert(it) }
+        else
+            jsonRelation.getEntity()?.let { this.insert(it) }
     }
 
     fun setDataSyncState(state: DataSyncStateEnum) {

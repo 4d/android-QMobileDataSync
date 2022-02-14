@@ -11,7 +11,7 @@ import com.qmobile.qmobileapi.utils.GLOBALSTAMP_PROPERTY
 import com.qmobile.qmobileapi.utils.Query
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
-import com.qmobile.qmobiledatasync.relation.RelationHelper.getRelations
+import com.qmobile.qmobiledatasync.relation.RelationHelper
 import org.json.JSONObject
 import kotlin.math.max
 
@@ -54,7 +54,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
         // Adding relations
         if (BaseApp.runtimeDataHolder.relationAvailable) {
-            getRelations(getAssociatedTableName()).forEach { relation ->
+            RelationHelper.getRelations(getAssociatedTableName()).forEach { relation ->
                 put(relation.name, buildRelationQueryAndProperties(relation))
             }
         }

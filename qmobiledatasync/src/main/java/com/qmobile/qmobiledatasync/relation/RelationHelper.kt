@@ -9,27 +9,19 @@ package com.qmobile.qmobiledatasync.relation
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.app.BaseApp
-import org.json.JSONObject
 
 object RelationHelper {
-
-    /**
-     * Retrieve the related type from its relation name. This method uses reflection
-     */
-    fun getRelatedEntity(entityJsonString: String, name: String): JSONObject? =
-        JSONObject(entityJsonString).getSafeObject(name)
 
     fun getRelations(source: String): List<Relation> =
         BaseApp.runtimeDataHolder.relations.filter { it.source == source }
 
-    fun getManyToOneRelations(source: String): List<Relation> =
+    private fun getManyToOneRelations(source: String): List<Relation> =
         BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == RelationTypeEnum.MANY_TO_ONE }
 
-    fun getOneToManyRelations(source: String): List<Relation> =
+    private fun getOneToManyRelations(source: String): List<Relation> =
         BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == RelationTypeEnum.ONE_TO_MANY }
 
     fun getDest(source: String, name: String): String? =
