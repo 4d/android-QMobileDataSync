@@ -45,7 +45,7 @@ interface GenericTableFragmentHelper {
     fun setRelationBinding(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        relatedEntity: Any
+        data: Any
     )
 
     /**
