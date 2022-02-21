@@ -65,13 +65,13 @@ class DataSyncTest {
 
     // MutableLiveData for mocked ViewModels
     private val _sourceIntEmployee =
-        MutableStateFlow(GlobalStamp("Employee", 0, true, UUID.randomUUID()))
+        MutableStateFlow(GlobalStamp("Employee", 0, true))
     private val sourceIntEmployee: StateFlow<GlobalStamp> = _sourceIntEmployee
     private val _sourceIntService =
-        MutableStateFlow(GlobalStamp("Service", 0, true, UUID.randomUUID()))
+        MutableStateFlow(GlobalStamp("Service", 0, true))
     private val sourceIntService: StateFlow<GlobalStamp> = _sourceIntService
     private val _sourceIntOffice =
-        MutableStateFlow(GlobalStamp("Office", 0, true, UUID.randomUUID()))
+        MutableStateFlow(GlobalStamp("Office", 0, true))
     private val sourceIntOffice: StateFlow<GlobalStamp> = _sourceIntOffice
 
     // Custom closures
@@ -407,17 +407,17 @@ class DataSyncTest {
             EMPLOYEE_TABLE -> {
                 println(" -> Table $EMPLOYEE_TABLE, emitting value ${globalStampList[0]}")
                 _sourceIntEmployee.value =
-                    GlobalStamp(EMPLOYEE_TABLE, globalStampList[0], true, UUID.randomUUID())
+                    GlobalStamp(EMPLOYEE_TABLE, globalStampList[0], true)
             }
             SERVICE_TABLE -> {
                 println(" -> Table $SERVICE_TABLE, emitting value ${globalStampList[1]}")
                 _sourceIntService.value =
-                    GlobalStamp(SERVICE_TABLE, globalStampList[1], true, UUID.randomUUID())
+                    GlobalStamp(SERVICE_TABLE, globalStampList[1], true)
             }
             OFFICE_TABLE -> {
                 println(" -> Table $OFFICE_TABLE, emitting value ${globalStampList[2]}")
                 _sourceIntOffice.value =
-                    GlobalStamp(OFFICE_TABLE, globalStampList[2], true, UUID.randomUUID())
+                    GlobalStamp(OFFICE_TABLE, globalStampList[2], true)
             }
             else -> {}
         }

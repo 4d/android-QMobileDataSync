@@ -6,11 +6,18 @@
 
 package com.qmobile.qmobiledatasync.sync
 
-import java.util.UUID
+import kotlin.random.Random
 
 data class GlobalStamp(
     val tableName: String,
     val stampValue: Int,
-    val dataSyncProcess: Boolean,
-    val uuid: UUID?
-)
+    val dataSyncProcess: Boolean
+) {
+    override fun equals(other: Any?): Boolean {
+        return false
+    }
+
+    override fun hashCode(): Int {
+        return Random.nextInt()
+    }
+}
