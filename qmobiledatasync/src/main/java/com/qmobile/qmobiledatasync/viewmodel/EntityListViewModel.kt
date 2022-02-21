@@ -291,7 +291,6 @@ abstract class EntityListViewModel<T : EntityModel>(
             tableName = this.getAssociatedTableName(),
             stampValue = globalStamp,
             dataSyncProcess = this.dataSynchronized.value == DataSyncStateEnum.SYNCHRONIZING ||
-                this.dataSynchronized.value == DataSyncStateEnum.RESYNC,
-            uuid = null
+                this.dataSynchronized.value == DataSyncStateEnum.RESYNC
         )
 }
