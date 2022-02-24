@@ -8,9 +8,9 @@ package com.qmobile.qmobiledatasync.relation
 
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LiveData
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatastore.data.RoomData
-import com.qmobile.qmobiledatastore.data.RoomRelation
 import com.qmobile.qmobiledatasync.app.BaseApp
 
 object RelationHelper {
@@ -33,22 +33,34 @@ object RelationHelper {
     /**
      * Provides the relation map extracted from an entity
      */
-    fun getRelationsLiveData(source: String, entity: EntityModel): Map<Relation, LiveData<RoomRelation>> {
-        val map = mutableMapOf<Relation, LiveData<RoomRelation>>()
+    fun getRelationsLiveData(source: String, entity: EntityModel): Map<Relation, LiveData<List<RoomData>>> {
+        val map = mutableMapOf<Relation, LiveData<List<RoomData>>>()
 
         entity.__KEY?.let { key ->
             getOneToManyRelations(source).forEach { relation ->
-                val relationDao = BaseApp.daoProvider.getRelationDao(relation.dest, source, relation.inverse)
-                map[relation] = relationDao.getRelation(key)
+                map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(getOneToManyQuery(relation, key))
             }
         }
         getManyToOneRelations(source).forEach { relation ->
             BaseApp.genericRelationHelper.getRelationId(source, relation.name, entity)?.let { relationId ->
-                val relationDao = BaseApp.daoProvider.getRelationDao(source, relation.dest, relation.name)
-                map[relation] = relationDao.getRelation(relationId)
+                map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(getManyToOneQuery(relation, relationId))
             }
         }
         return map
+    }
+
+    private fun getOneToManyQuery(relation: Relation, key: String): SimpleSQLiteQuery {
+        return SimpleSQLiteQuery(
+            "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                    "EXISTS ( SELECT * FROM ${relation.source} AS T2 WHERE " +
+                    "T1.__${relation.inverse}Key = $key )"
+        )
+    }
+
+    private fun getManyToOneQuery(relation: Relation, relationId: String): SimpleSQLiteQuery {
+        return SimpleSQLiteQuery(
+            "SELECT * FROM ${relation.dest} AS T1 WHERE T1.__KEY = $relationId"
+        )
     }
 
     fun refreshOneToManyNavForNavbarTitle(

@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.qmobile.qmobileapi.utils.LoginRequiredCallback
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
+import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -34,10 +35,10 @@ class DataSync(
     val loginRequired = AtomicBoolean(false)
     private var globalStampAlreadyObserved = false
 
-    lateinit var globalStampObserver: suspend (value: GlobalStamp) -> Unit
+    lateinit var globalStampObserver: suspend CoroutineScope.(value: GlobalStamp) -> Unit
 
     // Default closures
-    lateinit var setupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit
+    lateinit var setupObservableClosure: (suspend CoroutineScope.(value: GlobalStamp) -> Unit) -> Unit
     lateinit var syncClosure: (EntityListViewModel<*>, Boolean) -> Unit
     lateinit var successfulSyncClosure: (Int) -> Unit
     lateinit var unsuccessfulSyncClosure: () -> Unit

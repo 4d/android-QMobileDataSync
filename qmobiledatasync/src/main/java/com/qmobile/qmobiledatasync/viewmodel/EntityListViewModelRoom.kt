@@ -10,6 +10,7 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.viewModelScope
 import com.qmobile.qmobileapi.model.entity.EntityModel
+import com.qmobile.qmobiledatastore.data.RoomData
 import kotlinx.coroutines.launch
 
 /**
@@ -17,11 +18,11 @@ import kotlinx.coroutines.launch
  */
 
 fun <T : EntityModel> EntityListViewModel<T>.insert(item: EntityModel) = viewModelScope.launch {
-    roomRepository.insert(item as T)
+    roomRepository.insert(item as RoomData)
 }
 
 fun <T : EntityModel> EntityListViewModel<T>.insertAll(items: List<EntityModel>) = viewModelScope.launch {
-    roomRepository.insertAll(items as List<T>)
+    roomRepository.insertAll(items as List<RoomData>)
 }
 
 fun <T : EntityModel> EntityListViewModel<T>.deleteOne(id: String) = coroutineScope.launch {

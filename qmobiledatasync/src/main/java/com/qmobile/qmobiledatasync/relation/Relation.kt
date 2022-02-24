@@ -11,7 +11,8 @@ data class Relation(
     val dest: String,
     val name: String,
     val inverse: String,
-    val type: RelationTypeEnum
+    val type: RelationTypeEnum,
+    val path: String = ""
 ) {
     companion object {
         const val SUFFIX = ".*"

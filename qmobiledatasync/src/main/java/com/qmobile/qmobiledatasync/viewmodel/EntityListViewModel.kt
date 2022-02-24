@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.asFlow
+import androidx.paging.DataSource
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.paging.PagingConfig
@@ -78,7 +79,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             .flatMapLatest {
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
-                LivePagedListBuilder(roomRepository.getAllPagedList(it), DEFAULT_ROOM_PAGE_SIZE)
+                LivePagedListBuilder(roomRepository.getAllPagedList(it) as DataSource.Factory<Int, T>, DEFAULT_ROOM_PAGE_SIZE)
                     .build().asFlow()
             }.catch { throwable ->
                 Timber.e("Error while getting entityListPagedListSharedFlow in EntityListViewModel of [$tableName]")
@@ -97,7 +98,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                         pageSize = DEFAULT_ROOM_PAGE_SIZE,
                         enablePlaceholders = false
                     )
-                )
+                ) as Flow<PagingData<T>>
             }.catch { throwable ->
                 Timber.e("Error while getting entityListPagingDataFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
@@ -246,6 +247,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                 parsedList.add(it)
                 if (!fetchedFromRelation)
                     checkRelations(entityJsonString)
+                else
+                    Timber.d("Entity extracted from relation")
             }
         }
         this.insertAll(parsedList)

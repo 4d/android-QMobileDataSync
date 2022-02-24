@@ -9,7 +9,7 @@ package com.qmobile.qmobiledatasync.viewmodel
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
-import com.qmobile.qmobiledatastore.data.RoomRelation
+import com.qmobile.qmobiledatastore.data.RoomData
 import timber.log.Timber
 
 abstract class EntityViewModel<T : EntityModel>(
@@ -27,7 +27,7 @@ abstract class EntityViewModel<T : EntityModel>(
      * LiveData
      */
 
-    open val entity: LiveData<T> = roomRepository.getOne(id)
+    open val entity: LiveData<T> = roomRepository.getOne(id) as LiveData<T>
 
-    abstract fun setRelationToLayout(relationName: String, roomRelation: RoomRelation)
+    abstract fun setRelationToLayout(relationName: String, roomRelation: List<RoomData>)
 }

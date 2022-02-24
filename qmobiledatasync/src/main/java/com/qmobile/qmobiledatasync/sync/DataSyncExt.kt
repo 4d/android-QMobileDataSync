@@ -6,16 +6,21 @@
 
 package com.qmobile.qmobiledatasync.sync
 
+import androidx.lifecycle.Lifecycle
 import com.qmobile.qmobileapi.network.ApiClient
 import com.qmobile.qmobiledatasync.utils.collectWhenStarted
+import com.qmobile.qmobiledatasync.utils.launchAndCollectIn
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
+import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 
 fun DataSync.setupCollect(
-    globalStampObserver: suspend (value: GlobalStamp) -> Unit
+//    globalStampObserver: suspend (value: GlobalStamp) -> Unit
+    globalStampObserver: suspend CoroutineScope.(value: GlobalStamp) -> Unit
 ) {
     entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
-        lifecycleOwner.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
+        stateFlow.launchAndCollectIn(lifecycleOwner, Lifecycle.State.STARTED, globalStampObserver)
+//        lifecycleOwner.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
     }
 }
 
@@ -44,7 +49,7 @@ fun DataSync.unsuccessfulSynchronization() {
 // Closures are used to change the data sync algorithm behavior in unit test
 fun DataSync.initClosures() {
 
-    val defaultSetupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit =
+    val defaultSetupObservableClosure: (suspend CoroutineScope.(value: GlobalStamp) -> Unit) -> Unit =
         { globalStampObserver ->
             setupCollect(globalStampObserver)
         }

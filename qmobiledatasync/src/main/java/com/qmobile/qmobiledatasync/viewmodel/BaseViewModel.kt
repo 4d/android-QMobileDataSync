@@ -18,6 +18,7 @@ import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
+import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.MessageType
@@ -45,13 +46,13 @@ abstract class BaseViewModel<T : Any>(
      * DAO
      */
 
-    var dao: BaseDao<T> = BaseApp.daoProvider.getDao(tableName)
+    var dao: BaseDao<RoomData> = BaseApp.daoProvider.getDao(tableName)
 
     /**
      * Repositories
      */
 
-    val roomRepository: RoomRepository<T> = RoomRepository(dao)
+    val roomRepository: RoomRepository<RoomData> = RoomRepository(dao)
     var restRepository: RestRepository =
         RestRepository(originalAssociatedTableName, apiService)
 
