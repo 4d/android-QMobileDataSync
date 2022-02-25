@@ -12,9 +12,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobileapi.repository.AccessibilityRepository
-import com.qmobile.qmobiledatasync.network.NetworkStateEnum
+import com.qmobile.qmobiledatasync.network.NetworkState
 import com.qmobile.qmobiledatasync.network.NetworkStateMonitor
-import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import timber.log.Timber
 
@@ -35,7 +34,7 @@ open class ConnectivityViewModel(
      * LiveData
      */
 
-    open val networkStateMonitor: LiveData<NetworkStateEnum> =
+    open val networkStateMonitor: LiveData<NetworkState> =
         NetworkStateMonitor(
             connectivityManager
         )
@@ -61,13 +60,13 @@ open class ConnectivityViewModel(
                     return@checkAccessibility
                 }
                 if (toastError)
-                    error?.let { toastMessage.showMessage(it, "ConnectivityViewModel", MessageType.ERROR) }
+                    error?.let { toastMessage.showMessage(it, "ConnectivityViewModel", ToastMessage.Type.ERROR) }
                 onResult(false)
             }
         }
     }
 
-    fun isConnected(): Boolean = networkStateMonitor.value == NetworkStateEnum.CONNECTED
+    fun isConnected(): Boolean = networkStateMonitor.value == NetworkState.CONNECTED
 
     override fun onCleared() {
         super.onCleared()

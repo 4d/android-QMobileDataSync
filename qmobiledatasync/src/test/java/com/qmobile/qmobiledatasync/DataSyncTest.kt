@@ -15,7 +15,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.testing.TestLifecycleOwner
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.sync.DataSync
-import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.resetIsToSync
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
@@ -23,7 +22,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -270,7 +268,7 @@ class DataSyncTest {
 
         entityListViewModelList.forEach {
             Mockito.`when`(it.dataSynchronized)
-                .thenReturn(MutableStateFlow(DataSyncStateEnum.SYNCHRONIZING))
+                .thenReturn(MutableStateFlow(DataSync.State.SYNCHRONIZING))
         }
 
         Mockito.`when`(sharedPreferencesHolder.globalStamp).thenReturn(sharedPreferencesGlobalStamp)

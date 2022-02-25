@@ -21,7 +21,6 @@ import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
-import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import okhttp3.RequestBody
 import org.json.JSONArray
@@ -89,13 +88,13 @@ abstract class BaseViewModel<T : Any>(
                             toastMessage.showMessage(
                                 actionResponse.statusText,
                                 getAssociatedTableName(),
-                                MessageType.SUCCESS
+                                ToastMessage.Type.SUCCESS
                             )
                         } else {
                             toastMessage.showMessage(
                                 actionResponse.statusText,
                                 getAssociatedTableName(),
-                                MessageType.ERROR
+                                ToastMessage.Type.ERROR
                             )
                         }
                         onResult(actionResponse)
@@ -103,10 +102,10 @@ abstract class BaseViewModel<T : Any>(
                 }
             } else {
                 response?.let {
-                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                    toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                 }
                 error?.let {
-                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                    toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                 }
             }
         }
@@ -131,10 +130,10 @@ abstract class BaseViewModel<T : Any>(
                     }
                 } else {
                     response?.let {
-                        toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                        toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                     }
                     error?.let {
-                        toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                        toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                     }
                 }
             }

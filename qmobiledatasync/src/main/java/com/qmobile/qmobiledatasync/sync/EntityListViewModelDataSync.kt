@@ -8,7 +8,7 @@ package com.qmobile.qmobiledatasync.sync
 
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
-import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
+import com.qmobile.qmobiledatasync.utils.ScheduleRefresh
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
 import org.json.JSONObject
@@ -44,13 +44,13 @@ fun List<EntityListViewModel<*>>.deleteRecord(deletedRecordJson: JSONObject?) {
 
 fun List<EntityListViewModel<*>>.notifyDataSynced() {
     this.forEach { entityListViewModel ->
-        entityListViewModel.setDataSyncState(DataSyncStateEnum.SYNCHRONIZED)
+        entityListViewModel.setDataSyncState(DataSync.State.SYNCHRONIZED)
     }
 }
 
 fun List<EntityListViewModel<*>>.notifyDataUnSynced() {
     this.forEach { entityListViewModel ->
-        entityListViewModel.setDataSyncState(DataSyncStateEnum.UNSYNCHRONIZED)
+        entityListViewModel.setDataSyncState(DataSync.State.UNSYNCHRONIZED)
     }
 }
 
@@ -68,8 +68,8 @@ fun List<EntityListViewModel<*>>.stopDataLoading() {
 
 fun List<EntityListViewModel<*>>.scheduleRefresh() {
     this.forEach { entityListViewModel ->
-        if (entityListViewModel.scheduleRefresh.value == ScheduleRefreshEnum.SCHEDULE) {
-            entityListViewModel.setScheduleRefreshState(ScheduleRefreshEnum.PERFORM)
+        if (entityListViewModel.scheduleRefresh.value == ScheduleRefresh.SCHEDULE) {
+            entityListViewModel.setScheduleRefreshState(ScheduleRefresh.PERFORM)
         }
     }
 }

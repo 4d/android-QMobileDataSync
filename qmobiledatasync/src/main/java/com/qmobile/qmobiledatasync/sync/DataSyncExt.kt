@@ -58,7 +58,7 @@ fun DataSync.initClosures() {
     // Synchronization api requests
     val defaultSyncClosure: (EntityListViewModel<*>, Boolean) -> Unit =
         { entityListViewModel, reSync ->
-            val state = if (reSync) DataSyncStateEnum.RESYNC else DataSyncStateEnum.SYNCHRONIZING
+            val state = if (reSync) DataSync.State.RESYNC else DataSync.State.SYNCHRONIZING
             entityListViewModel.setDataSyncState(state)
         }
 

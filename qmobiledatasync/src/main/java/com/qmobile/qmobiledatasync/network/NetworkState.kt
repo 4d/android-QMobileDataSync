@@ -6,6 +6,6 @@
 
 package com.qmobile.qmobiledatasync.network
 
-enum class NetworkStateEnum {
+enum class NetworkState {
     CONNECTED, CONNECTION_LOST, DISCONNECTED, CONNECTING
 }

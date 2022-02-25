@@ -11,10 +11,14 @@ data class Relation(
     val dest: String,
     val name: String,
     val inverse: String,
-    val type: RelationTypeEnum,
+    val type: Type,
     val path: String = ""
 ) {
     companion object {
         const val SUFFIX = ".*"
+    }
+
+    enum class Type {
+        ONE_TO_MANY, MANY_TO_ONE
     }
 }

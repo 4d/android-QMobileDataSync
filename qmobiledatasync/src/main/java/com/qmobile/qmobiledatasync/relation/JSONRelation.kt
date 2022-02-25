@@ -14,9 +14,9 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.utils.tableNameAdjustment
 import org.json.JSONObject
 
-data class JSONRelation(val json: JSONObject, val dest: String, val type: RelationTypeEnum) {
+data class JSONRelation(val json: JSONObject, val dest: String, val type: Relation.Type) {
 
-    fun getDestinationTable(): String = if (type == RelationTypeEnum.ONE_TO_MANY)
+    fun getDestinationTable(): String = if (type == Relation.Type.ONE_TO_MANY)
         json.getSafeString("__DATACLASS")?.tableNameAdjustment() ?: ""
     else
         dest

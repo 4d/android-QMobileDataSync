@@ -18,17 +18,14 @@ object RelationHelper {
     fun getRelations(source: String): List<Relation> =
         BaseApp.runtimeDataHolder.relations.filter { it.source == source }
 
+    fun getRelation(source: String, name: String): Relation? =
+        BaseApp.runtimeDataHolder.relations.firstOrNull { it.source == source && it.name == name }
+
     private fun getManyToOneRelations(source: String): List<Relation> =
-        BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == RelationTypeEnum.MANY_TO_ONE }
+        BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == Relation.Type.MANY_TO_ONE }
 
     private fun getOneToManyRelations(source: String): List<Relation> =
-        BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == RelationTypeEnum.ONE_TO_MANY }
-
-    fun getDest(source: String, name: String): String? =
-        BaseApp.runtimeDataHolder.relations.firstOrNull { it.source == source && it.name == name }?.dest
-
-    fun getInverse(source: String, name: String): String? =
-        BaseApp.runtimeDataHolder.relations.firstOrNull { it.source == source && it.name == name }?.inverse
+        BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == Relation.Type.ONE_TO_MANY }
 
     /**
      * Provides the relation map extracted from an entity
@@ -45,28 +42,65 @@ object RelationHelper {
     }
 
     private fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
-        return if (relation.type == RelationTypeEnum.ONE_TO_MANY)
+        return if (relation.type == Relation.Type.ONE_TO_MANY)
             createOneToManyQuery(relation, entity)
         else
             createManyToOneQuery(relation, entity)
     }
 
+    // TODO :
+//    Relation("Service", "Employee", "", "serviceManaged", Relation.Type.MANY_TO_ONE, "manager.service.manager"),
+//    Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service"),
+//    Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.employees.serviceManaged"),
+//    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service"),
+//    Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates"),
+//    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service"),
+//    Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates.employees")
+
     @Suppress("ReturnCount")
     private fun createOneToManyQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
 
-        if (relation.name.contains(".")) {
-            val manyToOne = relation.name.split(".")[0]
-            val oneToMany = relation.name.split(".")[1]
+        val path = relation.path.ifEmpty { relation.name }
 
-            val manyToOneDest = getDest(relation.source, manyToOne)
+        if (path.contains(".")) {
+            val first = path.split(".")[0]
+            val second = path.split(".")[1]
 
-            BaseApp.genericRelationHelper.getRelationId(relation.source, manyToOne, entity)?.let { relationId ->
+            val firstRelation = getRelation(relation.source, first) ?: return null
+            val secondRelation = getRelation(firstRelation.source, second) ?: return null
 
+            // Note : secondRelation.inverse equals relation.inverse
+
+            if (firstRelation.type == Relation.Type.MANY_TO_ONE) {
+
+                val relationId = BaseApp.genericRelationHelper.getRelationId(relation.source, first, entity)
+                    ?: return null
+
+                // Relation("Employee", "Employee", "employeesfromservice", "service", Relation.Type.ONE_TO_MANY, "service.employees"),
                 return SimpleSQLiteQuery(
                     "SELECT * FROM ${relation.dest} AS T1 WHERE " +
-                        "EXISTS ( SELECT * FROM $manyToOneDest AS T2 WHERE " +
-                        "T1.__${relation.inverse}Key = $relationId AND T2.__KEY = $relationId  )"
+                        "EXISTS ( SELECT * FROM ${firstRelation.source} AS T2 WHERE " +
+                        "T1.__${relation.inverse}Key = $relationId AND T2.__KEY = $relationId )"
                 )
+            } else {
+
+                if (secondRelation.type == Relation.Type.MANY_TO_ONE) {
+                    // Relation("Service", "Employee", "managerfromemployees", "subordinates", Relation.Type.ONE_TO_MANY, "employees.manager"),
+                    return SimpleSQLiteQuery(
+                        "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                            "EXISTS ( SELECT * FROM ${firstRelation.source} AS T2 WHERE " +
+                            "T1.__KEY = T2.__${relation.inverse}Key " +
+                                "AND T2.__${firstRelation.inverse}Key = ${entity.__KEY} )"
+                    )
+                } else {
+                    // Relation("Service", "Employee", "subordinatesromemployees", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates"),
+                    return SimpleSQLiteQuery(
+                        "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                            "EXISTS ( SELECT * FROM ${firstRelation.source} AS T2 WHERE " +
+                            "T1.__${secondRelation.inverse}Key = T2.__KEY " +
+                                "AND T2.__${firstRelation.inverse}Key = ${entity.__KEY} )"
+                    )
+                }
             }
         } else {
 
@@ -76,36 +110,32 @@ object RelationHelper {
                     "T1.__${relation.inverse}Key = ${entity.__KEY} )"
             )
         }
-        return null
     }
-
-//    Relation("Employee", "Employee", "managerfromservice", "serviceManaged.employees",
-//    RelationTypeEnum.MANY_TO_ONE, "service.manager"),
 
     @Suppress("ReturnCount")
     private fun createManyToOneQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
-        if (relation.name.contains(".")) {
-            val manyToOne = relation.name.split(".")[0]
-            val oneToMany = relation.name.split(".")[1]
 
-            val manyToOneDest = getDest(relation.source, manyToOne)
+        val path = relation.path.ifEmpty { relation.name }
 
-            BaseApp.genericRelationHelper.getRelationId(relation.source, manyToOne, entity)?.let { relationId ->
+        if (path.contains(".")) {
 
-                return SimpleSQLiteQuery(
-                    "SELECT * FROM ${relation.dest} AS T1 WHERE " +
-                        "EXISTS ( SELECT * FROM $manyToOneDest AS T2 WHERE " +
-                        "T1.__KEY = T2.__${oneToMany}Key AND T2.__KEY = $relationId ) LIMIT 1"
-                )
-            }
+            val first = path.split(".")[0]
+            val second = path.split(".")[1]
+
+            val firstRelation = getRelation(relation.source, first) ?: return null
+
+            val relationId = BaseApp.genericRelationHelper.getRelationId(relation.source, first, entity) ?: return null
+
+            // Relation("Employee", "Employee", "managerfromservice", "serviceManaged", Relation.Type.MANY_TO_ONE, "service.manager")
+            return SimpleSQLiteQuery(
+                "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                    "EXISTS ( SELECT * FROM ${firstRelation.source} AS T2 WHERE " +
+                    "T1.__KEY = T2.__${second}Key AND T2.__KEY = $relationId ) LIMIT 1"
+            )
         } else {
-
-            BaseApp.genericRelationHelper.getRelationId(relation.source, relation.name, entity)?.let { relationId ->
-
-                return SimpleSQLiteQuery("SELECT * FROM ${relation.dest} AS T1 WHERE T1.__KEY = $relationId LIMIT 1")
-            }
+            val relationId = BaseApp.genericRelationHelper.getRelationId(relation.source, path, entity) ?: return null
+            return SimpleSQLiteQuery("SELECT * FROM ${relation.dest} AS T1 WHERE T1.__KEY = $relationId LIMIT 1")
         }
-        return null
     }
 
     fun refreshOneToManyNavForNavbarTitle(

@@ -23,11 +23,11 @@ import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.JSONRelation
+import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
-import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
-import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
+import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
-import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
+import com.qmobile.qmobiledatasync.utils.ScheduleRefresh
 import com.qmobile.qmobiledatasync.utils.getViewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -110,15 +110,15 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    private val _dataSynchronized = MutableStateFlow(DataSyncStateEnum.UNSYNCHRONIZED)
-    open val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
+    private val _dataSynchronized = MutableStateFlow(DataSync.State.UNSYNCHRONIZED)
+    open val dataSynchronized: StateFlow<DataSync.State> = _dataSynchronized
 
     private val _globalStamp =
         MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
     open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
 
-    private val _scheduleRefresh = MutableStateFlow(ScheduleRefreshEnum.NO)
-    val scheduleRefresh: StateFlow<ScheduleRefreshEnum> = _scheduleRefresh
+    private val _scheduleRefresh = MutableStateFlow(ScheduleRefresh.NO)
+    val scheduleRefresh: StateFlow<ScheduleRefresh> = _scheduleRefresh
 
     private val _jsonRelation = MutableSharedFlow<JSONRelation>(replay = 1)
     val jsonRelation: SharedFlow<JSONRelation> = _jsonRelation
@@ -265,22 +265,22 @@ abstract class EntityListViewModel<T : EntityModel>(
         RelationHelper.getRelations(getAssociatedTableName()).forEach { relation ->
             JSONObject(entityJsonString).getSafeObject(relation.name)?.let { relatedJson ->
                 val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null)
-                    JSONRelation(relatedJson, relation.dest, RelationTypeEnum.MANY_TO_ONE)
+                    JSONRelation(relatedJson, relation.dest, Relation.Type.MANY_TO_ONE)
                 else
-                    JSONRelation(relatedJson, relation.dest, RelationTypeEnum.ONE_TO_MANY)
+                    JSONRelation(relatedJson, relation.dest, Relation.Type.ONE_TO_MANY)
                 _jsonRelation.tryEmit(jsonRelation)
             }
         }
     }
 
     fun insertRelation(jsonRelation: JSONRelation) {
-        if (jsonRelation.type == RelationTypeEnum.ONE_TO_MANY)
+        if (jsonRelation.type == Relation.Type.ONE_TO_MANY)
             jsonRelation.getEntities().forEach { this.insert(it) }
         else
             jsonRelation.getEntity()?.let { this.insert(it) }
     }
 
-    fun setDataSyncState(state: DataSyncStateEnum) {
+    fun setDataSyncState(state: DataSync.State) {
         _dataSynchronized.value = state
     }
 
@@ -288,7 +288,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         _dataLoading.value = startLoading
     }
 
-    fun setScheduleRefreshState(scheduleRefresh: ScheduleRefreshEnum) {
+    fun setScheduleRefreshState(scheduleRefresh: ScheduleRefresh) {
         _scheduleRefresh.value = scheduleRefresh
     }
 
@@ -296,7 +296,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         GlobalStamp(
             tableName = this.getAssociatedTableName(),
             stampValue = globalStamp,
-            dataSyncProcess = this.dataSynchronized.value == DataSyncStateEnum.SYNCHRONIZING ||
-                this.dataSynchronized.value == DataSyncStateEnum.RESYNC
+            dataSyncProcess = this.dataSynchronized.value == DataSync.State.SYNCHRONIZING ||
+                this.dataSynchronized.value == DataSync.State.RESYNC
         )
 }

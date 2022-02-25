@@ -22,6 +22,10 @@ class DataSync(
     private val loginRequiredCallback: LoginRequiredCallback? = null
 ) {
 
+    enum class State {
+        SYNCHRONIZED, UNSYNCHRONIZED, SYNCHRONIZING, RESYNC
+    }
+
     companion object {
         const val FACTOR_OF_MAX_SUCCESSIVE_SYNC = 3
     }
@@ -57,7 +61,7 @@ class DataSync(
                 entityListViewModelList.find { it.getAssociatedTableName() == globalStamp.tableName }
                     ?.dataSynchronized?.value
 
-            if (globalStamp.dataSyncProcess && vmState != DataSyncStateEnum.SYNCHRONIZED) {
+            if (globalStamp.dataSyncProcess && vmState != State.SYNCHRONIZED) {
 
                 Timber.d(
                     "[NEW] [Table : ${globalStamp.tableName}, " +
