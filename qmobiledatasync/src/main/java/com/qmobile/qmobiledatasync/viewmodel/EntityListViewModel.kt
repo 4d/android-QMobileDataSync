@@ -79,7 +79,10 @@ abstract class EntityListViewModel<T : EntityModel>(
             .flatMapLatest {
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
-                LivePagedListBuilder(roomRepository.getAllPagedList(it) as DataSource.Factory<Int, T>, DEFAULT_ROOM_PAGE_SIZE)
+                LivePagedListBuilder(
+                    roomRepository.getAllPagedList(it) as DataSource.Factory<Int, T>,
+                    DEFAULT_ROOM_PAGE_SIZE
+                )
                     .build().asFlow()
             }.catch { throwable ->
                 Timber.e("Error while getting entityListPagedListSharedFlow in EntityListViewModel of [$tableName]")

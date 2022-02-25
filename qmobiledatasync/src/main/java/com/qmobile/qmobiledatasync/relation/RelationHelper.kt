@@ -33,34 +33,79 @@ object RelationHelper {
     /**
      * Provides the relation map extracted from an entity
      */
-    fun getRelationsLiveData(source: String, entity: EntityModel): Map<Relation, LiveData<List<RoomData>>> {
+    fun getRelationsLiveDataMap(source: String, entity: EntityModel): Map<Relation, LiveData<List<RoomData>>> {
         val map = mutableMapOf<Relation, LiveData<List<RoomData>>>()
 
-        entity.__KEY?.let { key ->
-            getOneToManyRelations(source).forEach { relation ->
-                map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(getOneToManyQuery(relation, key))
-            }
-        }
-        getManyToOneRelations(source).forEach { relation ->
-            BaseApp.genericRelationHelper.getRelationId(source, relation.name, entity)?.let { relationId ->
-                map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(getManyToOneQuery(relation, relationId))
+        getRelations(source).forEach { relation ->
+            createQuery(relation, entity)?.let { query ->
+                map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(query)
             }
         }
         return map
     }
 
-    private fun getOneToManyQuery(relation: Relation, key: String): SimpleSQLiteQuery {
-        return SimpleSQLiteQuery(
-            "SELECT * FROM ${relation.dest} AS T1 WHERE " +
-                    "EXISTS ( SELECT * FROM ${relation.source} AS T2 WHERE " +
-                    "T1.__${relation.inverse}Key = $key )"
-        )
+    private fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
+        return if (relation.type == RelationTypeEnum.ONE_TO_MANY)
+            createOneToManyQuery(relation, entity)
+        else
+            createManyToOneQuery(relation, entity)
     }
 
-    private fun getManyToOneQuery(relation: Relation, relationId: String): SimpleSQLiteQuery {
-        return SimpleSQLiteQuery(
-            "SELECT * FROM ${relation.dest} AS T1 WHERE T1.__KEY = $relationId"
-        )
+    @Suppress("ReturnCount")
+    private fun createOneToManyQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
+
+        if (relation.name.contains(".")) {
+            val manyToOne = relation.name.split(".")[0]
+            val oneToMany = relation.name.split(".")[1]
+
+            val manyToOneDest = getDest(relation.source, manyToOne)
+
+            BaseApp.genericRelationHelper.getRelationId(relation.source, manyToOne, entity)?.let { relationId ->
+
+                return SimpleSQLiteQuery(
+                    "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                        "EXISTS ( SELECT * FROM $manyToOneDest AS T2 WHERE " +
+                        "T1.__${relation.inverse}Key = $relationId AND T2.__KEY = $relationId  )"
+                )
+            }
+        } else {
+
+            return SimpleSQLiteQuery(
+                "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                    "EXISTS ( SELECT * FROM ${relation.source} AS T2 WHERE " +
+                    "T1.__${relation.inverse}Key = ${entity.__KEY} )"
+            )
+        }
+        return null
+    }
+
+//    Relation("Employee", "Employee", "managerfromservice", "serviceManaged.employees",
+//    RelationTypeEnum.MANY_TO_ONE, "service.manager"),
+
+    @Suppress("ReturnCount")
+    private fun createManyToOneQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
+        if (relation.name.contains(".")) {
+            val manyToOne = relation.name.split(".")[0]
+            val oneToMany = relation.name.split(".")[1]
+
+            val manyToOneDest = getDest(relation.source, manyToOne)
+
+            BaseApp.genericRelationHelper.getRelationId(relation.source, manyToOne, entity)?.let { relationId ->
+
+                return SimpleSQLiteQuery(
+                    "SELECT * FROM ${relation.dest} AS T1 WHERE " +
+                        "EXISTS ( SELECT * FROM $manyToOneDest AS T2 WHERE " +
+                        "T1.__KEY = T2.__${oneToMany}Key AND T2.__KEY = $relationId ) LIMIT 1"
+                )
+            }
+        } else {
+
+            BaseApp.genericRelationHelper.getRelationId(relation.source, relation.name, entity)?.let { relationId ->
+
+                return SimpleSQLiteQuery("SELECT * FROM ${relation.dest} AS T1 WHERE T1.__KEY = $relationId LIMIT 1")
+            }
+        }
+        return null
     }
 
     fun refreshOneToManyNavForNavbarTitle(

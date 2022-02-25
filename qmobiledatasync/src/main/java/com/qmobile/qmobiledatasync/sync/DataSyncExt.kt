@@ -8,7 +8,6 @@ package com.qmobile.qmobiledatasync.sync
 
 import androidx.lifecycle.Lifecycle
 import com.qmobile.qmobileapi.network.ApiClient
-import com.qmobile.qmobiledatasync.utils.collectWhenStarted
 import com.qmobile.qmobiledatasync.utils.launchAndCollectIn
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import kotlinx.coroutines.CoroutineScope

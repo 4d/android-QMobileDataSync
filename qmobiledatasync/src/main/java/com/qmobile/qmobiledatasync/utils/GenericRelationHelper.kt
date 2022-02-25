@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.relation.Relation
 

@@ -12,6 +12,7 @@ import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
+import java.util.Locale
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
@@ -103,5 +104,14 @@ object ReflectionUtils {
             }
         }
         return null
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun readInstanceProperty(instance: Any, propertyName: String): Any? {
+        val property = instance::class.members
+            .first {
+                it.name.lowercase(Locale.getDefault()) == propertyName.lowercase(Locale.getDefault())
+            } as KProperty1<Any, *>
+        return property.get(instance)
     }
 }
