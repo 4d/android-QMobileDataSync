@@ -25,6 +25,7 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.JSONRelation
 import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
+import com.qmobile.qmobiledatasync.relation.RelationHelper.withoutAlias
 import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.utils.ScheduleRefresh
@@ -262,7 +263,7 @@ abstract class EntityListViewModel<T : EntityModel>(
      * to be added in the appropriate Room dao
      */
     fun checkRelations(entityJsonString: String) {
-        RelationHelper.getRelations(getAssociatedTableName()).forEach { relation ->
+        RelationHelper.getRelations(getAssociatedTableName()).withoutAlias().forEach { relation ->
             JSONObject(entityJsonString).getSafeObject(relation.name)?.let { relatedJson ->
                 val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null)
                     JSONRelation(relatedJson, relation.dest, Relation.Type.MANY_TO_ONE)

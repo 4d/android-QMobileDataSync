@@ -12,6 +12,7 @@ import com.qmobile.qmobileapi.utils.Query
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
+import com.qmobile.qmobiledatasync.relation.RelationHelper.withoutAlias
 import org.json.JSONObject
 import kotlin.math.max
 
@@ -54,7 +55,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 
         // Adding relations
         if (BaseApp.runtimeDataHolder.relationAvailable) {
-            RelationHelper.getRelations(getAssociatedTableName()).forEach { relation ->
+            RelationHelper.getRelations(getAssociatedTableName()).withoutAlias().forEach { relation ->
                 put(relation.name, buildRelationQueryAndProperties(relation))
             }
         }

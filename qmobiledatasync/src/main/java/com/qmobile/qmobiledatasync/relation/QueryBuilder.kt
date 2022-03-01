@@ -18,81 +18,65 @@ object QueryBuilder {
         val path = relation.path.ifEmpty { relation.name }
         val pathList = path.split(".")
         val depth = pathList.size
-        val isAlias = depth > 1
-
-        val relationId = BaseApp.genericRelationHelper.getRelationId(relation.source, path.split(".")[0], entity) ?: ""
+        val hasDepth = pathList.size > 1
 
         val builder = StringBuilder("SELECT * FROM ${relation.dest} AS T${depth} WHERE ")
 
-        when {
-            isAlias -> {
-
-                if (relation.type == Relation.Type.MANY_TO_ONE) {
-                    builder.append(depthRelation(relation, pathList, 0, relationId))
-                } else {
-
-                }
-
+        if (hasDepth) {
+            builder.append(depthRelation(relation, pathList, 0, entity))
+            repeat(builder.count { it == '(' }) {
+                builder.append(" )")
             }
-            relation.type == Relation.Type.MANY_TO_ONE -> {
-
-                // Relation("Employee", "Service", "service", "employees", Relation.Type.MANY_TO_ONE),
-                builder.append("T1.__KEY = $relationId")
-            }
-            relation.type == Relation.Type.ONE_TO_MANY -> {
-
-                // Relation("Service", "Employee", "employees", "service", Relation.Type.ONE_TO_MANY),
-                builder.append("T1.__${relation.inverse}Key = ${entity.__KEY}")
-            }
+        } else {
+            builder.append(endCondition(relation, entity))
         }
 
-        if (relation.type == Relation.Type.MANY_TO_ONE)
+        if (relation.type == Relation.Type.MANY_TO_ONE) {
             builder.append(" LIMIT 1")
+        }
 
         return SimpleSQLiteQuery(builder.toString())
     }
 
-    private fun depthRelation(parentRelation: Relation, path: List<String>, depth: Int, relationId: String): String {
+    private fun depthRelation(parent: Relation, path: List<String>, depth: Int, entity: EntityModel): String {
 
-        val relation = RelationHelper.getRelation(parentRelation.source, path[depth])
+        val source = if (depth == 0) parent.source else parent.dest
+        val relation = RelationHelper.getRelation(source, path[depth])
 
         val query = StringBuilder()
 
         when (depth) {
             0 -> { // first
                 query.append("EXISTS ( ")
-                query.append(depthRelation(relation, path, depth + 1, relationId))
-                query.append(" )")
+                query.append(depthRelation(relation, path, depth + 1, entity))
+                query.append(" AND ")
+                query.append(endCondition(relation, entity))
             }
             path.size - 1 -> { // last
-                if (relation.type == Relation.Type.MANY_TO_ONE) {
-                    query.append(ManyToOne.addPart(relation, depth))
-                    if (depth == 1) {
-                        query.append(" AND T1.__KEY = $relationId")
-                    }
-                } else {
-                    query.append(ManyToOne.addPart(relation, depth))
-                    if (depth == 1) {
-                        query.append(" AND T1.__KEY = $relationId")
-                    }
-                }
+                query.append(partQuery(relation, depth))
             }
             else -> {
-                query.append(depthRelation(relation, path, depth + 1, relationId))
+                query.append(depthRelation(relation, path, depth + 1, entity))
                 query.append(" AND EXISTS ( ")
-                query.append(ManyToOne.addPart(relation, depth))
-                query.append(" )")
+                query.append(partQuery(relation, depth))
             }
         }
+
         return query.toString()
     }
 
-
-    object ManyToOne {
-
-        fun addPart(relation: Relation, depth: Int): String =
+    private fun partQuery(relation: Relation, depth: Int): String =
+        if (relation.type == Relation.Type.MANY_TO_ONE)
             "SELECT * FROM ${relation.source} AS T${depth} WHERE T${depth + 1}.__KEY = T${depth}.__${relation.name}Key"
+        else
+            "SELECT * FROM ${relation.source} AS T${depth} WHERE T${depth + 1}.__${relation.inverse}Key = T${depth}.__KEY"
 
+    private fun endCondition(relation: Relation, entity: EntityModel): String {
+        return if (relation.type == Relation.Type.MANY_TO_ONE) {
+            val relationId = BaseApp.genericRelationHelper.getRelationId(relation.source, relation.name, entity) ?: "-1"
+            "T1.__KEY = $relationId"
+        } else {
+            "T1.__${relation.inverse}Key = ${entity.__KEY}"
+        }
     }
-
 }

@@ -28,6 +28,8 @@ object RelationHelper {
     private fun getOneToManyRelations(source: String): List<Relation> =
         BaseApp.runtimeDataHolder.relations.filter { it.source == source && it.type == Relation.Type.ONE_TO_MANY }
 
+    fun List<Relation>.withoutAlias() = this.filter { it.path.isEmpty() }
+
     /**
      * Provides the relation map extracted from an entity
      */
@@ -35,25 +37,13 @@ object RelationHelper {
         val map = mutableMapOf<Relation, LiveData<List<RoomData>>>()
 
         getRelations(source).forEach { relation ->
-            createQuery(relation, entity)?.let { query ->
-                map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(query)
-            }
+            val query = QueryBuilder.createQuery(relation, entity)
+            map[relation] = BaseApp.daoProvider.getDao(relation.dest).getAll(query)
         }
         return map
     }
 
-    // TODO : alias à 3 niveaux
-//    Relation("Service", "Employee", "", "serviceManaged", Relation.Type.MANY_TO_ONE, "manager.service.manager"),
-//    Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service"),
-//    Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.employees.serviceManaged"),
-//    Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.manager.serviceManaged"),
-//    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service"),
-//    Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates"),
-//    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service"),
-//    Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates.employees")
-
-
-    private fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
+    /*private fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery? {
         val path = relation.path.ifEmpty { relation.name }
 
         val builder = StringBuilder("SELECT * FROM ${relation.dest} AS T1 WHERE ")
@@ -69,148 +59,134 @@ object RelationHelper {
                     ?: return null
 
 
-            if (relation.type == Relation.Type.MANY_TO_ONE) {
-                // Relation("Service", "Employee", "", "serviceManaged", Relation.Type.MANY_TO_ONE, "manager.service.manager"),
-                val sql = SimpleSQLiteQuery(
-                    "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                "T3.__KEY = T2.__${thirdRelation.name}Key " +
-                                "AND EXISTS ( " +
-                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                    "T2.__KEY = T1.__${secondRelation.name}Key AND" +
-                                "T1.__KEY = $relationId )" +
-                            ") LIMIT 1"
-                )
+            if (firstRelation.type == Relation.Type.MANY_TO_ONE) {
+                if (secondRelation.type == Relation.Type.MANY_TO_ONE) {
+                    if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
+                        // Relation("Service", "Employee", "", "serviceManaged", Relation.Type.MANY_TO_ONE, "manager.service.manager"),
+                        val sql = SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__KEY = T2.__${thirdRelation.name}Key " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__KEY = T1.__${secondRelation.name}Key " +
+                                    "AND T1.__KEY = $relationId " +
+                                    " ) ) LIMIT 1"
+                        )
 
-                // Relation("Employee", "Employee", "managerfromservice", "serviceManaged", Relation.Type.MANY_TO_ONE, "service.manager")
-                return SimpleSQLiteQuery(
-                    "SELECT * FROM ${relation.dest} AS T2 WHERE EXISTS ( " +
-                                "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                "T2.__KEY = T1.__${secondRelation.name}Key AND T1.__KEY = $relationId" +
-                            " ) LIMIT 1"
-                )
-            } else {
-                if (firstRelation.type == Relation.Type.MANY_TO_ONE) {
-
-                    if (secondRelation.type == Relation.Type.MANY_TO_ONE) {
-                        if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
-                            // already
-                        } else {
-                            // Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.manager.serviceManaged"),
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T3.__${thirdRelation.inverse}Key = T2.__KEY " +
-                                        "AND EXISTS ( " +
-                                        "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T2.__KEY = T1.__${secondRelation.name}Key AND" +
-                                        "T1.__KEY = $relationId )" +
-                                        ")"
-                            )
-                        }
-                    } else {
-                        if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
-                            // Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service"),
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T2.__${thirdRelation.name}Key = T3.__KEY " +
-                                        "AND EXISTS ( SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T1.__${secondRelation.inverse}Key = $relationId ) )"
-                            )
-                        } else {
-                            // Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.employees.serviceManaged"),
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T3.__${thirdRelation.inverse}Key = T2.__KEY " +
-                                        "AND EXISTS ( SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T1.__${secondRelation.inverse}Key = $relationId ) )"
-                            )
-                        }
-
-
-                        // Relation("Employee", "Employee", "employeesfromservice", "service", Relation.Type.ONE_TO_MANY, "service.employees"),
+                        // Relation("Employee", "Employee", "managerfromservice", "serviceManaged", Relation.Type.MANY_TO_ONE, "service.manager")
                         return SimpleSQLiteQuery(
                             "SELECT * FROM ${relation.dest} AS T2 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T2.__${secondRelation.inverse}Key = T1.__KEY AND T1.__KEY = $relationId" +
-                                    " )"
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__KEY = T1.__${secondRelation.name}Key " +
+                                    "AND T1.__KEY = $relationId" +
+                                    " ) LIMIT 1"
+                        )
+                    } else { // thirdRelation.type = Relation.Type.ONE_T0_MANY
+                        // Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.manager.serviceManaged"),
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__${thirdRelation.inverse}Key = T2.__KEY " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__KEY = T1.__${secondRelation.name}Key " +
+                                    "AND T1.__KEY = $relationId " +
+                                    " ) )"
                         )
                     }
-                } else {
-
-                    if (secondRelation.type == Relation.Type.MANY_TO_ONE) {
-
-                        if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
-                            //    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service"),
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T3.__KEY = T2.__${thirdRelation.name}Key " +
-                                        "AND EXISTS ( " +
-                                        "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T2.__KEY = T1.__${firstRelation.inverse}Key " +
-                                        "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )" +
-                                        ")"
-                            )
-                        } else {
-                            //    Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates"),
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T3.__${thirdRelation.inverse}Key = T2.__KEY  " +
-                                        "AND EXISTS ( " +
-                                        "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T2.__KEY = T1.__${firstRelation.inverse}Key " +
-                                        "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )" +
-                                        ")"
-                            )
-                        }
-
-                        // Relation("Service", "Employee", "managerfromemployees", "subordinates", Relation.Type.ONE_TO_MANY, "employees.manager"),
-                        return SimpleSQLiteQuery(
-                            "SELECT * FROM ${relation.dest} AS T2 WHERE " +
-                                    "EXISTS ( SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                    "T2.__KEY = T1.__${relation.inverse}Key " +
-                                    "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )"
+                } else { // secondRelation.type = Relation.Type.ONE_T0_MANY
+                    if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
+                        // Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service"),
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T2.__${thirdRelation.name}Key = T3.__KEY " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__${secondRelation.inverse}Key = T1.__KEY " +
+                                    "AND T1.__KEY = $relationId " +
+                                    " ) )"
                         )
-                    } else {
-
-                        if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
-                            //    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service"),
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T3.__KEY = T2.__${thirdRelation.name}Key " +
-                                        "AND EXISTS ( " +
-                                        "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T2.__${secondRelation.inverse}Key = T1.__KEY AND" +
-                                        "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )" +
-                                        ")"
-                            )
-                        } else {
-                            // Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates.employees")
-                            SimpleSQLiteQuery(
-                                "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
-                                        "SELECT * FROM ${thirdRelation.source} AS T2 WHERE " +
-                                        "T3.__${thirdRelation.inverse}Key = T2.__KEY " +
-                                        "AND EXISTS ( " +
-                                        "SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                        "T2.__${secondRelation.inverse}Key = T1.__KEY AND" +
-                                        "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )" +
-                                        ")"
-                            )
-                        }
-
-                        // Relation("Service", "Employee", "subordinatesromemployees", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates"),
-                        return SimpleSQLiteQuery(
-                            "SELECT * FROM ${relation.dest} AS T2 WHERE " +
-                                    "EXISTS ( SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
-                                    "T2.__${secondRelation.inverse}Key = T1.__KEY " +
-                                    "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )"
+                    } else { // thirdRelation.type = Relation.Type.ONE_T0_MANY
+                        // Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.employees.serviceManaged"),
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__${thirdRelation.inverse}Key = T2.__KEY " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__${secondRelation.inverse}Key = T1.__KEY " +
+                                    "AND T1.__KEY = $relationId " +
+                                    " ) )"
                         )
                     }
+
+
+                    // Relation("Employee", "Employee", "employeesfromservice", "service", Relation.Type.ONE_TO_MANY, "service.employees"),
+                    return SimpleSQLiteQuery(
+                        "SELECT * FROM ${relation.dest} AS T2 WHERE EXISTS ( " +
+                                "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__${secondRelation.inverse}Key = T1.__KEY " +
+                                "AND T1.__KEY = $relationId" +
+                                " )"
+                    )
+                }
+            } else { // firstRelation.type = Relation.Type.ONE_T0_MANY
+
+                if (secondRelation.type == Relation.Type.MANY_TO_ONE) {
+
+                    if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
+                        //    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service"),
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__KEY = T2.__${thirdRelation.name}Key " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__KEY = T1.__${secondRelation.name}Key " +
+                                    "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} " +
+                                    " ) )"
+                        )
+                    } else { // thirdRelation.type = Relation.Type.ONE_T0_MANY
+                        //    Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates"),
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__${thirdRelation.inverse}Key = T2.__KEY  " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__KEY = T1.__${secondRelation.name}Key " +
+                                    "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY}" +
+                                    " ) )"
+                        )
+                    }
+
+                    // Relation("Service", "Employee", "managerfromemployees", "subordinates", Relation.Type.ONE_TO_MANY, "employees.manager"),
+                    return SimpleSQLiteQuery(
+                        "SELECT * FROM ${relation.dest} AS T2 WHERE " +
+                                "EXISTS ( SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
+                                "T2.__KEY = T1.__${relation.inverse}Key " +
+                                "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} " +
+                                ")"
+                    )
+                } else { // secondRelation.type = Relation.Type.ONE_T0_MANY
+
+                    if (thirdRelation.type == Relation.Type.MANY_TO_ONE) {
+                        //    Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service"),
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__KEY = T2.__${thirdRelation.name}Key " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__${secondRelation.inverse}Key = T1.__KEY " +
+                                    "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} " +
+                                    " ) )"
+                        )
+                    } else { // thirdRelation.type = Relation.Type.ONE_T0_MANY
+                        // Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates.employees")
+                        SimpleSQLiteQuery(
+                            "SELECT * FROM ${relation.dest} AS T3 WHERE EXISTS ( " +
+                                    "SELECT * FROM ${thirdRelation.source} AS T2 WHERE T3.__${thirdRelation.inverse}Key = T2.__KEY " +
+                                    "AND EXISTS ( " +
+                                    "SELECT * FROM ${secondRelation.source} AS T1 WHERE T2.__${secondRelation.inverse}Key = T1.__KEY" +
+                                    "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} " +
+                                    " ) )"
+                        )
+                    }
+
+                    // Relation("Service", "Employee", "subordinatesromemployees", "manager", Relation.Type.ONE_TO_MANY, "employees.subordinates"),
+                    return SimpleSQLiteQuery(
+                        "SELECT * FROM ${relation.dest} AS T2 WHERE " +
+                                "EXISTS ( SELECT * FROM ${secondRelation.source} AS T1 WHERE " +
+                                "T2.__${secondRelation.inverse}Key = T1.__KEY " +
+                                "AND T1.__${firstRelation.inverse}Key = ${entity.__KEY} )"
+                    )
                 }
             }
         } else {
@@ -228,7 +204,7 @@ object RelationHelper {
                 )
             }
         }
-    }
+    }*/
 
     fun refreshOneToManyNavForNavbarTitle(
         source: String,
