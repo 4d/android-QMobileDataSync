@@ -20,7 +20,7 @@ object QueryBuilder {
         val depth = pathList.size
         val hasDepth = pathList.size > 1
 
-        val builder = StringBuilder("SELECT * FROM ${relation.dest} AS T${depth} WHERE ")
+        val builder = StringBuilder("SELECT * FROM ${relation.dest} AS T$depth WHERE ")
 
         if (hasDepth) {
             builder.append(depthRelation(relation, pathList, 0, entity))
@@ -67,9 +67,9 @@ object QueryBuilder {
 
     private fun partQuery(relation: Relation, depth: Int): String =
         if (relation.type == Relation.Type.MANY_TO_ONE)
-            "SELECT * FROM ${relation.source} AS T${depth} WHERE T${depth + 1}.__KEY = T${depth}.__${relation.name}Key"
+            "SELECT * FROM ${relation.source} AS T$depth WHERE T${depth + 1}.__KEY = T$depth.__${relation.name}Key"
         else
-            "SELECT * FROM ${relation.source} AS T${depth} WHERE T${depth + 1}.__${relation.inverse}Key = T${depth}.__KEY"
+            "SELECT * FROM ${relation.source} AS T$depth WHERE T${depth + 1}.__${relation.inverse}Key = T$depth.__KEY"
 
     private fun endCondition(relation: Relation, entity: EntityModel): String {
         return if (relation.type == Relation.Type.MANY_TO_ONE) {
