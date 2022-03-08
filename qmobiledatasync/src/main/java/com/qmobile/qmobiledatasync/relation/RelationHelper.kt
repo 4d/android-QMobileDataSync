@@ -9,6 +9,9 @@ package com.qmobile.qmobiledatasync.relation
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
+import com.qmobile.qmobileapi.utils.getSafeObject
+import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatasync.app.BaseApp
 
@@ -81,4 +84,11 @@ object RelationHelper {
             }
         }
     }
+
+    fun getRelationId(jsonString: String, relationName: String, fetchedFromRelation: Boolean): String? =
+        if (fetchedFromRelation)
+            retrieveJSONObject(jsonString)?.getSafeObject(relationName)?.getSafeObject("__deferred")
+                ?.getSafeString("__KEY")
+        else
+            retrieveJSONObject(jsonString)?.getSafeObject(relationName)?.getSafeString("__KEY")
 }
