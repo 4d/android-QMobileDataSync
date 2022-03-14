@@ -63,5 +63,5 @@ interface GenericNavigationResolver {
     /**
      * Navigates from action form to barcode scanner fragment
      */
-    fun navigateToActionScanner(viewDataBinding: ViewDataBinding)
+    fun navigateToActionScanner(viewDataBinding: ViewDataBinding, position: Int)
 }
