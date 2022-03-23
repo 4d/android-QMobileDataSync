@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import androidx.databinding.ViewDataBinding
+import androidx.fragment.app.FragmentActivity
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatastore.data.RoomData
 
@@ -76,8 +77,21 @@ interface GenericNavigationResolver {
         navBarTitle: String,
         inverseName: String,
         parentItemId: String,
-        fromRelation: Boolean
+        fromRelation: Boolean,
+    )
+
+    fun navigateFromPendingTasksToActionForm(
+        viewDataBinding: ViewDataBinding,
+        taskId: Long
     )
 
     fun navigateToBarCodeScanner(viewDataBinding: ViewDataBinding, position: Int)
+
+    fun navigateFromSettingsToTasks(fragmentActivity: FragmentActivity)
+    fun navigateToActionTasks(
+        fragmentActivity: FragmentActivity,
+        viewDataBinding: ViewDataBinding,
+        tableName: String,
+        currentItemId: String?
+    )
 }

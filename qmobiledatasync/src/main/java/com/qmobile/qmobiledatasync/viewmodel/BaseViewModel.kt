@@ -94,7 +94,7 @@ abstract class BaseViewModel<T : Any>(
                             toastMessage.showMessage(
                                 actionResponse.statusText,
                                 getAssociatedTableName(),
-                                MessageType.ERROR
+                                MessageType.NEUTRAL
                             )
                         }
                         onResult(actionResponse)
