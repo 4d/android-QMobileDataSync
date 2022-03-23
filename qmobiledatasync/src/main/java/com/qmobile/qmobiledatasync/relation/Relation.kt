@@ -6,6 +6,9 @@
 
 package com.qmobile.qmobiledatasync.relation
 
+import androidx.lifecycle.LiveData
+import com.qmobile.qmobiledatastore.data.RoomData
+
 data class Relation(
     val source: String,
     val dest: String,
@@ -21,4 +24,9 @@ data class Relation(
     enum class Type {
         ONE_TO_MANY, MANY_TO_ONE
     }
+
+    data class QueryResult(
+        val query: String,
+        val liveData: LiveData<List<RoomData>>
+    )
 }

@@ -143,8 +143,8 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Service AS T2 WHERE T3.__KEY = T2.__managerKey " +
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Service AS T2 WHERE T_FINAL.__KEY = T2.__managerKey " +
             "AND EXISTS ( " +
             "SELECT * FROM Employee AS T1 WHERE T2.__KEY = T1.__serviceKey " +
             "AND T1.__KEY = -1" +
@@ -159,8 +159,8 @@ class QueryBuilderTest {
             Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.manager.serviceManaged")
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__managerKey = T2.__KEY " +
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
             "AND EXISTS ( " +
             "SELECT * FROM Service AS T1 WHERE T2.__KEY = T1.__managerKey " +
             "AND T1.__KEY = -1" +
@@ -176,8 +176,8 @@ class QueryBuilderTest {
             Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service")
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__KEY = T2.__serviceKey " +
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__KEY = T2.__serviceKey " +
             "AND EXISTS ( " +
             "SELECT * FROM Service AS T1 WHERE T2.__serviceKey = T1.__KEY " +
             "AND T1.__KEY = -1" +
@@ -198,8 +198,8 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__managerKey = T2.__KEY " +
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
             "AND EXISTS ( " +
             "SELECT * FROM Service AS T1 WHERE T2.__serviceKey = T1.__KEY " +
             "AND T1.__KEY = -1" +
@@ -214,8 +214,8 @@ class QueryBuilderTest {
             Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service")
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__KEY = T2.__serviceKey " +
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__KEY = T2.__serviceKey " +
             "AND EXISTS ( " +
             "SELECT * FROM Employee AS T1 WHERE T2.__KEY = T1.__managerKey " +
             "AND T1.__serviceKey = ${entity.__KEY}" +
@@ -230,8 +230,8 @@ class QueryBuilderTest {
             Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates")
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__managerKey = T2.__KEY " +
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
             "AND EXISTS ( " +
             "SELECT * FROM Employee AS T1 WHERE T2.__KEY = T1.__managerKey " +
             "AND T1.__serviceKey = ${entity.__KEY}" +
@@ -246,8 +246,8 @@ class QueryBuilderTest {
             Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service")
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__KEY = T2.__serviceKey " +
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__KEY = T2.__serviceKey " +
             "AND EXISTS ( " +
             "SELECT * FROM Employee AS T1 WHERE T2.__managerKey = T1.__KEY " +
             "AND T1.__serviceKey = ${entity.__KEY}" +
@@ -268,8 +268,8 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T3 WHERE EXISTS ( " +
-            "SELECT * FROM Employee AS T2 WHERE T3.__managerKey = T2.__KEY " +
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
             "AND EXISTS ( " +
             "SELECT * FROM Employee AS T1 WHERE T2.__managerKey = T1.__KEY " +
             "AND T1.__serviceKey = ${entity.__KEY}" +
@@ -290,9 +290,9 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T2 WHERE " +
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE " +
             "EXISTS ( SELECT * FROM Employee AS T1 WHERE " +
-            "T2.__managerKey = T1.__KEY " +
+            "T_FINAL.__managerKey = T1.__KEY " +
             "AND T1.__serviceKey = ${entity.__KEY} )"
         Assert.assertEquals(expectation, query.sql)
     }
@@ -310,9 +310,9 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T2 WHERE " +
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE " +
             "EXISTS ( SELECT * FROM Employee AS T1 WHERE " +
-            "T2.__KEY = T1.__managerKey " +
+            "T_FINAL.__KEY = T1.__managerKey " +
             "AND T1.__serviceKey = ${entity.__KEY} " +
             ")"
         Assert.assertEquals(expectation, query.sql)
@@ -331,8 +331,8 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T2 WHERE EXISTS ( " +
-            "SELECT * FROM Service AS T1 WHERE T2.__serviceKey = T1.__KEY " +
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Service AS T1 WHERE T_FINAL.__serviceKey = T1.__KEY " +
             "AND T1.__KEY = -1" +
             " )"
         Assert.assertEquals(expectation, query.sql)
@@ -351,8 +351,8 @@ class QueryBuilderTest {
         )
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T2 WHERE EXISTS ( " +
-            "SELECT * FROM Service AS T1 WHERE T2.__KEY = T1.__managerKey " +
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
+            "SELECT * FROM Service AS T1 WHERE T_FINAL.__KEY = T1.__managerKey " +
             "AND T1.__KEY = -1" +
             " ) LIMIT 1"
         Assert.assertEquals(expectation, query.sql)
@@ -364,7 +364,7 @@ class QueryBuilderTest {
         val relation = Relation("Employee", "Service", "service", "employees", Relation.Type.MANY_TO_ONE)
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Service AS T1 WHERE T1.__KEY = -1 LIMIT 1"
+        val expectation = "SELECT * FROM Service AS T_FINAL WHERE T_FINAL.__KEY = -1 LIMIT 1"
         Assert.assertEquals(expectation, query.sql)
     }
 
@@ -374,7 +374,7 @@ class QueryBuilderTest {
         val relation = Relation("Service", "Employee", "employees", "service", Relation.Type.ONE_TO_MANY)
         val query = QueryBuilder.createQuery(relation, entity)
 
-        val expectation = "SELECT * FROM Employee AS T1 WHERE T1.__serviceKey = ${entity.__KEY}"
+        val expectation = "SELECT * FROM Employee AS T_FINAL WHERE T_FINAL.__serviceKey = ${entity.__KEY}"
         Assert.assertEquals(expectation, query.sql)
     }
 }

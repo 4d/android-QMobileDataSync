@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.relation
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.app.BaseApp
+import timber.log.Timber
 import java.lang.StringBuilder
 
 object QueryBuilder {
@@ -16,11 +17,14 @@ object QueryBuilder {
     fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery {
 
         val path = relation.path.ifEmpty { relation.name }
-        val pathList = path.split(".")
-        val depth = pathList.size
+        val newPath = RelationHelper.unAliasPath(path, relation.source)
+        Timber.d("newPath: $newPath")
+
+        val pathList = newPath.split(".")
+
         val hasDepth = pathList.size > 1
 
-        val builder = StringBuilder("SELECT * FROM ${relation.dest} AS T$depth WHERE ")
+        val builder = StringBuilder("SELECT * FROM ${relation.dest} AS T_FINAL WHERE ")
 
         if (hasDepth) {
             builder.append(depthRelation(relation, pathList, 0, entity))
@@ -28,7 +32,7 @@ object QueryBuilder {
                 builder.append(" )")
             }
         } else {
-            builder.append(endCondition(relation, entity))
+            builder.append(endCondition(relation, entity, true))
         }
 
         if (relation.type == Relation.Type.MANY_TO_ONE) {
@@ -50,33 +54,36 @@ object QueryBuilder {
                 query.append("EXISTS ( ")
                 query.append(depthRelation(relation, path, depth + 1, entity))
                 query.append(" AND ")
-                query.append(endCondition(relation, entity))
+                query.append(endCondition(relation, entity, false))
             }
             path.size - 1 -> { // last
-                query.append(partQuery(relation, depth))
+                query.append(partQuery(relation, depth, true))
             }
             else -> {
                 query.append(depthRelation(relation, path, depth + 1, entity))
                 query.append(" AND EXISTS ( ")
-                query.append(partQuery(relation, depth))
+                query.append(partQuery(relation, depth, false))
             }
         }
 
         return query.toString()
     }
 
-    private fun partQuery(relation: Relation, depth: Int): String =
-        if (relation.type == Relation.Type.MANY_TO_ONE)
-            "SELECT * FROM ${relation.source} AS T$depth WHERE T${depth + 1}.__KEY = T$depth.__${relation.name}Key"
+    private fun partQuery(relation: Relation, depth: Int, isFinal: Boolean): String {
+        val tName = if (isFinal) "T_FINAL" else "T${depth + 1}"
+        return if (relation.type == Relation.Type.MANY_TO_ONE)
+            "SELECT * FROM ${relation.source} AS T$depth WHERE $tName.__KEY = T$depth.__${relation.name}Key"
         else
-            "SELECT * FROM ${relation.source} AS T$depth WHERE T${depth + 1}.__${relation.inverse}Key = T$depth.__KEY"
+            "SELECT * FROM ${relation.source} AS T$depth WHERE $tName.__${relation.inverse}Key = T$depth.__KEY"
+    }
 
-    private fun endCondition(relation: Relation, entity: EntityModel): String {
+    private fun endCondition(relation: Relation, entity: EntityModel, isFinal: Boolean): String {
+        val tName = if (isFinal) "T_FINAL" else "T1"
         return if (relation.type == Relation.Type.MANY_TO_ONE) {
             val relationId = BaseApp.genericRelationHelper.getRelationId(relation.source, relation.name, entity) ?: "-1"
-            "T1.__KEY = $relationId"
+            "$tName.__KEY = $relationId"
         } else {
-            "T1.__${relation.inverse}Key = ${entity.__KEY}"
+            "$tName.__${relation.inverse}Key = ${entity.__KEY}"
         }
     }
 }
