@@ -92,20 +92,24 @@ object RelationHelper {
      * Replace path alias by their own path
      * Returns a Pair of <nextTableSource, path>
      */
-    private fun String.checkPath(source: String): Pair<String?, String> {
+    private fun checkPath(pathPart: String, source: String, depth: Int): Pair<String?, String> {
 
-        val relation = getRelationNullable(source, this)
+        val relation = getRelationNullable(source, pathPart)
 
         return when {
             relation == null -> Pair(null, "") // case service.Name
             relation.path.isNotEmpty() -> { // case service.alias
                 var composedPath = ""
                 relation.path.split(".").forEach { name ->
-                    composedPath = composedPath + "." + name.checkPath(relation.dest).second
+                    val dest = if (depth == 0) relation.source else relation.dest
+                    composedPath = if (composedPath.isEmpty())
+                        checkPath(name, dest, depth + 1).second
+                    else
+                        composedPath + "." + checkPath(name, dest, depth + 1).second
                 }
                 Pair(relation.dest, composedPath)
             }
-            else -> Pair(relation.dest, this) // case service
+            else -> Pair(relation.dest, pathPart) // case service
         }
     }
 
@@ -113,7 +117,7 @@ object RelationHelper {
         var nextTableName = source
         var newPath = ""
         path.split(".").forEach {
-            val pair = it.checkPath(nextTableName)
+            val pair = checkPath(it, nextTableName, 0)
             nextTableName = pair.first ?: ""
             newPath = if (newPath.isEmpty())
                 pair.second
@@ -151,6 +155,11 @@ object RelationHelper {
                 viewDataBinding = this,
                 relationName = relationName,
                 itemId = id
+            )
+        } ?: kotlin.run {
+            BaseApp.genericNavigationResolver.disableManyToOneRelationButton(
+                viewDataBinding = this,
+                relationName = relationName
             )
         }
     }

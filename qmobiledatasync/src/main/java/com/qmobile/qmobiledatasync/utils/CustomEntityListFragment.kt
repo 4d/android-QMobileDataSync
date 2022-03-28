@@ -10,5 +10,6 @@ import android.os.Bundle
 import android.view.View
 
 interface CustomEntityListFragment {
-    fun onViewCreated(view: View, savedInstanceState: Bundle?)
+    fun onActivityCreated(savedInstanceState: Bundle?) { }
+    fun onViewCreated(view: View, savedInstanceState: Bundle?) { }
 }

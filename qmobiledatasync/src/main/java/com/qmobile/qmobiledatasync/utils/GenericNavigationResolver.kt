@@ -44,6 +44,14 @@ interface GenericNavigationResolver {
     )
 
     /**
+     * Disable button as there is no relation value
+     */
+    fun disableManyToOneRelationButton(
+        viewDataBinding: ViewDataBinding,
+        relationName: String
+    )
+
+    /**
      * Navigates from list or detail form to action form
      */
     fun navigateToActionForm(
