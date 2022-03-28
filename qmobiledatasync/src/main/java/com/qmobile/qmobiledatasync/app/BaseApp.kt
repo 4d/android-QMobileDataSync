@@ -22,7 +22,6 @@ import java.util.Date
 const val MILLISECONDS_IN_SECONDS = 1000
 const val SECONDS_IN_MINUTE = 60
 
-
 open class BaseApp : MultiDexApplication() {
 
     companion object {
@@ -77,7 +76,6 @@ open class BaseApp : MultiDexApplication() {
             }
             return false
         }
-
     }
 
     override fun onCreate() {

@@ -82,7 +82,8 @@ interface GenericNavigationResolver {
 
     fun navigateFromPendingTasksToActionForm(
         viewDataBinding: ViewDataBinding,
-        taskId: Long
+        taskId: Long,
+        tableName: String
     )
 
     fun navigateToBarCodeScanner(viewDataBinding: ViewDataBinding, position: Int)

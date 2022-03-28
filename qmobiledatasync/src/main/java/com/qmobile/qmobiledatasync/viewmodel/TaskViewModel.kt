@@ -8,16 +8,20 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.qmobile.qmobiledatastore.dao.ActionTask
+import com.qmobile.qmobiledatastore.dao.ActionTaskDao
+import com.qmobile.qmobiledatasync.app.BaseApp
+import io.reactivex.Observable
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import timber.log.Timber
 
 class TaskViewModel(application: Application) :
     AndroidViewModel(application) {
 
-    init {
-        Timber.v("LoginViewModel initializing...")
-    }
+    private var actionTaskDao: ActionTaskDao = BaseApp.daoProvider.getActionTaskDao()
+    var disposable: CompositeDisposable = CompositeDisposable()
 
     /**
      * LiveData
@@ -28,5 +32,28 @@ class TaskViewModel(application: Application) :
 
     fun setLoading(isLoading: Boolean) {
         _dataLoading.value = isLoading
+    }
+
+    fun sendPendingTasks(
+        tasksToSend: List<ActionTask>,
+        uploadImagesCallBack: (ActionTask) -> Unit,
+        sendTaskCallBack: (ActionTask) -> Unit
+    ) {
+        disposable.add(
+            Observable.fromIterable(tasksToSend)
+                .subscribeOn(Schedulers.io())
+                .subscribe { task ->
+                    if (task.actionInfo.imagesToUpload.isNullOrEmpty()) {
+                        sendTaskCallBack(task)
+                    } else {
+                        uploadImagesCallBack(task)
+                    }
+                }
+        )
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposable.dispose()
     }
 }

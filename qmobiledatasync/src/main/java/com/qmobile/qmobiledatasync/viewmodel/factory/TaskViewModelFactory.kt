@@ -10,12 +10,15 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
+import com.qmobile.qmobiledatastore.dao.ActionTaskDao
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.viewmodel.TaskViewModel
 
 class TaskViewModelFactory(
     private val application: Application,
 ) : ViewModelProvider.NewInstanceFactory() {
+    private lateinit var actionTaskDao: ActionTaskDao
+
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return TaskViewModel(
