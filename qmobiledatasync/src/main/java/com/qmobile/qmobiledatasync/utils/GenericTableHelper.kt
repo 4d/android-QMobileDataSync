@@ -7,10 +7,15 @@
 package com.qmobile.qmobiledatasync.utils
 
 import android.app.Application
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
+import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 
@@ -77,4 +82,7 @@ interface GenericTableHelper {
      * inherited properties
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
+
+    fun getXxx(query: SupportSQLiteQuery): List<RoomData>
+//    fun getBidule(pagingConfig: PagingConfig, sqLiteQuery: SupportSQLiteQuery): Flow<PagingData<RoomData>>
 }

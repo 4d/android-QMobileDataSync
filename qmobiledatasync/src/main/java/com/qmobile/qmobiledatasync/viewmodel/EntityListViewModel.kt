@@ -12,6 +12,7 @@ import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
@@ -21,6 +22,7 @@ import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
+import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.JSONRelation
 import com.qmobile.qmobiledatasync.relation.Relation
@@ -96,6 +98,16 @@ abstract class EntityListViewModel<T : EntityModel>(
             .flatMapLatest { query ->
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
+
+//                BaseApp.genericTableHelper.getBidule(
+//                    pagingConfig = PagingConfig(
+//                        pageSize = DEFAULT_ROOM_PAGE_SIZE,
+//                        enablePlaceholders = false
+//                    ),
+//                    sqLiteQuery = query
+//                )
+
+
                 roomRepository.getAllPagingData(
                     sqLiteQuery = query,
                     pagingConfig = PagingConfig(
