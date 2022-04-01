@@ -11,7 +11,6 @@ import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
-import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.data.RoomEntity
 import com.qmobile.qmobiledatasync.app.BaseApp
 
@@ -42,28 +41,10 @@ object RelationHelper {
 
         getRelations(source).forEach { relation ->
             val query = QueryBuilder.createQuery(relation, entity)
-            map[relation] = Relation.QueryResult(query.sql, BaseApp.daoProvider.getDao(relation.dest).getAll(query))
+//            map[relation] = Relation.QueryResult(query.sql, BaseApp.daoProvider.getDao(relation.dest).getAll(query))
         }
         return map
     }
-
-//    fun refreshOneToManyNavForNavbarTitle(
-//        source: String,
-//        binding: ViewDataBinding,
-//        entity: EntityModel,
-//        anyRelatedEntity: RoomData
-//    ) {
-//        getOneToManyRelations(source).forEach { relation ->
-//            if (relation.name.contains(".")) {
-//                BaseApp.genericNavigationResolver.setupOneToManyRelationButtonOnClickAction(
-//                    viewDataBinding = binding,
-//                    relationName = relation.name,
-//                    entity = entity,
-//                    anyRelatedEntity = anyRelatedEntity
-//                )
-//            }
-//        }
-//    }
 
     fun setupRelationNavigation(source: String, binding: ViewDataBinding, entity: RoomEntity) {
         getOneToManyRelations(source).forEach { relation ->
@@ -148,29 +129,5 @@ object RelationHelper {
                 newPath + "." + partRelation.name
         }
         return newPath
-    }
-
-    fun ViewDataBinding.setupNavManyToOne(roomRelation: List<RoomEntity>, relationName: String) {
-//        (roomRelation.firstOrNull() as EntityModel?)?.__KEY?.let { id ->
-//            BaseApp.genericNavigationResolver.setupManyToOneRelationButtonOnClickAction(
-//                viewDataBinding = this,
-//                relationName = relationName,
-//                itemId = id
-//            )
-//        } ?: kotlin.run {
-//            BaseApp.genericNavigationResolver.disableManyToOneRelationButton(
-//                viewDataBinding = this,
-//                relationName = relationName
-//            )
-//        }
-    }
-
-    fun ViewDataBinding.setupNavOneToMany(query: String, relationName: String, entity: EntityModel) {
-//        BaseApp.genericNavigationResolver.setupOneToManyRelationButtonOnClickAction(
-//            viewDataBinding = this,
-//            relationName = relationName,
-//            entity = entity,
-//            query = query
-//        )
     }
 }

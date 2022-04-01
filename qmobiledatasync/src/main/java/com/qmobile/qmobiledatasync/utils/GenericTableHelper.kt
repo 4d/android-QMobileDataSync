@@ -7,16 +7,10 @@
 package com.qmobile.qmobiledatasync.utils
 
 import android.app.Application
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.sqlite.db.SupportSQLiteQuery
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
-import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
-import kotlinx.coroutines.flow.Flow
-import java.lang.reflect.Type
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 

@@ -7,7 +7,6 @@
 package com.qmobile.qmobiledatasync.relation
 
 import androidx.lifecycle.LiveData
-import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.data.RoomEntity
 
 data class Relation(
