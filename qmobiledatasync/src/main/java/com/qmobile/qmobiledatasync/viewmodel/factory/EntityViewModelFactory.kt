@@ -60,7 +60,8 @@ fun getEntityViewModel(
     itemId: String,
     apiService: ApiService
 ): EntityViewModel<EntityModel> {
-    val clazz = BaseApp.genericTableHelper.entityViewModelClassFromTable(tableName)
+//    val clazz = BaseApp.genericTableHelper.entityViewModelClassFromTable(tableName)
+    val clazz = EntityViewModel::class.java as Class<EntityViewModel<EntityModel>>
     viewModelStoreOwner?.run {
         return ViewModelProvider(
             this,

@@ -23,6 +23,7 @@ import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatastore.data.RoomData
+import com.qmobile.qmobiledatastore.data.RoomEntity
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.JSONRelation
 import com.qmobile.qmobiledatasync.relation.Relation
@@ -76,14 +77,14 @@ abstract class EntityListViewModel<T : EntityModel>(
         searchChanel.value = sqLiteQuery
     }
 
-    val entityListPagedListSharedFlow: SharedFlow<PagedList<T>> =
+    val entityListPagedListSharedFlow: SharedFlow<PagedList<RoomEntity>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest {
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
                 LivePagedListBuilder(
-                    roomRepository.getAllPagedList(it) as DataSource.Factory<Int, T>,
+                    roomRepository.getAllPagedList(it),
                     DEFAULT_ROOM_PAGE_SIZE
                 )
                     .build().asFlow()
@@ -92,21 +93,12 @@ abstract class EntityListViewModel<T : EntityModel>(
                 Timber.e(throwable.localizedMessage)
             }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
-    val entityListPagingDataFlow: Flow<PagingData<T>> =
+    val entityListPagingDataFlow: Flow<PagingData<RoomEntity>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest { query ->
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
-
-//                BaseApp.genericTableHelper.getBidule(
-//                    pagingConfig = PagingConfig(
-//                        pageSize = DEFAULT_ROOM_PAGE_SIZE,
-//                        enablePlaceholders = false
-//                    ),
-//                    sqLiteQuery = query
-//                )
-
 
                 roomRepository.getAllPagingData(
                     sqLiteQuery = query,
@@ -114,7 +106,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                         pageSize = DEFAULT_ROOM_PAGE_SIZE,
                         enablePlaceholders = false
                     )
-                ) as Flow<PagingData<T>>
+                )
             }.catch { throwable ->
                 Timber.e("Error while getting entityListPagingDataFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)

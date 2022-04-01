@@ -16,6 +16,7 @@ import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 import kotlinx.coroutines.flow.Flow
+import java.lang.reflect.Type
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 
@@ -68,7 +69,7 @@ interface GenericTableHelper {
     /**
      * Provides the appropriate EntityViewModel KClass
      */
-    fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
+//    fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
 
     /**
      * Uses Kotlin reflection to retrieve type properties
@@ -83,6 +84,5 @@ interface GenericTableHelper {
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
 
-    fun getXxx(query: SupportSQLiteQuery): List<RoomData>
-//    fun getBidule(pagingConfig: PagingConfig, sqLiteQuery: SupportSQLiteQuery): Flow<PagingData<RoomData>>
+//    fun getXxx(query: SupportSQLiteQuery): List<RoomData>
 }

@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.utils
 
 import androidx.databinding.ViewDataBinding
 import com.qmobile.qmobileapi.model.entity.EntityModel
+import com.qmobile.qmobiledatastore.data.RoomEntity
 
 /**
  * Interface providing different elements depending of the generated type
@@ -21,7 +22,9 @@ interface GenericNavigationResolver {
         viewDataBinding: ViewDataBinding,
         key: String,
         query: String,
-        destinationTable: String
+        destinationTable: String,
+        parentItemId: String,
+        inverseName: String
     )
 
     /**
@@ -30,8 +33,7 @@ interface GenericNavigationResolver {
     fun setupOneToManyRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        entity: EntityModel,
-        query: String
+        entity: RoomEntity
     )
 
     /**
@@ -40,16 +42,16 @@ interface GenericNavigationResolver {
     fun setupManyToOneRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        itemId: String
+        entity: RoomEntity
     )
 
     /**
      * Disable button as there is no relation value
      */
-    fun disableManyToOneRelationButton(
-        viewDataBinding: ViewDataBinding,
-        relationName: String
-    )
+//    fun disableManyToOneRelationButton(
+//        viewDataBinding: ViewDataBinding,
+//        relationName: String
+//    )
 
     /**
      * Navigates from list or detail form to action form

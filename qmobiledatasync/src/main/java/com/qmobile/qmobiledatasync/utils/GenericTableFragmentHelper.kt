@@ -24,10 +24,10 @@ interface GenericTableFragmentHelper {
     /**
      * Sets the appropriate EntityViewModel
      */
-    fun setEntityViewModel(
-        viewDataBinding: ViewDataBinding,
-        entityViewModel: EntityViewModel<EntityModel>
-    )
+//    fun setEntityViewModel(
+//        viewDataBinding: ViewDataBinding,
+//        entityViewModel: EntityViewModel<EntityModel>
+//    )
 
     /**
      * Provides the list form type
@@ -42,16 +42,16 @@ interface GenericTableFragmentHelper {
     /**
      * Sets relations to the appropriate list form
      */
-    fun setRelationBinding(
-        viewDataBinding: ViewDataBinding,
-        relationName: String,
-        data: Any
-    )
+//    fun setRelationBinding(
+//        viewDataBinding: ViewDataBinding,
+//        relationName: String,
+//        data: Any
+//    )
 
     /**
      * Reset relations as PagedListAdapter generates issue with relations
      */
-    fun unsetRelationBinding(viewDataBinding: ViewDataBinding)
+//    fun unsetRelationBinding(viewDataBinding: ViewDataBinding)
 
     /**
      * Provides drawable resources for custom formatters

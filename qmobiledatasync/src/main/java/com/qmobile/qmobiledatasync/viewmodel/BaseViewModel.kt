@@ -19,6 +19,7 @@ import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
 import com.qmobile.qmobiledatastore.data.RoomData
+import com.qmobile.qmobiledatastore.data.RoomEntity
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.ToastMessage
@@ -45,7 +46,7 @@ abstract class BaseViewModel<T : Any>(
      * DAO
      */
 
-    var dao: BaseDao<RoomData> = BaseApp.daoProvider.getDao(tableName)
+    var dao: BaseDao<RoomEntity, RoomData> = BaseApp.daoProvider.getDao(tableName)
 
     /**
      * Repositories
