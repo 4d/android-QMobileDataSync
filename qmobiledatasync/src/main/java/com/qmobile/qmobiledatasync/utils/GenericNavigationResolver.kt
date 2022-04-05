@@ -32,7 +32,7 @@ interface GenericNavigationResolver {
     fun setupOneToManyRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        entity: RoomEntity
+        roomEntity: RoomEntity
     )
 
     /**
@@ -41,7 +41,7 @@ interface GenericNavigationResolver {
     fun setupManyToOneRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        entity: RoomEntity
+        roomEntity: RoomEntity
     )
 
     /**

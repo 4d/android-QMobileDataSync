@@ -46,19 +46,19 @@ object RelationHelper {
         return map
     }
 
-    fun setupRelationNavigation(source: String, binding: ViewDataBinding, entity: RoomEntity) {
+    fun setupRelationNavigation(source: String, binding: ViewDataBinding, roomEntity: RoomEntity) {
         getOneToManyRelations(source).forEach { relation ->
             BaseApp.genericNavigationResolver.setupOneToManyRelationButtonOnClickAction(
                 viewDataBinding = binding,
                 relationName = relation.name,
-                entity = entity
+                roomEntity = roomEntity
             )
         }
         getManyToOneRelations(source).forEach { relation ->
             BaseApp.genericNavigationResolver.setupManyToOneRelationButtonOnClickAction(
                 viewDataBinding = binding,
                 relationName = relation.name,
-                entity = entity,
+                roomEntity = roomEntity,
             )
         }
     }
