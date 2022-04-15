@@ -88,10 +88,9 @@ interface GenericNavigationResolver {
 
     fun navigateToBarCodeScanner(viewDataBinding: ViewDataBinding, position: Int)
 
-    fun navigateFromSettingsToTasks(fragmentActivity: FragmentActivity)
     fun navigateToActionTasks(
         fragmentActivity: FragmentActivity,
-        viewDataBinding: ViewDataBinding,
+        viewDataBinding: ViewDataBinding?,
         tableName: String,
         currentItemId: String?
     )
