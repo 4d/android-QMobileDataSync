@@ -30,8 +30,6 @@ class TaskViewModelFactory(
 fun getTaskViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?
 ): TaskViewModel {
-    // We need this ViewModel to know when MainActivity has performed its $authenticate so that
-    // we don't trigger the initial sync if we are not authenticated yet
     viewModelStoreOwner?.run {
         return ViewModelProvider(
             this,

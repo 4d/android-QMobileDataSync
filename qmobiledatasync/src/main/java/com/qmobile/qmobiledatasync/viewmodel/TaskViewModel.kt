@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 class TaskViewModel(application: Application) :
     AndroidViewModel(application) {
 
-    private var actionTaskDao: ActionTaskDao = BaseApp.daoProvider.getActionTaskDao()
     var disposable: CompositeDisposable = CompositeDisposable()
 
     /**
