@@ -9,7 +9,6 @@ package com.qmobile.qmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.qmobile.qmobiledatastore.dao.ActionTask
-import com.qmobile.qmobiledatastore.dao.ActionTaskDao
 import com.qmobile.qmobiledatasync.app.BaseApp
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -28,6 +27,8 @@ class TaskViewModel(application: Application) :
 
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
+
+    val dao get() = BaseApp.daoProvider.getActionTaskDao()
 
     fun setLoading(isLoading: Boolean) {
         _dataLoading.value = isLoading
