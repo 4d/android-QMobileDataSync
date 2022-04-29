@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import com.qmobile.qmobileapi.model.entity.EntityModel
+import com.qmobile.qmobiledatastore.data.RoomEntity
 import com.qmobile.qmobiledatasync.relation.Relation
 
 /**
@@ -23,4 +24,9 @@ interface GenericRelationHelper {
      * Get relation Id for a given entity
      */
     fun getRelationId(tableName: String, relationName: String, entity: EntityModel): String?
+
+    /**
+     * Checks equality in 2 RoomEntities relations
+     */
+    fun relationsEquals(oldItem: RoomEntity, newItem: RoomEntity): Boolean
 }
