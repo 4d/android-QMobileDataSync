@@ -12,7 +12,7 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import timber.log.Timber
 import java.lang.StringBuilder
 
-object QueryBuilder {
+object RelationQueryBuilder {
 
     fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery {
 

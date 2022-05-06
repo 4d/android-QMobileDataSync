@@ -9,7 +9,7 @@ package com.qmobile.qmobiledatasync
 import android.os.Build
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.app.BaseApp
-import com.qmobile.qmobiledatasync.relation.QueryBuilder
+import com.qmobile.qmobiledatasync.relation.RelationQueryBuilder
 import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.utils.GenericRelationHelper
 import com.qmobile.qmobiledatasync.utils.RuntimeDataHolder
@@ -26,7 +26,7 @@ import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.P])
-class QueryBuilderTest {
+class RelationQueryBuilderTest {
 
     @Mock
     lateinit var entity: EntityModel
@@ -141,7 +141,7 @@ class QueryBuilderTest {
             Relation.Type.MANY_TO_ONE,
             "manager.service.manager"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Service AS T2 WHERE T_FINAL.__KEY = T2.__managerKey " +
@@ -157,7 +157,7 @@ class QueryBuilderTest {
 
         val relation =
             Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.manager.serviceManaged")
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
@@ -174,7 +174,7 @@ class QueryBuilderTest {
 
         val relation =
             Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service")
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__KEY = T2.__serviceKey " +
@@ -196,7 +196,7 @@ class QueryBuilderTest {
             Relation.Type.ONE_TO_MANY,
             "service.employees.serviceManaged"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
@@ -212,7 +212,7 @@ class QueryBuilderTest {
 
         val relation =
             Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service")
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__KEY = T2.__serviceKey " +
@@ -228,7 +228,7 @@ class QueryBuilderTest {
 
         val relation =
             Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates")
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
@@ -244,7 +244,7 @@ class QueryBuilderTest {
 
         val relation =
             Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service")
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__KEY = T2.__serviceKey " +
@@ -266,7 +266,7 @@ class QueryBuilderTest {
             Relation.Type.ONE_TO_MANY,
             "employees.subordinates.serviceManaged"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Employee AS T2 WHERE T_FINAL.__managerKey = T2.__KEY " +
@@ -288,7 +288,7 @@ class QueryBuilderTest {
             Relation.Type.ONE_TO_MANY,
             "employees.subordinates"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE " +
             "EXISTS ( SELECT * FROM Employee AS T1 WHERE " +
@@ -308,7 +308,7 @@ class QueryBuilderTest {
             Relation.Type.ONE_TO_MANY,
             "employees.manager"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE " +
             "EXISTS ( SELECT * FROM Employee AS T1 WHERE " +
@@ -329,7 +329,7 @@ class QueryBuilderTest {
             Relation.Type.ONE_TO_MANY,
             "service.employees"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Service AS T1 WHERE T_FINAL.__serviceKey = T1.__KEY " +
@@ -349,7 +349,7 @@ class QueryBuilderTest {
             Relation.Type.MANY_TO_ONE,
             "service.manager"
         )
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE EXISTS ( " +
             "SELECT * FROM Service AS T1 WHERE T_FINAL.__KEY = T1.__managerKey " +
@@ -362,7 +362,7 @@ class QueryBuilderTest {
     fun many_to_one() {
 
         val relation = Relation("Employee", "Service", "service", "employees", Relation.Type.MANY_TO_ONE)
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Service AS T_FINAL WHERE T_FINAL.__KEY = -1 LIMIT 1"
         Assert.assertEquals(expectation, query.sql)
@@ -372,7 +372,7 @@ class QueryBuilderTest {
     fun one_to_many() {
 
         val relation = Relation("Service", "Employee", "employees", "service", Relation.Type.ONE_TO_MANY)
-        val query = QueryBuilder.createQuery(relation, entity)
+        val query = RelationQueryBuilder.createQuery(relation, entity)
 
         val expectation = "SELECT * FROM Employee AS T_FINAL WHERE T_FINAL.__serviceKey = ${entity.__KEY}"
         Assert.assertEquals(expectation, query.sql)

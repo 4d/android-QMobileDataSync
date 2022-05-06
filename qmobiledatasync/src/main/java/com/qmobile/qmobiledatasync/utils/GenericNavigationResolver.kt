@@ -23,7 +23,8 @@ interface GenericNavigationResolver {
         query: String,
         destinationTable: String,
         parentItemId: String,
-        inverseName: String
+        parentTableName: String,
+        path: String
     )
 
     /**

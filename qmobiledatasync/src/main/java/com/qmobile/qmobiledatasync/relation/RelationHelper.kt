@@ -40,7 +40,7 @@ object RelationHelper {
         val map = mutableMapOf<Relation, Relation.QueryResult>()
 
         getRelations(source).forEach { relation ->
-            val query = QueryBuilder.createQuery(relation, entity)
+            val query = RelationQueryBuilder.createQuery(relation, entity)
 //            map[relation] = Relation.QueryResult(query.sql, BaseApp.daoProvider.getDao(relation.dest).getAll(query))
         }
         return map
