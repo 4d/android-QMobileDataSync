@@ -19,8 +19,6 @@ import com.qmobile.qmobiledatasync.utils.GenericTableHelper
 import com.qmobile.qmobiledatasync.utils.RuntimeDataHolder
 import java.util.Date
 
-const val MILLISECONDS_IN_SECONDS = 1000
-const val SECONDS_IN_MINUTE = 60
 
 open class BaseApp : MultiDexApplication() {
 
