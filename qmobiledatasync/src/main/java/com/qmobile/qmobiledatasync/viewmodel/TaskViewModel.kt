@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import com.qmobile.qmobiledatastore.dao.ActionTask
 import com.qmobile.qmobiledatasync.app.BaseApp
 import io.reactivex.Observable
@@ -50,6 +51,22 @@ class TaskViewModel(application: Application) :
                     }
                 }
         )
+    }
+
+    fun getAllTasks(): LiveData<List<ActionTask>> {
+      return dao.getAll()
+    }
+
+    suspend fun deleteById(id: Long){
+        dao.deleteById(id)
+    }
+
+     suspend fun deleteAll(){
+        dao.deleteAll()
+    }
+
+    suspend fun insertTask(actionTask: ActionTask): Long {
+        return dao.insert(actionTask)
     }
 
     override fun onCleared() {
