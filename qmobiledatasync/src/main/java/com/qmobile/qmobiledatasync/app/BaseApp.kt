@@ -17,8 +17,6 @@ import com.qmobile.qmobiledatasync.utils.GenericRelationHelper
 import com.qmobile.qmobiledatasync.utils.GenericTableFragmentHelper
 import com.qmobile.qmobiledatasync.utils.GenericTableHelper
 import com.qmobile.qmobiledatasync.utils.RuntimeDataHolder
-import java.util.Date
-
 
 open class BaseApp : MultiDexApplication() {
 
