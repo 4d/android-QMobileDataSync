@@ -42,9 +42,11 @@ private fun String.lowerCustomProperties() =
     if (this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP"))
         this
     else if (this.startsWith("__") && this.endsWith("Key"))
-        this.removeSuffix("Key").lowercase() + "Key"
+//        this.removeSuffix("Key").lowercase() + "Key"
+        this.removeSuffix("Key").replaceFirstChar { it.lowercaseChar() } + "Key"
     else
-        this.lowercase()
+//        this.lowercase()
+        this.replaceFirstChar { it.lowercaseChar() }
 
 private fun String.decapitalizeExceptID() =
     if (this == "ID") this.lowercase() else this.replaceFirstChar { it.lowercaseChar() }

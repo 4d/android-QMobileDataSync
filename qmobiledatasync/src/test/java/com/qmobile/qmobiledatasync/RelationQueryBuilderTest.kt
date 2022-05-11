@@ -9,8 +9,8 @@ package com.qmobile.qmobiledatasync
 import android.os.Build
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobiledatasync.app.BaseApp
-import com.qmobile.qmobiledatasync.relation.RelationQueryBuilder
 import com.qmobile.qmobiledatasync.relation.Relation
+import com.qmobile.qmobiledatasync.relation.RelationQueryBuilder
 import com.qmobile.qmobiledatasync.utils.GenericRelationHelper
 import com.qmobile.qmobiledatasync.utils.RuntimeDataHolder
 import io.mockk.mockkObject

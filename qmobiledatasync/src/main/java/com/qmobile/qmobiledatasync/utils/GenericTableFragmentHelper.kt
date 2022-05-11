@@ -20,14 +20,6 @@ interface GenericTableFragmentHelper {
     fun getDetailFragment(tableName: String): Fragment
 
     /**
-     * Sets the appropriate EntityViewModel
-     */
-//    fun setEntityViewModel(
-//        viewDataBinding: ViewDataBinding,
-//        entityViewModel: EntityViewModel<EntityModel>
-//    )
-
-    /**
      * Provides the list form type
      */
     fun layoutType(tableName: String): String

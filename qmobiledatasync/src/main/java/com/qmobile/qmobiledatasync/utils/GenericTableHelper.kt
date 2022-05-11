@@ -61,11 +61,6 @@ interface GenericTableHelper {
     fun entityListViewModelClassFromTable(tableName: String): Class<EntityListViewModel<EntityModel>>
 
     /**
-     * Provides the appropriate EntityViewModel KClass
-     */
-//    fun entityViewModelClassFromTable(tableName: String): Class<EntityViewModel<EntityModel>>
-
-    /**
      * Uses Kotlin reflection to retrieve type properties
      */
     fun <T : EntityModel> getReflectedProperties(
@@ -77,6 +72,4 @@ interface GenericTableHelper {
      * inherited properties
      */
     fun getPropertyListFromTable(tableName: String, application: Application): String
-
-//    fun getXxx(query: SupportSQLiteQuery): List<RoomData>
 }
