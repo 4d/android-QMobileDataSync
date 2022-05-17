@@ -43,7 +43,6 @@ open class RuntimeDataHolder(
     companion object {
 
         private const val DEFAULT_LOG_LEVEL = 4
-        private const val EMBEDDED_PICTURES_PARENT = "Assets.xcassets"
         private const val EMBEDDED_PICTURES = "Pictures"
         private const val JSON_EXT = ".json"
         const val PROPERTIES_PREFIX = "properties"
@@ -101,8 +100,7 @@ open class RuntimeDataHolder(
                 customFormatters = FieldMapping.buildCustomFormatterBinding(customFormattersJsonObj),
                 embeddedFiles = listAssetFiles(
                     application.baseContext,
-                    EMBEDDED_PICTURES_PARENT +
-                        File.separator + EMBEDDED_PICTURES
+                    EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
                 listActions = listActionsJsonObj,
                 currentRecordActions = detailsActionsJsonObj,
