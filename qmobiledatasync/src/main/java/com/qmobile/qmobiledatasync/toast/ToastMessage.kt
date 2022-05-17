@@ -17,6 +17,10 @@ import timber.log.Timber
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 
+/* DEPRECATED */
+/* Used for Address Action custom formatter */
+typealias MessageType = ToastMessage.Type
+
 class ToastMessage {
 
     enum class Type {
