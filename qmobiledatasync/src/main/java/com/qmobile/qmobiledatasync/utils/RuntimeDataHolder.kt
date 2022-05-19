@@ -20,7 +20,6 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject
 import timber.log.Timber
-import java.io.File
 
 open class RuntimeDataHolder(
     var initialGlobalStamp: Int,
