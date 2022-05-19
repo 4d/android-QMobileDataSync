@@ -7,8 +7,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import androidx.databinding.ViewDataBinding
-import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobiledatastore.data.RoomData
+import com.qmobile.qmobiledatastore.data.RoomEntity
 
 /**
  * Interface providing different elements depending of the generated type
@@ -23,61 +22,43 @@ interface GenericNavigationResolver {
         key: String,
         query: String,
         destinationTable: String,
-        currentItemId: String,
-        inverseName: String
-    )
-
-    /**
-     * Navigates from list form to another list form (One to Many relation)
-     */
-    fun setupOneToManyRelationButtonOnClickActionForCell(
-        viewDataBinding: ViewDataBinding,
-        relationName: String,
         parentItemId: String,
-        entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
-        anyRelatedEntity: RoomData? = null
+        parentTableName: String,
+        path: String
     )
 
     /**
-     * Navigates from list form to a detail form (Many to One relation)
+     * Navigates from list or detail form to a relation list form (One to Many relation)
      */
-    fun setupManyToOneRelationButtonOnClickActionForCell(
+    fun setupOneToManyRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        entity: EntityModel
+        roomEntity: RoomEntity
     )
 
     /**
-     * Navigates from detail form to a list form (One to Many relation)
+     * Navigates from list or detail form to a relation detail form (Many to One relation)
      */
-    fun setupOneToManyRelationButtonOnClickActionForDetail(
+    fun setupManyToOneRelationButtonOnClickAction(
         viewDataBinding: ViewDataBinding,
         relationName: String,
-        parentItemId: String,
-        entity: EntityModel, // if relationName contains ".", parentItemId is inverseName's key
-        anyRelatedEntity: RoomData? = null
+        roomEntity: RoomEntity
     )
 
     /**
-     * Navigates from detail form to another detail form (Many to One relation)
-     */
-    fun setupManyToOneRelationButtonOnClickActionForDetail(
-        viewDataBinding: ViewDataBinding,
-        relationName: String,
-        entity: EntityModel
-    )
-
-    /**
-     * Navigates from list form to action form
+     * Navigates from list or detail form to action form
      */
     fun navigateToActionForm(
         viewDataBinding: ViewDataBinding,
-        destinationTable: String,
-        navBarTitle: String,
-        inverseName: String,
+        tableName: String,
+        itemId: String,
+        relationName: String,
         parentItemId: String,
-        fromRelation: Boolean
+        navbarTitle: String
     )
 
-    fun navigateToBarCodeScanner(viewDataBinding: ViewDataBinding, position: Int)
+    /**
+     * Navigates from action form to barcode scanner fragment
+     */
+    fun navigateToActionScanner(viewDataBinding: ViewDataBinding, position: Int)
 }

@@ -11,7 +11,9 @@ import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import com.qmobile.qmobileapi.model.entity.Entities
 import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobiledatasync.relation.RelationHelper
+import com.qmobile.qmobileapi.utils.getSafeObject
+import com.qmobile.qmobiledatasync.utils.ReflectionUtils
+import org.json.JSONObject
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
@@ -60,7 +62,7 @@ class RelationHelperTest {
 
         properties.toList().forEach { property ->
 
-            val manyToOneRelation = RelationHelper.isManyToOneRelation(
+            val manyToOneRelation = ReflectionUtils.getManyToOneRelation(
                 property,
                 application,
                 tableNames
@@ -94,7 +96,7 @@ class RelationHelperTest {
 
         properties.toList().forEach { property ->
 
-            val oneToManyRelation = RelationHelper.isOneToManyRelation(
+            val oneToManyRelation = ReflectionUtils.getOneToManyRelation(
                 property,
                 application,
                 tableNames
@@ -111,30 +113,18 @@ class RelationHelperTest {
     @Test
     fun getRelatedEntity() {
         // Many to One relation
-        var jsonObject = RelationHelper.getRelatedEntity(
-            entityJsonString = employeeEntitiesString,
-            relationName = "service"
-        )
+        var jsonObject = JSONObject(employeeEntitiesString).getSafeObject("service")
         Assert.assertNotNull(jsonObject)
 
-        val subJsonObject = RelationHelper.getRelatedEntity(
-            entityJsonString = jsonObject.toString(),
-            relationName = "employees"
-        )
+        val subJsonObject = JSONObject(jsonObject.toString()).getSafeObject("employees")
         Assert.assertNotNull(subJsonObject)
 
         // One to Many relation
-        jsonObject = RelationHelper.getRelatedEntity(
-            entityJsonString = employeeEntitiesString,
-            relationName = "serviceManaged"
-        )
+        jsonObject = JSONObject(employeeEntitiesString).getSafeObject("serviceManaged")
         Assert.assertNotNull(jsonObject)
 
         // Unknown relationName
-        jsonObject = RelationHelper.getRelatedEntity(
-            entityJsonString = employeeEntitiesString,
-            relationName = "xxx"
-        )
+        jsonObject = JSONObject(employeeEntitiesString).getSafeObject("xxx")
         Assert.assertNull(jsonObject)
     }
 }

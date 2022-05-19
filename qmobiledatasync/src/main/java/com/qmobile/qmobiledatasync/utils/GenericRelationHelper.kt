@@ -6,10 +6,9 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-import android.app.Application
-import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobiledatastore.data.RoomRelation
+import com.qmobile.qmobiledatastore.data.RoomEntity
+import com.qmobile.qmobiledatasync.relation.Relation
 
 /**
  * Interface providing different elements depending of the generated type
@@ -17,44 +16,17 @@ import com.qmobile.qmobiledatastore.data.RoomRelation
 interface GenericRelationHelper {
 
     /**
-     * Retrieves the table name of a related field
+     * Returns the list of relations
      */
-    fun getRelatedTableName(sourceTableName: String, relationName: String): String
+    fun getRelations(): List<Relation>
 
     /**
-     * Retrieves the inverse relation name
+     * Get relation Id for a given entity
      */
-    fun getInverseRelationName(sourceTableName: String, relationName: String): String
+    fun getRelationId(tableName: String, relationName: String, entity: EntityModel): String?
 
     /**
-     * Provides the many to one relation map extracted from an entity
+     * Checks equality in 2 RoomEntities relations
      */
-    fun getManyToOneRelationsInfo(
-        tableName: String,
-        entity: EntityModel
-    ): Map<String, LiveData<RoomRelation>>
-
-    /**
-     * Provides the one to many relation map extracted from an entity
-     */
-    fun getOneToManyRelationsInfo(
-        tableName: String,
-        entity: EntityModel
-    ): Map<String, LiveData<RoomRelation>>
-
-    /**
-     * Returns list of table properties as a String, separated by commas, without EntityModel
-     * inherited properties
-     */
-    fun getPropertyListFromTable(tableName: String, application: Application): String
-
-    /**
-     * Provides the list of One to Many relations for given tableName
-     */
-    fun getOneToManyRelationNames(tableName: String): List<String>
-
-    /**
-     * Provides the list of Many to One relations for given tableName
-     */
-    fun getManyToOneRelationNames(tableName: String): List<String>
+    fun relationsEquals(oldItem: RoomEntity, newItem: RoomEntity): Boolean
 }

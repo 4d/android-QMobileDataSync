@@ -7,10 +7,13 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobileapi.model.queries.Query
 import com.qmobile.qmobileapi.utils.GLOBALSTAMP_PROPERTY
+import com.qmobile.qmobileapi.utils.Query
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
+import com.qmobile.qmobiledatasync.relation.RelationHelper
+import com.qmobile.qmobiledatasync.relation.RelationHelper.withoutAlias
+import com.qmobile.qmobiledatasync.utils.fieldAdjustment
 import org.json.JSONObject
 import kotlin.math.max
 
@@ -43,32 +46,31 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
     return JSONObject().apply {
         // Adding properties
         val properties = BaseApp.runtimeDataHolder.getTableProperty(getAssociatedTableName()).split(", ")
-        properties.forEach { property ->
-            if (!property.endsWith(Relation.SUFFIX) &&
-                !(property.startsWith("__") && property.endsWith("Key"))
-            ) {
-                put(property, true)
-            } // else is a relation
-        }
-
-        // Adding relations
-        if (BaseApp.runtimeDataHolder.relationAvailable) {
-            relations.forEach { relation ->
-                put(relation.relationName, buildRelationQueryAndProperties(relation))
-            }
+        properties.filter { !(it.startsWith("__") && it.endsWith("Key")) }.forEach { property ->
+            addProperty(getAssociatedTableName(), property)
         }
     }
 }
 
-private fun buildRelationQueryAndProperties(relation: Relation): JSONObject {
+private fun JSONObject.addProperty(tableName: String, property: String) {
+    if (!property.endsWith(Relation.SUFFIX))
+        put(property, true)
+    else if (BaseApp.runtimeDataHolder.relationAvailable)
+        RelationHelper.getRelations(tableName).withoutAlias()
+            .find { it.name == property.removeSuffix(Relation.SUFFIX).fieldAdjustment() }?.let {
+                put(property.removeSuffix(Relation.SUFFIX), buildRelationQueryAndProperties(it.dest))
+            }
+}
+
+private fun buildRelationQueryAndProperties(dest: String): JSONObject {
     return JSONObject().apply {
-        val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(relation.className).split(", ")
+        val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(dest).split(", ")
         relationProperties.filter { it.isNotEmpty() }.forEach { relationProperty ->
             if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
                 put(relationProperty.removeSuffix(Relation.SUFFIX), true)
             }
         }
-        val query: String = BaseApp.runtimeDataHolder.getQuery(relation.className)
+        val query: String = BaseApp.runtimeDataHolder.getQuery(dest)
         if (query.isNotEmpty()) {
             if (BaseApp.sharedPreferencesHolder.userInfo.isEmpty()) {
                 // XXX could dev assert here if query contains parameters but no userInfo

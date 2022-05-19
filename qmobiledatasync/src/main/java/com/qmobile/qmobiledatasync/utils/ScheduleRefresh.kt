@@ -9,6 +9,6 @@ package com.qmobile.qmobiledatasync.utils
 /**
  * Enum to tell when an adapter refresh is required (for cached image)
  */
-enum class ScheduleRefreshEnum {
+enum class ScheduleRefresh {
     NO, SCHEDULE, PERFORM
 }

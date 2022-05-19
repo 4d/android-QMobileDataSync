@@ -14,22 +14,22 @@ import androidx.lifecycle.LiveData
 import timber.log.Timber
 
 open class NetworkStateMonitor(private val connectivityManager: ConnectivityManager) :
-    LiveData<NetworkStateEnum>() {
+    LiveData<NetworkState>() {
 
     private val networkStateObject = object : ConnectivityManager.NetworkCallback() {
         override fun onLost(network: Network) {
             super.onLost(network)
-            postValue(NetworkStateEnum.CONNECTION_LOST)
+            postValue(NetworkState.CONNECTION_LOST)
         }
 
         override fun onUnavailable() {
             super.onUnavailable()
-            postValue(NetworkStateEnum.DISCONNECTED)
+            postValue(NetworkState.DISCONNECTED)
         }
 
         override fun onAvailable(network: Network) {
             super.onAvailable(network)
-            postValue(NetworkStateEnum.CONNECTED)
+            postValue(NetworkState.CONNECTED)
         }
     }
 
@@ -43,7 +43,7 @@ open class NetworkStateMonitor(private val connectivityManager: ConnectivityMana
         try {
             connectivityManager.unregisterNetworkCallback(networkStateObject)
         } catch (e: IllegalArgumentException) {
-            Timber.d(e.localizedMessage)
+            Timber.d(e.message.orEmpty())
             Timber.d("NetworkCallback for Wi-fi was not registered or already unregistered")
         }
     }

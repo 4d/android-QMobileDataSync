@@ -8,19 +8,20 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.AndroidViewModel
 import com.qmobile.qmobileapi.model.action.ActionResponse
-import com.qmobile.qmobileapi.model.action.UploadImageResponse
 import com.qmobile.qmobileapi.model.entity.DeletedRecord
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobileapi.repository.RestRepository
 import com.qmobile.qmobileapi.utils.DELETED_RECORDS
 import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
+import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatastore.dao.BaseDao
+import com.qmobile.qmobiledatastore.data.RoomData
+import com.qmobile.qmobiledatastore.data.RoomEntity
 import com.qmobile.qmobiledatastore.repository.RoomRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
-import com.qmobile.qmobiledatasync.toast.MessageType
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import okhttp3.RequestBody
 import org.json.JSONArray
@@ -45,13 +46,13 @@ abstract class BaseViewModel<T : Any>(
      * DAO
      */
 
-    var dao: BaseDao<T> = BaseApp.daoProvider.getDao(tableName)
+    var dao: BaseDao<RoomEntity, RoomData> = BaseApp.daoProvider.getDao(tableName)
 
     /**
      * Repositories
      */
 
-    val roomRepository: RoomRepository<T> = RoomRepository(dao)
+    val roomRepository: RoomRepository<RoomData> = RoomRepository(dao)
     var restRepository: RestRepository =
         RestRepository(originalAssociatedTableName, apiService)
 
@@ -88,13 +89,13 @@ abstract class BaseViewModel<T : Any>(
                             toastMessage.showMessage(
                                 actionResponse.statusText,
                                 getAssociatedTableName(),
-                                MessageType.SUCCESS
+                                ToastMessage.Type.SUCCESS
                             )
                         } else {
                             toastMessage.showMessage(
                                 actionResponse.statusText,
                                 getAssociatedTableName(),
-                                MessageType.ERROR
+                                ToastMessage.Type.ERROR
                             )
                         }
                         onResult(actionResponse)
@@ -102,10 +103,10 @@ abstract class BaseViewModel<T : Any>(
                 }
             } else {
                 response?.let {
-                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                    toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                 }
                 error?.let {
-                    toastMessage.showMessage(it, getAssociatedTableName(), MessageType.ERROR)
+                    toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                 }
             }
         }
@@ -118,16 +119,22 @@ abstract class BaseViewModel<T : Any>(
     ) {
         restRepository.uploadImage(
             imagesToUpload,
-            { parameterName, response ->
-                if (response.isSuccessful) {
-                    val body = response.body()?.string()
-                    body?.let {
-                        retrieveResponseObject<UploadImageResponse>(
-                            BaseApp.mapper,
-                            it
-                        )?.let { response ->
-                            onImageUploaded(parameterName, response.id)
+            { isSuccess, parameterName, response, error ->
+                if (isSuccess) {
+                    response?.body()?.let { responseBody ->
+
+                        retrieveJSONObject(responseBody.string())?.let { responseJson ->
+                            responseJson.getSafeString("ID")?.let { id ->
+                                onImageUploaded(parameterName, id)
+                            }
                         }
+                    }
+                } else {
+                    response?.let {
+                        toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
+                    }
+                    error?.let {
+                        toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                     }
                 }
             }
