@@ -40,6 +40,7 @@ dependencies {
     implementation Libs.androidx_room_runtime
     kapt Libs.androidx_room_compiler
     implementation Libs.sqlite
+    implementation Libs.room_paging
 
     // Paging
     implementation Libs.androidx_paging3
@@ -58,6 +59,7 @@ dependencies {
     testImplementation Libs.kotlin_coroutines_test
     testImplementation Libs.lifecycle_testing
     testImplementation Libs.mockito
+    testImplementation Libs.mockk
     testImplementation Libs.robolectric
 }
 

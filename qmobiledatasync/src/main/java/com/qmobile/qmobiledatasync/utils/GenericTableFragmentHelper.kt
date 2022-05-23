@@ -8,8 +8,6 @@ package com.qmobile.qmobiledatasync.utils
 
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 
 /**
  * Interface providing different elements depending of the generated type
@@ -22,14 +20,6 @@ interface GenericTableFragmentHelper {
     fun getDetailFragment(tableName: String): Fragment
 
     /**
-     * Sets the appropriate EntityViewModel
-     */
-    fun setEntityViewModel(
-        viewDataBinding: ViewDataBinding,
-        entityViewModel: EntityViewModel<EntityModel>
-    )
-
-    /**
      * Provides the list form type
      */
     fun layoutType(tableName: String): String
@@ -38,20 +28,6 @@ interface GenericTableFragmentHelper {
      * Provides if horizontal swipe on items is allowed
      */
     fun isSwipeAllowed(tableName: String): Boolean
-
-    /**
-     * Sets relations to the appropriate list form
-     */
-    fun setRelationBinding(
-        viewDataBinding: ViewDataBinding,
-        relationName: String,
-        relatedEntity: Any
-    )
-
-    /**
-     * Reset relations as PagedListAdapter generates issue with relations
-     */
-    fun unsetRelationBinding(viewDataBinding: ViewDataBinding)
 
     /**
      * Provides drawable resources for custom formatters

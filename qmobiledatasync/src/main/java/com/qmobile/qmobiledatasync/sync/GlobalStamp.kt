@@ -13,6 +13,7 @@ data class GlobalStamp(
     val stampValue: Int,
     val dataSyncProcess: Boolean
 ) {
+    @Suppress("EqualsAlwaysReturnsTrueOrFalse")
     override fun equals(other: Any?): Boolean {
         return false
     }

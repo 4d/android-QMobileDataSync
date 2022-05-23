@@ -17,17 +17,30 @@ import timber.log.Timber
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 
+/* DEPRECATED */
+/* Used for Address Action custom formatter */
+typealias MessageType = ToastMessage.Type
+
 class ToastMessage {
 
-    private val _message = MutableSharedFlow<Event<ToastMessageHolder>>(replay = 1)
-    val message: SharedFlow<Event<ToastMessageHolder>> = _message
-
-    fun emitMessage(message: String, type: MessageType) {
-        _message.tryEmit(Event(ToastMessageHolder(message, type)))
+    enum class Type {
+        NEUTRAL, SUCCESS, WARNING, ERROR
     }
 
-    fun showMessage(entry: Any?, info: String?, type: MessageType = MessageType.NEUTRAL) {
-        Timber.e("Error for $info: $entry")
+    data class Holder(
+        val message: String,
+        val type: Type
+    )
+
+    private val _message = MutableSharedFlow<Event<Holder>>(replay = 1)
+    val message: SharedFlow<Event<Holder>> = _message
+
+    fun emitMessage(message: String, type: Type) {
+        _message.tryEmit(Event(Holder(message, type)))
+    }
+
+    fun showMessage(entry: Any?, info: String?, type: Type = Type.NEUTRAL) {
+        Timber.d("Message for $info: $entry")
         when (entry) {
             is String -> {
                 emitMessage(entry, type)
@@ -41,7 +54,7 @@ class ToastMessage {
         }
     }
 
-    private fun handleErrorResponse(entry: Response<*>, info: String?, type: MessageType) {
+    private fun handleErrorResponse(entry: Response<*>, info: String?, type: Type) {
         // val errorbody = InputStreamReader(error.errorBody()!!.byteStream())
         // errorbody.readLines()
 
@@ -63,7 +76,7 @@ class ToastMessage {
         }
 
         if (message.isNotEmpty()) {
-            emitMessage(message, MessageType.WARNING)
+            emitMessage(message, Type.WARNING)
         } else {
             HttpCode.reason(code)?.let { reason ->
                 message = "$reason ($code)"
@@ -74,7 +87,7 @@ class ToastMessage {
         }
     }
 
-    private fun handleErrorThrowable(entry: Throwable, type: MessageType) {
+    private fun handleErrorThrowable(entry: Throwable, type: Type) {
         if (entry is SocketTimeoutException) {
             emitMessage(HttpCode.message(HttpCode.requestTimeout), type)
         } else {

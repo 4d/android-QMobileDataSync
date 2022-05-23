@@ -6,13 +6,27 @@
 
 package com.qmobile.qmobiledatasync.relation
 
-data class Relation(
-    val relationName: String,
-    val className: String,
-    val relationType: RelationTypeEnum
-) {
+import androidx.lifecycle.LiveData
+import com.qmobile.qmobiledatastore.data.RoomEntity
 
+data class Relation(
+    val source: String,
+    val dest: String,
+    val name: String,
+    val inverse: String,
+    val type: Type,
+    val path: String = ""
+) {
     companion object {
         const val SUFFIX = ".*"
     }
+
+    enum class Type {
+        ONE_TO_MANY, MANY_TO_ONE
+    }
+
+    data class QueryResult(
+        val query: String,
+        val liveData: LiveData<List<RoomEntity>>
+    )
 }

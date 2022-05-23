@@ -18,17 +18,17 @@ import com.qmobile.qmobileapi.utils.UTF8
 import com.qmobile.qmobileapi.utils.getObjectListAsString
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeInt
-import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.retrieveJSONObject
+import com.qmobile.qmobiledatastore.data.RoomEntity
 import com.qmobile.qmobiledatasync.app.BaseApp
-import com.qmobile.qmobiledatasync.relation.ManyToOneRelation
-import com.qmobile.qmobiledatasync.relation.OneToManyRelation
+import com.qmobile.qmobiledatasync.relation.JSONRelation
 import com.qmobile.qmobiledatasync.relation.Relation
 import com.qmobile.qmobiledatasync.relation.RelationHelper
-import com.qmobile.qmobiledatasync.relation.RelationTypeEnum
-import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
+import com.qmobile.qmobiledatasync.relation.RelationHelper.withoutAlias
+import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
-import com.qmobile.qmobiledatasync.utils.ScheduleRefreshEnum
+import com.qmobile.qmobiledatasync.utils.ScheduleRefresh
 import com.qmobile.qmobiledatasync.utils.getViewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -60,8 +60,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         private const val DEFAULT_REST_PAGE_SIZE = 50
     }
 
-    val relations = RelationHelper.getRelationList<T>(tableName)
-
     val coroutineScope = getViewModelScope()
 
     /**
@@ -76,25 +74,29 @@ abstract class EntityListViewModel<T : EntityModel>(
         searchChanel.value = sqLiteQuery
     }
 
-    val entityListPagedListSharedFlow: SharedFlow<PagedList<T>> =
+    val entityListPagedListSharedFlow: SharedFlow<PagedList<RoomEntity>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest {
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
-                LivePagedListBuilder(roomRepository.getAllPagedList(it), DEFAULT_ROOM_PAGE_SIZE)
+                LivePagedListBuilder(
+                    roomRepository.getAllPagedList(it),
+                    DEFAULT_ROOM_PAGE_SIZE
+                )
                     .build().asFlow()
             }.catch { throwable ->
                 Timber.e("Error while getting entityListPagedListSharedFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
             }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
-    val entityListPagingDataFlow: Flow<PagingData<T>> =
+    val entityListPagingDataFlow: Flow<PagingData<RoomEntity>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest { query ->
                 // We use flatMapLatest as we don't want flows of flows and
                 // we only want to query the latest searched string.
+
                 roomRepository.getAllPagingData(
                     sqLiteQuery = query,
                     pagingConfig = PagingConfig(
@@ -110,21 +112,18 @@ abstract class EntityListViewModel<T : EntityModel>(
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    private val _dataSynchronized = MutableStateFlow(DataSyncStateEnum.UNSYNCHRONIZED)
-    open val dataSynchronized: StateFlow<DataSyncStateEnum> = _dataSynchronized
+    private val _dataSynchronized = MutableStateFlow(DataSync.State.UNSYNCHRONIZED)
+    open val dataSynchronized: StateFlow<DataSync.State> = _dataSynchronized
 
     private val _globalStamp =
         MutableStateFlow(newGlobalStamp(BaseApp.sharedPreferencesHolder.globalStamp))
     open val globalStamp: StateFlow<GlobalStamp> = _globalStamp
 
-    private val _scheduleRefresh = MutableStateFlow(ScheduleRefreshEnum.NO)
-    val scheduleRefresh: StateFlow<ScheduleRefreshEnum> = _scheduleRefresh
+    private val _scheduleRefresh = MutableStateFlow(ScheduleRefresh.NO)
+    val scheduleRefresh: StateFlow<ScheduleRefresh> = _scheduleRefresh
 
-    private val _newRelatedEntity = MutableSharedFlow<ManyToOneRelation>(replay = 1)
-    val newRelatedEntity: SharedFlow<ManyToOneRelation> = _newRelatedEntity
-
-    private val _newRelatedEntities = MutableSharedFlow<OneToManyRelation>(replay = 1)
-    val newRelatedEntities: SharedFlow<OneToManyRelation> = _newRelatedEntities
+    private val _jsonRelation = MutableSharedFlow<JSONRelation>(replay = 1)
+    val jsonRelation: SharedFlow<JSONRelation> = _jsonRelation
 
     open val isToSync = AtomicBoolean(false)
 
@@ -253,6 +252,8 @@ abstract class EntityListViewModel<T : EntityModel>(
                 parsedList.add(it)
                 if (!fetchedFromRelation)
                     checkRelations(entityJsonString)
+                else
+                    Timber.d("Entity extracted from relation")
             }
         }
         this.insertAll(parsedList)
@@ -263,71 +264,25 @@ abstract class EntityListViewModel<T : EntityModel>(
      * to be added in the appropriate Room dao
      */
     fun checkRelations(entityJsonString: String) {
-        relations.forEach { relation ->
-            RelationHelper.getRelatedEntity(entityJsonString, relation.relationName)
-                ?.let { relatedJson ->
-                    if (relation.relationType == RelationTypeEnum.MANY_TO_ONE) {
-                        emitManyToOneRelation(relation, relatedJson)
-                    } else { // relationType == ONE_TO_MANY
-                        checkOneToManyRelation(relatedJson)
-                    }
-                }
-        }
-    }
-
-    private fun emitManyToOneRelation(relation: Relation, relatedJson: JSONObject) {
-        _newRelatedEntity.tryEmit(
-            ManyToOneRelation(
-                entity = relatedJson,
-                className = relation.className
-            )
-        )
-    }
-
-    private fun checkOneToManyRelation(relatedJson: JSONObject) {
-        if (relatedJson.getSafeInt("__COUNT") ?: 0 > 0) {
-            relatedJson.getSafeString("__DATACLASS")?.let { dataClass ->
-                relatedJson.getSafeArray("__ENTITIES")?.let { entities ->
-                    emitOneToManyRelation(entities, dataClass)
-                }
+        RelationHelper.getRelations(getAssociatedTableName()).withoutAlias().forEach { relation ->
+            JSONObject(entityJsonString).getSafeObject(relation.name)?.let { relatedJson ->
+                val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null)
+                    JSONRelation(relatedJson, relation.dest, Relation.Type.MANY_TO_ONE)
+                else
+                    JSONRelation(relatedJson, relation.dest, Relation.Type.ONE_TO_MANY)
+                _jsonRelation.tryEmit(jsonRelation)
             }
         }
     }
 
-    private fun emitOneToManyRelation(entities: JSONArray, dataClass: String) {
-        _newRelatedEntities.tryEmit(
-            OneToManyRelation(
-                entities = entities,
-                className = dataClass.filter { !it.isWhitespace() }
-            )
-        )
+    fun insertRelation(jsonRelation: JSONRelation) {
+        if (jsonRelation.type == Relation.Type.ONE_TO_MANY)
+            jsonRelation.getEntities().forEach { this.insert(it) }
+        else
+            jsonRelation.getEntity()?.let { this.insert(it) }
     }
 
-    fun insertNewRelatedEntity(manyToOneRelation: ManyToOneRelation) {
-        val entity = BaseApp.genericTableHelper.parseEntityFromTable(
-            tableName = manyToOneRelation.className,
-            jsonString = manyToOneRelation.entity.toString(),
-            fetchedFromRelation = true
-        )
-        entity?.let {
-            this.insert(entity)
-        }
-    }
-
-    fun insertNewRelatedEntities(oneToManyRelation: OneToManyRelation) {
-        oneToManyRelation.entities.getObjectListAsString().forEach { entityString ->
-            val entity = BaseApp.genericTableHelper.parseEntityFromTable(
-                tableName = oneToManyRelation.className,
-                jsonString = entityString,
-                fetchedFromRelation = true
-            )
-            entity?.let {
-                this.insert(entity)
-            }
-        }
-    }
-
-    fun setDataSyncState(state: DataSyncStateEnum) {
+    fun setDataSyncState(state: DataSync.State) {
         _dataSynchronized.value = state
     }
 
@@ -335,7 +290,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         _dataLoading.value = startLoading
     }
 
-    fun setScheduleRefreshState(scheduleRefresh: ScheduleRefreshEnum) {
+    fun setScheduleRefreshState(scheduleRefresh: ScheduleRefresh) {
         _scheduleRefresh.value = scheduleRefresh
     }
 
@@ -343,7 +298,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         GlobalStamp(
             tableName = this.getAssociatedTableName(),
             stampValue = globalStamp,
-            dataSyncProcess = this.dataSynchronized.value == DataSyncStateEnum.SYNCHRONIZING ||
-                this.dataSynchronized.value == DataSyncStateEnum.RESYNC
+            dataSyncProcess = this.dataSynchronized.value == DataSync.State.SYNCHRONIZING ||
+                this.dataSynchronized.value == DataSync.State.RESYNC
         )
 }

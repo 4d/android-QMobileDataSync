@@ -10,21 +10,17 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.testing.TestLifecycleOwner
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatasync.sync.DataSync
-import com.qmobile.qmobiledatasync.sync.DataSyncStateEnum
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.resetIsToSync
+import com.qmobile.qmobiledatasync.utils.launchAndCollectIn
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -74,7 +70,8 @@ class DataSyncTest {
     private val sourceIntOffice: StateFlow<GlobalStamp> = _sourceIntOffice
 
     // Custom closures
-    private lateinit var setupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit
+//    private lateinit var setupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit
+    private lateinit var setupObservableClosure: (suspend CoroutineScope.(value: GlobalStamp) -> Unit) -> Unit
     private lateinit var syncClosure: (EntityListViewModel<*>, Boolean) -> Unit
     private lateinit var successfulSyncClosure: (Int) -> Unit
     private lateinit var unsuccessfulSyncClosure: () -> Unit
@@ -270,7 +267,7 @@ class DataSyncTest {
 
         entityListViewModelList.forEach {
             Mockito.`when`(it.dataSynchronized)
-                .thenReturn(MutableStateFlow(DataSyncStateEnum.SYNCHRONIZING))
+                .thenReturn(MutableStateFlow(DataSync.State.SYNCHRONIZING))
         }
 
         Mockito.`when`(sharedPreferencesHolder.globalStamp).thenReturn(sharedPreferencesGlobalStamp)
@@ -280,12 +277,13 @@ class DataSyncTest {
 
         entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
             val owner = TestLifecycleOwner(Lifecycle.State.STARTED, TestCoroutineDispatcher())
-            owner.lifecycleScope.launch {
-                delay(0L)
-                owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    stateFlow.collect(dataSync.globalStampObserver)
-                }
-            }
+            stateFlow.launchAndCollectIn(owner, Lifecycle.State.STARTED, dataSync.globalStampObserver)
+//            owner.lifecycleScope.launch {
+//                delay(0L)
+//                owner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+//                    stateFlow.collect(dataSync.globalStampObserver)
+//                }
+//            }
         }
     }
 
