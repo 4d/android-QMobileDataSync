@@ -77,7 +77,7 @@ interface GenericNavigationResolver {
         navBarTitle: String,
         inverseName: String,
         parentItemId: String,
-        fromRelation: Boolean,
+        fromRelation: Boolean
     )
 
     fun navigateFromPendingTasksToActionForm(
