@@ -8,8 +8,6 @@ package com.qmobile.qmobiledatasync.utils
 
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.FragmentActivity
-import com.qmobile.qmobileapi.model.entity.EntityModel
-import com.qmobile.qmobiledatastore.data.RoomData
 import com.qmobile.qmobiledatastore.data.RoomEntity
 
 /**

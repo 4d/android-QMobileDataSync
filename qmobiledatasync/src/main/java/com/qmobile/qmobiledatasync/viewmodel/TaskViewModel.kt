@@ -54,14 +54,14 @@ class TaskViewModel(application: Application) :
     }
 
     fun getAllTasks(): LiveData<List<ActionTask>> {
-      return dao.getAll()
+        return dao.getAll()
     }
 
-    suspend fun deleteById(id: Long){
+    suspend fun deleteById(id: Long) {
         dao.deleteById(id)
     }
 
-     suspend fun deleteAll(){
+    suspend fun deleteAll() {
         dao.deleteAll()
     }
 
