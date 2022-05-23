@@ -95,7 +95,7 @@ abstract class BaseViewModel<T : Any>(
                             toastMessage.showMessage(
                                 actionResponse.statusText,
                                 getAssociatedTableName(),
-                                MessageType.NEUTRAL
+                                ToastMessage.Type.NEUTRAL
                             )
                         }
                         onResult(actionResponse)
