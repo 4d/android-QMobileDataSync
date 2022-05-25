@@ -21,6 +21,9 @@ import kotlinx.coroutines.launch
 class TaskViewModel(application: Application) :
     AndroidViewModel(application) {
 
+    private val dao = BaseApp.daoProvider.getActionTaskDao()
+    private val pendingTaskRepository = PendingTaskRepository(dao)
+
     private val _pendingTasks = MutableLiveData<List<ActionTask>>().apply {
         dao.getAllPending()
     }
@@ -35,9 +38,6 @@ class TaskViewModel(application: Application) :
 
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
-
-    private val dao = BaseApp.daoProvider.getActionTaskDao()
-    private val pendingTaskRepository = PendingTaskRepository(dao)
 
     fun setLoading(isLoading: Boolean) {
         _dataLoading.value = isLoading
