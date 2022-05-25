@@ -9,7 +9,6 @@ package com.qmobile.qmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.qmobile.qmobiledatastore.dao.ActionTask
 import com.qmobile.qmobiledatastore.repository.PendingTaskRepository
@@ -24,15 +23,8 @@ class TaskViewModel(application: Application) :
     private val dao = BaseApp.daoProvider.getActionTaskDao()
     private val pendingTaskRepository = PendingTaskRepository(dao)
 
-    private val _pendingTasks = MutableLiveData<List<ActionTask>>().apply {
-        dao.getAllPending()
-    }
-    val pendingTasks: LiveData<List<ActionTask>> = _pendingTasks
-
-    private val _allTasks = MutableLiveData<List<ActionTask>>().apply {
-        dao.getAll()
-    }
-    val allTasks: LiveData<List<ActionTask>> = _allTasks
+    val pendingTasks: LiveData<List<ActionTask>> = dao.getAllPending()
+    val allTasks: LiveData<List<ActionTask>> = dao.getAll()
 
     fun getTask(id: Long): LiveData<ActionTask> = dao.getOne(id)
 
