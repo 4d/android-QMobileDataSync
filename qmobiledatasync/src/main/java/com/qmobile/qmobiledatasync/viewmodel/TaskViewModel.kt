@@ -9,68 +9,49 @@ package com.qmobile.qmobiledatasync.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.qmobile.qmobiledatastore.dao.ActionTask
+import com.qmobile.qmobiledatastore.repository.PendingTaskRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
-import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class TaskViewModel(application: Application) :
     AndroidViewModel(application) {
 
-    var disposable: CompositeDisposable = CompositeDisposable()
+    private val _pendingTasks = MutableLiveData<List<ActionTask>>().apply {
+        dao.getAllPending()
+    }
+    val pendingTasks: LiveData<List<ActionTask>> = _pendingTasks
 
-    /**
-     * LiveData
-     */
+    private val _allTasks = MutableLiveData<List<ActionTask>>().apply {
+        dao.getAll()
+    }
+    val allTasks: LiveData<List<ActionTask>> = _allTasks
+
+    fun getTask(id: Long): LiveData<ActionTask> = dao.getOne(id)
 
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    val dao get() = BaseApp.daoProvider.getActionTaskDao()
+    private val dao = BaseApp.daoProvider.getActionTaskDao()
+    private val pendingTaskRepository = PendingTaskRepository(dao)
 
     fun setLoading(isLoading: Boolean) {
         _dataLoading.value = isLoading
     }
 
-    fun sendPendingTasks(
-        tasksToSend: List<ActionTask>,
-        uploadImagesCallBack: (ActionTask) -> Unit,
-        sendTaskCallBack: (ActionTask) -> Unit
-    ) {
-        disposable.add(
-            Observable.fromIterable(tasksToSend)
-                .subscribeOn(Schedulers.io())
-                .subscribe { task ->
-                    if (task.actionInfo.imagesToUpload.isNullOrEmpty()) {
-                        sendTaskCallBack(task)
-                    } else {
-                        uploadImagesCallBack(task)
-                    }
-                }
-        )
+    fun deleteOne(id: Long) = viewModelScope.launch {
+        pendingTaskRepository.deleteOne(id)
     }
 
-    fun getAllTasks(): LiveData<List<ActionTask>> {
-        return dao.getAll()
+    fun deleteAll() = viewModelScope.launch {
+        pendingTaskRepository.deleteAll()
     }
 
-    suspend fun deleteById(id: Long) {
-        dao.deleteById(id)
-    }
-
-    suspend fun deleteAll() {
-        dao.deleteAll()
-    }
-
-    suspend fun insertTask(actionTask: ActionTask): Long {
-        return dao.insert(actionTask)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        disposable.dispose()
+    fun insert(actionTask: ActionTask) = viewModelScope.launch {
+        pendingTaskRepository.insert(actionTask)
     }
 }

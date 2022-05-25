@@ -55,6 +55,7 @@ interface GenericNavigationResolver {
         itemId: String,
         relationName: String,
         parentItemId: String,
+        pendingTaskId: Long,
         navbarTitle: String
     )
 
@@ -64,21 +65,7 @@ interface GenericNavigationResolver {
     fun navigateToActionScanner(viewDataBinding: ViewDataBinding, position: Int)
 
     /**
-     * Navigates from TasksFragment to action form form to barcode scanner fragment
-     */
-    fun navigateFromPendingTasksToActionForm(
-        viewDataBinding: ViewDataBinding,
-        taskId: Long,
-        tableName: String
-    )
-
-    /**
      * Navigates to TasksFragment
      */
-    fun navigateToActionTasks(
-        fragmentActivity: FragmentActivity,
-        viewDataBinding: ViewDataBinding?,
-        tableName: String,
-        currentItemId: String?
-    )
+    fun navigateToPendingTasks(fragmentActivity: FragmentActivity, tableName: String, currentItemId: String)
 }
