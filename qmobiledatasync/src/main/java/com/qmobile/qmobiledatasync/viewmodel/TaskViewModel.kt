@@ -26,16 +26,9 @@ class TaskViewModel(application: Application) :
     val pendingTasks: LiveData<List<ActionTask>> = dao.getAllPending()
     val allTasks: LiveData<List<ActionTask>> = dao.getAll()
 
-    fun getTask(id: Long): LiveData<ActionTask> = dao.getOne(id)
+    fun getTask(id: String): LiveData<ActionTask> = dao.getOne(id)
 
-    private val _dataLoading = MutableStateFlow(false)
-    val dataLoading: StateFlow<Boolean> = _dataLoading
-
-    fun setLoading(isLoading: Boolean) {
-        _dataLoading.value = isLoading
-    }
-
-    fun deleteOne(id: Long) = viewModelScope.launch {
+    fun deleteOne(id: String) = viewModelScope.launch {
         pendingTaskRepository.deleteOne(id)
     }
 
@@ -43,7 +36,12 @@ class TaskViewModel(application: Application) :
         pendingTaskRepository.deleteAll()
     }
 
-    fun insert(actionTask: ActionTask) = viewModelScope.launch {
-        pendingTaskRepository.insert(actionTask)
+    fun insertOrReplace(actionTask: ActionTask) = viewModelScope.launch {
+        pendingTaskRepository.insertOrReplace(actionTask)
+    }
+
+    // As we need to show only the 10 latest History Items, so we need this function to clean oldest items
+    fun deleteList (idList: List<String>) = viewModelScope.launch {
+        pendingTaskRepository.deleteList(idList)
     }
 }
