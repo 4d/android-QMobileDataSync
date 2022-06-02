@@ -23,10 +23,10 @@ class TaskViewModel(application: Application) :
     private val dao = BaseApp.daoProvider.getActionTaskDao()
     private val pendingTaskRepository = PendingTaskRepository(dao)
 
-    val pendingTasks: LiveData<List<ActionTask>> = dao.getAllPending()
-    val allTasks: LiveData<List<ActionTask>> = dao.getAll()
+    val pendingTasks: LiveData<List<ActionTask>> = pendingTaskRepository.getAllPending()
+    val allTasks: LiveData<List<ActionTask>> = pendingTaskRepository.getAll()
 
-    fun getTask(id: String): LiveData<ActionTask> = dao.getOne(id)
+    fun getTask(id: String): LiveData<ActionTask> = pendingTaskRepository.getOne(id)
 
     fun deleteOne(id: String) = viewModelScope.launch {
         pendingTaskRepository.deleteOne(id)
