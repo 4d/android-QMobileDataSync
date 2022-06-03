@@ -13,8 +13,6 @@ import androidx.lifecycle.viewModelScope
 import com.qmobile.qmobiledatastore.dao.ActionTask
 import com.qmobile.qmobiledatastore.repository.PendingTaskRepository
 import com.qmobile.qmobiledatasync.app.BaseApp
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class TaskViewModel(application: Application) :
@@ -23,19 +21,12 @@ class TaskViewModel(application: Application) :
     private val dao = BaseApp.daoProvider.getActionTaskDao()
     private val pendingTaskRepository = PendingTaskRepository(dao)
 
-    val pendingTasks: LiveData<List<ActionTask>> = dao.getAllPending()
-    val allTasks: LiveData<List<ActionTask>> = dao.getAll()
+    val pendingTasks: LiveData<List<ActionTask>> = pendingTaskRepository.getAllPending()
+    val allTasks: LiveData<List<ActionTask>> = pendingTaskRepository.getAll()
 
-    fun getTask(id: Long): LiveData<ActionTask> = dao.getOne(id)
+    fun getTask(id: String): LiveData<ActionTask> = pendingTaskRepository.getOne(id)
 
-    private val _dataLoading = MutableStateFlow(false)
-    val dataLoading: StateFlow<Boolean> = _dataLoading
-
-    fun setLoading(isLoading: Boolean) {
-        _dataLoading.value = isLoading
-    }
-
-    fun deleteOne(id: Long) = viewModelScope.launch {
+    fun deleteOne(id: String) = viewModelScope.launch {
         pendingTaskRepository.deleteOne(id)
     }
 
@@ -45,5 +36,10 @@ class TaskViewModel(application: Application) :
 
     fun insert(actionTask: ActionTask) = viewModelScope.launch {
         pendingTaskRepository.insert(actionTask)
+    }
+
+    // As we need to show only the 10 latest History Items, so we need this function to clean oldest items
+    fun deleteList(idList: List<String>) = viewModelScope.launch {
+        pendingTaskRepository.deleteList(idList)
     }
 }
