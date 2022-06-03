@@ -1,4 +1,4 @@
-package com.qmobile.qmobileui.action
+package com.qmobile.qmobiledatasync.utils
 
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
