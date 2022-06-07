@@ -57,7 +57,7 @@ interface GenericNavigationResolver {
         relationName: String,
         parentItemId: String,
         pendingTaskId: String,
-        actionId: String,
+        actionUUID: String,
         navbarTitle: String
     )
 

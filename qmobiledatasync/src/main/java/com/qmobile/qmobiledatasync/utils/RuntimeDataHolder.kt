@@ -20,6 +20,7 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject
 import timber.log.Timber
+import java.util.UUID
 
 open class RuntimeDataHolder(
     var initialGlobalStamp: Int,
@@ -100,9 +101,8 @@ open class RuntimeDataHolder(
                     application.baseContext,
                     EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
-                tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject().addActionId(),
-                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId()
-                    ?: JSONObject().addActionId()
+                tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject(),
+                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject()
             )
         }
 
@@ -129,7 +129,7 @@ open class RuntimeDataHolder(
             this.keys().forEach { tableName ->
                 this.getSafeArray(tableName.toString())?.let { actionsArray ->
                     for (i in 0 until actionsArray.length()) {
-                        actionsArray.getSafeObject(i)?.put("id", (i + 1).toString())
+                        actionsArray.getSafeObject(i)?.put("uuid", UUID.randomUUID().toString())
                     }
                 }
             }
