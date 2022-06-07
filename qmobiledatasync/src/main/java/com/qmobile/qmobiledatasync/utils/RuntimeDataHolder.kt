@@ -100,8 +100,9 @@ open class RuntimeDataHolder(
                     application.baseContext,
                     EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
-                tableActions = actionsJsonObj.getSafeObject("table") ?: JSONObject(),
-                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord") ?: JSONObject()
+                tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject().addActionId(),
+                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId()
+                    ?: JSONObject().addActionId()
             )
         }
 
@@ -122,6 +123,17 @@ open class RuntimeDataHolder(
                 }
             }
             return map
+        }
+
+        private fun JSONObject.addActionId(): JSONObject {
+            this.keys().forEach { tableName ->
+                this.getSafeArray(tableName.toString())?.let { actionsArray ->
+                    for (i in 0 until actionsArray.length()) {
+                        actionsArray.getSafeObject(i)?.put("id", (i + 1).toString())
+                    }
+                }
+            }
+            return this
         }
     }
 

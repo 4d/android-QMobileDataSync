@@ -17,7 +17,7 @@ import timber.log.Timber
 fun List<EntityListViewModel<*>>.syncDeletedRecords() {
     // We pick first viewModel to perform a deletedRecords request, but it could be any viewModel.
     // The goal is to get a RestRepository to perform the request.
-    this[0].getDeletedRecords { entitiesList ->
+    this.firstOrNull()?.getDeletedRecords { entitiesList ->
         entitiesList.forEach { deletedRecordString ->
             this.deleteRecord(retrieveJSONObject(deletedRecordString))
         }
