@@ -6,28 +6,15 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-import android.app.Application
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
-import kotlin.reflect.KParameter
-import kotlin.reflect.KProperty1
 
 /**
  * Interface providing different elements depending of the generated type
  */
 interface GenericTableHelper {
-
-    /**
-     * Provides the list of table names
-     */
-    fun tableNames(): List<String>
-
-    /**
-     * Provides the original table name. May contain spaces for example
-     */
-    fun originalTableName(tableName: String): String
 
     /**
      * Provides the appropriate Entity
@@ -59,17 +46,4 @@ interface GenericTableHelper {
      * Provides the appropriate EntityListViewModel KClass
      */
     fun entityListViewModelClassFromTable(tableName: String): Class<EntityListViewModel<EntityModel>>
-
-    /**
-     * Uses Kotlin reflection to retrieve type properties
-     */
-    fun <T : EntityModel> getReflectedProperties(
-        tableName: String
-    ): Pair<Collection<KProperty1<T, *>>, List<KParameter>?>
-
-    /**
-     * Returns list of table properties as a String, separated by commas, without EntityModel
-     * inherited properties
-     */
-    fun getPropertyListFromTable(tableName: String, application: Application): String
 }

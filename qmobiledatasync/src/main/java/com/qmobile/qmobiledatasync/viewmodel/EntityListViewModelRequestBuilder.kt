@@ -31,7 +31,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 
     var predicate = if (gs > 0) "\"$GLOBALSTAMP_PROPERTY >= $gs\"" else ""
 
-    val query: String = BaseApp.runtimeDataHolder.getQuery(getAssociatedTableName())
+    val query: String = BaseApp.runtimeDataHolder.tableInfo[getAssociatedTableName()]?.query ?: ""
     if (query.isNotEmpty()) {
         predicate = if (predicate.isEmpty()) {
             "\"$query\""
@@ -45,8 +45,8 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject {
     return JSONObject().apply {
         // Adding properties
-        val properties = BaseApp.runtimeDataHolder.getTableProperty(getAssociatedTableName()).split(", ")
-        properties.filter { !(it.startsWith("__") && it.endsWith("Key")) }.forEach { property ->
+        val properties = BaseApp.runtimeDataHolder.tableInfo[getAssociatedTableName()]?.fields
+        properties?.forEach { property ->
             addProperty(getAssociatedTableName(), property)
         }
     }
@@ -64,13 +64,11 @@ private fun JSONObject.addProperty(tableName: String, property: String) {
 
 private fun buildRelationQueryAndProperties(dest: String): JSONObject {
     return JSONObject().apply {
-        val relationProperties = BaseApp.runtimeDataHolder.getTableProperty(dest).split(", ")
-        relationProperties.filter { it.isNotEmpty() }.forEach { relationProperty ->
-            if (!(relationProperty.startsWith("__") && relationProperty.endsWith("Key"))) {
-                put(relationProperty.removeSuffix(Relation.SUFFIX), true)
-            }
+        val relationProperties = BaseApp.runtimeDataHolder.tableInfo[dest]?.fields
+        relationProperties?.forEach { relationProperty ->
+            put(relationProperty.removeSuffix(Relation.SUFFIX), true)
         }
-        val query: String = BaseApp.runtimeDataHolder.getQuery(dest)
+        val query: String = BaseApp.runtimeDataHolder.tableInfo[dest]?.query ?: ""
         if (query.isNotEmpty()) {
             if (BaseApp.sharedPreferencesHolder.userInfo.isEmpty()) {
                 // XXX could dev assert here if query contains parameters but no userInfo

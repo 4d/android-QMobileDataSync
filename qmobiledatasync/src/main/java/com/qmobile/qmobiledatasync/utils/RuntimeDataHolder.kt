@@ -7,7 +7,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import android.app.Application
-import com.qmobile.qmobileapi.utils.Query
+import com.qmobile.qmobileapi.model.entity.TableInfo
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeBoolean
 import com.qmobile.qmobileapi.utils.getSafeInt
@@ -32,8 +32,7 @@ open class RuntimeDataHolder(
     var dumpedTables: List<String>,
     var relationAvailable: Boolean = true,
     var relations: List<Relation>,
-    var queries: Map<String, String>,
-    var tableProperties: Map<String, String>,
+    var tableInfo: Map<String, TableInfo>,
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
     var tableActions: JSONObject,
@@ -45,7 +44,6 @@ open class RuntimeDataHolder(
         private const val DEFAULT_LOG_LEVEL = 4
         private const val EMBEDDED_PICTURES = "Pictures"
         private const val JSON_EXT = ".json"
-        const val PROPERTIES_PREFIX = "properties"
 
         fun init(
             application: Application,
@@ -79,8 +77,8 @@ open class RuntimeDataHolder(
                 JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
             val actionsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "actions.json"))
-            val queryJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "queries.json"))
+            val tableInfoJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "tableInfo.json"))
 
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
@@ -94,8 +92,7 @@ open class RuntimeDataHolder(
                 dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList(),
                 relationAvailable = appInfoJsonObj.getSafeBoolean("relations") ?: true,
                 relations = BaseApp.genericRelationHelper.getRelations(),
-                queries = buildQueries(queryJsonObj),
-                tableProperties = buildTableProperties(application),
+                tableInfo = buildTableInfo(tableInfoJsonObj),
                 customFormatters = FieldMapping.buildCustomFormatterBinding(customFormattersJsonObj),
                 embeddedFiles = listAssetFiles(
                     application.baseContext,
@@ -106,20 +103,14 @@ open class RuntimeDataHolder(
             )
         }
 
-        private fun buildTableProperties(application: Application): Map<String, String> {
-            val map = mutableMapOf<String, String>()
-            BaseApp.genericTableHelper.tableNames().forEach { tableName ->
-                val properties: String = BaseApp.genericTableHelper.getPropertyListFromTable(tableName, application)
-                map["${PROPERTIES_PREFIX}_$tableName"] = properties
-            }
-            return map
-        }
-
-        private fun buildQueries(queryJsonObj: JSONObject): Map<String, String> {
-            val map = mutableMapOf<String, String>()
-            queryJsonObj.keys().forEach { tableName ->
-                queryJsonObj.getSafeString(tableName)?.let { query ->
-                    map["${Query.QUERY_PREFIX}_$tableName"] = query
+        private fun buildTableInfo(tableInfoJsonObj: JSONObject): Map<String, TableInfo> {
+            val map = mutableMapOf<String, TableInfo>()
+            tableInfoJsonObj.keys().forEach { tableName ->
+                tableInfoJsonObj.getSafeObject(tableName)?.let {
+                    val originalName = it.getSafeString("originalName") ?: ""
+                    val query = it.getSafeString("query") ?: ""
+                    val fields = it.getSafeString("fields")?.split(", ") ?: listOf()
+                    map[tableName] = TableInfo(originalName, query, fields)
                 }
             }
             return map
@@ -136,9 +127,4 @@ open class RuntimeDataHolder(
             return this
         }
     }
-
-    fun getTableProperty(tableName: String): String =
-        tableProperties["${PROPERTIES_PREFIX}_$tableName"] ?: ""
-
-    fun getQuery(tableName: String): String = queries["${Query.QUERY_PREFIX}_$tableName"] ?: ""
 }
