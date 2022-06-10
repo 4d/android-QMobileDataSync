@@ -24,8 +24,6 @@ dependencies {
     implementation Libs.androidx_appcompat
     implementation Libs.kotlin_coroutines_android
     implementation Libs.kotlin_coroutines_core
-    implementation Libs.kotlin_reflect
-    implementation Libs.kotlin_stdlib
 
     // Lifecycle
     implementation Libs.lifecycle_livedata
