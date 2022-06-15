@@ -120,7 +120,8 @@ open class RuntimeDataHolder(
             this.keys().forEach { tableName ->
                 this.getSafeArray(tableName.toString())?.let { actionsArray ->
                     for (i in 0 until actionsArray.length()) {
-                        val id  = actionsArray.getSafeObject(i)?.getSafeString("name")+tableName    // pattern: $actionName$tableName
+                        // pattern: $actionName$tableName
+                        val id  = actionsArray.getSafeObject(i)?.getSafeString("name")+tableName
                         actionsArray.getSafeObject(i)?.put("uuid",id )
                     }
                 }
