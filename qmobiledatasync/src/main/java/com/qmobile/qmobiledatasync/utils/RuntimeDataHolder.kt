@@ -20,7 +20,6 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject
 import timber.log.Timber
-import java.util.UUID
 
 open class RuntimeDataHolder(
     var initialGlobalStamp: Int,
@@ -121,8 +120,8 @@ open class RuntimeDataHolder(
                 this.getSafeArray(tableName.toString())?.let { actionsArray ->
                     for (i in 0 until actionsArray.length()) {
                         // pattern: $actionName$tableName
-                        val id  = actionsArray.getSafeObject(i)?.getSafeString("name")+tableName
-                        actionsArray.getSafeObject(i)?.put("uuid",id )
+                        val id = actionsArray.getSafeObject(i)?.getSafeString("name") + tableName
+                        actionsArray.getSafeObject(i)?.put("uuid", id)
                     }
                 }
             }
