@@ -71,6 +71,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         statusMessage = authResponse.statusText ?: ""
                         // Fill SharedPreferences with response details
                         if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
+                            BaseApp.sharedPreferencesHolder.storeCookies(response)
                             _authenticationState.value = AuthenticationState.AUTHENTICATED
                             onResult(true)
                             return@authenticate
@@ -104,6 +105,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
             _dataLoading.value = false
             _authenticationState.value = AuthenticationState.LOGOUT
             BaseApp.sharedPreferencesHolder.sessionToken = ""
+            BaseApp.sharedPreferencesHolder.clearCookies()
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
