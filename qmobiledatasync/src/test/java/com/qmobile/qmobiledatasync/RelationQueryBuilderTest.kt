@@ -132,7 +132,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `many_to_one many_to_one many_to_one`() {
-
         val relation = Relation(
             "Employee",
             "Employee",
@@ -154,7 +153,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `many_to_one many_to_one one_to_many`() {
-
         val relation =
             Relation("Employee", "Service", "", "manager", Relation.Type.ONE_TO_MANY, "service.manager.serviceManaged")
         val query = RelationQueryBuilder.createQuery(relation, entity)
@@ -171,7 +169,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `many_to_one one_to_many many_to_one`() {
-
         val relation =
             Relation("Employee", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "service.employees.service")
         val query = RelationQueryBuilder.createQuery(relation, entity)
@@ -187,7 +184,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `many_to_one one_to_many one_to_many`() {
-
         val relation = Relation(
             "Employee",
             "Service",
@@ -209,7 +205,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `one_to_many many_to_one many_to_one`() {
-
         val relation =
             Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.manager.service")
         val query = RelationQueryBuilder.createQuery(relation, entity)
@@ -225,7 +220,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `one_to_many many_to_one one_to_many`() {
-
         val relation =
             Relation("Service", "Employee", "", "manager", Relation.Type.ONE_TO_MANY, "employees.manager.subordinates")
         val query = RelationQueryBuilder.createQuery(relation, entity)
@@ -241,7 +235,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `one_to_many one_to_many many_to_one`() {
-
         val relation =
             Relation("Service", "Service", "", "employees", Relation.Type.ONE_TO_MANY, "employees.subordinates.service")
         val query = RelationQueryBuilder.createQuery(relation, entity)
@@ -257,7 +250,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `one_to_many one_to_many one_to_many`() {
-
         val relation = Relation(
             "Service",
             "Service",
@@ -279,7 +271,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `one_to_many one_to_many`() {
-
         val relation = Relation(
             "Service",
             "Employee",
@@ -299,7 +290,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `one_to_many many_to_one`() {
-
         val relation = Relation(
             "Service",
             "Employee",
@@ -320,7 +310,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `many_to_one one_to_many`() {
-
         val relation = Relation(
             "Employee",
             "Employee",
@@ -340,7 +329,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun `many_to_one many_to_one`() {
-
         val relation = Relation(
             "Employee",
             "Employee",
@@ -360,7 +348,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun many_to_one() {
-
         val relation = Relation("Employee", "Service", "service", "employees", Relation.Type.MANY_TO_ONE)
         val query = RelationQueryBuilder.createQuery(relation, entity)
 
@@ -370,7 +357,6 @@ class RelationQueryBuilderTest {
 
     @Test
     fun one_to_many() {
-
         val relation = Relation("Service", "Employee", "employees", "service", Relation.Type.ONE_TO_MANY)
         val query = RelationQueryBuilder.createQuery(relation, entity)
 

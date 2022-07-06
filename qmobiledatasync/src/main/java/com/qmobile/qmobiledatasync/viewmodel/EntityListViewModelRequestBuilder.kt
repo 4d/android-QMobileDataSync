@@ -21,13 +21,13 @@ import kotlin.math.max
  * Returns predicate for requests with __GlobalStamp
  */
 fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
-
     var gs = globalStamp.value.stampValue
 
     val isDumpedTable = BaseApp.runtimeDataHolder.dumpedTables.contains(getAssociatedTableName())
 
-    if (isDumpedTable)
+    if (isDumpedTable) {
         gs = max(gs, BaseApp.runtimeDataHolder.initialGlobalStamp)
+    }
 
     var predicate = if (gs > 0) "\"$GLOBALSTAMP_PROPERTY >= $gs\"" else ""
 
@@ -53,13 +53,14 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 }
 
 private fun JSONObject.addProperty(tableName: String, property: String) {
-    if (!property.endsWith(Relation.SUFFIX))
+    if (!property.endsWith(Relation.SUFFIX)) {
         put(property, true)
-    else if (BaseApp.runtimeDataHolder.relationAvailable)
+    } else if (BaseApp.runtimeDataHolder.relationAvailable) {
         RelationHelper.getRelations(tableName).withoutAlias()
             .find { it.name == property.removeSuffix(Relation.SUFFIX).fieldAdjustment() }?.let {
                 put(property.removeSuffix(Relation.SUFFIX), buildRelationQueryAndProperties(it.dest))
             }
+    }
 }
 
 private fun buildRelationQueryAndProperties(dest: String): JSONObject {

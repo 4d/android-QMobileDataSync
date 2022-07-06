@@ -16,10 +16,11 @@ import org.json.JSONObject
 
 data class JSONRelation(val json: JSONObject, val dest: String, val type: Relation.Type) {
 
-    fun getDestinationTable(): String = if (type == Relation.Type.ONE_TO_MANY)
+    fun getDestinationTable(): String = if (type == Relation.Type.ONE_TO_MANY) {
         json.getSafeString("__DATACLASS")?.tableNameAdjustment() ?: ""
-    else
+    } else {
         dest
+    }
 
     fun getEntities(): List<EntityModel> {
         val entities = mutableListOf<EntityModel>()

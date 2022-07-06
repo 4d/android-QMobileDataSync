@@ -9,7 +9,9 @@ package com.qmobile.qmobiledatasync.app
 import android.app.Application
 import android.content.res.Configuration
 import androidx.multidex.MultiDexApplication
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatastore.db.DaoProvider
 import com.qmobile.qmobiledatasync.utils.GenericNavigationResolver
@@ -29,7 +31,9 @@ open class BaseApp : MultiDexApplication() {
 
         lateinit var runtimeDataHolder: RuntimeDataHolder
 
-        lateinit var mapper: ObjectMapper
+        val mapper = ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .registerKotlinModule()
 
         // Provides the drawable resource id for login page logo
         var loginLogoDrawable: Int? = null

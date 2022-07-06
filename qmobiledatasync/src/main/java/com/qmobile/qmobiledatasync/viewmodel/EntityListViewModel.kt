@@ -30,6 +30,7 @@ import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.utils.ScheduleRefresh
 import com.qmobile.qmobiledatasync.utils.getViewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -74,6 +75,7 @@ abstract class EntityListViewModel<T : EntityModel>(
         searchChanel.value = sqLiteQuery
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val entityListPagedListSharedFlow: SharedFlow<PagedList<RoomEntity>> =
         searchChanel
             .filterNotNull()
@@ -90,6 +92,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                 Timber.e(throwable.localizedMessage)
             }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val entityListPagingDataFlow: Flow<PagingData<RoomEntity>> =
         searchChanel
             .filterNotNull()
@@ -133,7 +136,6 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun getEntities(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
-
         var iter = 0
         var totalReceived = 0
 
@@ -173,7 +175,6 @@ abstract class EntityListViewModel<T : EntityModel>(
         totalReceived: Int,
         onResult: (isSuccess: Boolean, hasFinished: Boolean, receivedFromIter: Int, shouldSyncData: Boolean) -> Unit
     ) {
-
         val predicate: String? = buildPredicate()
         Timber.d("Performing data request, with predicate $predicate")
 
@@ -238,7 +239,6 @@ abstract class EntityListViewModel<T : EntityModel>(
      * Decodes the list of entities retrieved
      */
     fun decodeEntities(entitiesJsonArray: JSONArray?, fetchedFromRelation: Boolean) {
-
         val parsedList: MutableList<EntityModel> = mutableListOf()
         entitiesJsonArray?.getObjectListAsString()?.forEach { entityJsonString ->
             Timber.d("decodeEntityModel called. Extracted from relation ? $fetchedFromRelation")
@@ -250,10 +250,11 @@ abstract class EntityListViewModel<T : EntityModel>(
                 )
             entity?.let {
                 parsedList.add(it)
-                if (!fetchedFromRelation)
+                if (!fetchedFromRelation) {
                     checkRelations(entityJsonString)
-                else
+                } else {
                     Timber.d("Entity extracted from relation")
+                }
             }
         }
         this.insertAll(parsedList)
@@ -266,20 +267,22 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun checkRelations(entityJsonString: String) {
         RelationHelper.getRelations(getAssociatedTableName()).withoutAlias().forEach { relation ->
             JSONObject(entityJsonString).getSafeObject(relation.name)?.let { relatedJson ->
-                val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null)
+                val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null) {
                     JSONRelation(relatedJson, relation.dest, Relation.Type.MANY_TO_ONE)
-                else
+                } else {
                     JSONRelation(relatedJson, relation.dest, Relation.Type.ONE_TO_MANY)
+                }
                 _jsonRelation.tryEmit(jsonRelation)
             }
         }
     }
 
     fun insertRelation(jsonRelation: JSONRelation) {
-        if (jsonRelation.type == Relation.Type.ONE_TO_MANY)
+        if (jsonRelation.type == Relation.Type.ONE_TO_MANY) {
             jsonRelation.getEntities().forEach { this.insert(it) }
-        else
+        } else {
             jsonRelation.getEntity()?.let { this.insert(it) }
+        }
     }
 
     fun setDataSyncState(state: DataSync.State) {

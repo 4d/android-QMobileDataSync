@@ -21,7 +21,6 @@ class EntityViewModelFactory(
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-
         val key = tableName + VIEWMODEL_BASENAME + id
 
         return if (viewModelMap.containsKey(key)) {
@@ -54,13 +53,13 @@ class EntityViewModelFactory(
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 fun getEntityViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?,
     tableName: String,
     itemId: String,
     apiService: ApiService
 ): EntityViewModel<EntityModel> {
-//    val clazz = BaseApp.genericTableHelper.entityViewModelClassFromTable(tableName)
     val clazz = EntityViewModel::class.java as Class<EntityViewModel<EntityModel>>
     viewModelStoreOwner?.run {
         return ViewModelProvider(

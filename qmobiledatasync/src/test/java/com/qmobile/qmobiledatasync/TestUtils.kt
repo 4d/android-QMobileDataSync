@@ -60,10 +60,11 @@ fun buildSampleResponseFromJsonString(
     val charset: Charset = Charsets.UTF_8
     val buffer = Buffer().writeString(responseJsonString, charset)
     val responseBody = buffer.asResponseBody(null, buffer.size)
-    return if (isSuccess)
+    return if (isSuccess) {
         Response.success(responseBody)
-    else
+    } else {
         Response.error(401, responseBody)
+    }
 }
 
 open class EntityListViewModelEmployee(tableName: String, apiService: ApiService) :

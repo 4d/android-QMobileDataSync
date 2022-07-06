@@ -59,8 +59,9 @@ open class ConnectivityViewModel(
                     onResult(true)
                     return@checkAccessibility
                 }
-                if (toastError)
+                if (toastError) {
                     error?.let { toastMessage.showMessage(it, "ConnectivityViewModel", ToastMessage.Type.ERROR) }
+                }
                 onResult(false)
             }
         }

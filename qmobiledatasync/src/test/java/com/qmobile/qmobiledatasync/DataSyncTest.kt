@@ -70,7 +70,6 @@ class DataSyncTest {
     private val sourceIntOffice: StateFlow<GlobalStamp> = _sourceIntOffice
 
     // Custom closures
-//    private lateinit var setupObservableClosure: (suspend (value: GlobalStamp) -> Unit) -> Unit
     private lateinit var setupObservableClosure: (suspend CoroutineScope.(value: GlobalStamp) -> Unit) -> Unit
     private lateinit var syncClosure: (EntityListViewModel<*>, Boolean) -> Unit
     private lateinit var successfulSyncClosure: (Int) -> Unit
@@ -112,7 +111,6 @@ class DataSyncTest {
 
     @Test
     fun testDataSync() {
-
         val syncIterationMap = mutableMapOf<String, Int>()
         syncIterationMap[EMPLOYEE_TABLE] = 0
         syncIterationMap[SERVICE_TABLE] = 0
@@ -159,7 +157,6 @@ class DataSyncTest {
 
     @Test
     fun testNumberOfRequestMaxLimit() {
-
         val syncIterationMap = mutableMapOf<String, Int>()
         syncIterationMap[EMPLOYEE_TABLE] = 0
         syncIterationMap[SERVICE_TABLE] = 0
@@ -274,7 +271,6 @@ class DataSyncTest {
     }
 
     private fun observeMergedLiveData() = runBlocking {
-
         entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
             val owner = TestLifecycleOwner(Lifecycle.State.STARTED, TestCoroutineDispatcher())
             stateFlow.launchAndCollectIn(owner, Lifecycle.State.STARTED, dataSync.globalStampObserver)
@@ -295,11 +291,9 @@ class DataSyncTest {
     }
 
     private fun sync(entityListViewModel: EntityListViewModel<*>, syncIteration: Int) {
-
         println("[Sync] [Table : ${entityListViewModel.getAssociatedTableName()}, isToSync : ${entityListViewModel.isToSync.get()}]")
 
         if (entityListViewModel.isToSync.getAndSet(false)) {
-
             assertLiveDataValues(syncIteration, entityListViewModel.getAssociatedTableName())
 
             globalStampList = when (syncIteration) {
@@ -317,7 +311,6 @@ class DataSyncTest {
         println("[Sync] [Table : ${entityListViewModel.getAssociatedTableName()}, isToSync : ${entityListViewModel.isToSync.get()}]")
 
         if (entityListViewModel.isToSync.getAndSet(false)) {
-
             globalStampList = mutableListOf(
                 dataSync.maxGlobalStamp + 1,
                 dataSync.maxGlobalStamp + 2,
