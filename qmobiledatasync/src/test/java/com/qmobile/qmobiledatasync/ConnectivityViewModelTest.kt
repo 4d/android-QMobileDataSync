@@ -52,7 +52,6 @@ class ConnectivityViewModelTest {
 
     @Test
     fun testServerAccessible() {
-
         val response = buildSampleResponseFromJsonString("", true)
 
         Mockito.`when`(
@@ -66,7 +65,6 @@ class ConnectivityViewModelTest {
 
     @Test
     fun testServerNotAccessible() {
-
         val response = buildSampleResponseFromJsonString("", false)
 
         Mockito.`when`(

@@ -99,13 +99,15 @@ data class FieldMapping(
     private fun getListValue(choiceList: List<*>, text: String): String? {
         var value: String? = null
         text.toIntOrNull()?.let { index ->
-            if (index < choiceList.size)
+            if (index < choiceList.size) {
                 value = choiceList[index] as? String?
+            }
         }
         if (value == null && hasBooleanType()) {
             asBooleanStringToBooleanInt(text)?.toIntOrNull()?.let { index ->
-                if (index < choiceList.size)
+                if (index < choiceList.size) {
                     value = choiceList[index] as? String?
+                }
             }
         }
         return value

@@ -14,12 +14,10 @@ import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
 
 fun DataSync.setupCollect(
-//    globalStampObserver: suspend (value: GlobalStamp) -> Unit
     globalStampObserver: suspend CoroutineScope.(value: GlobalStamp) -> Unit
 ) {
     entityListViewModelList.map { it.globalStamp }.forEach { stateFlow ->
         stateFlow.launchAndCollectIn(lifecycleOwner, Lifecycle.State.STARTED, globalStampObserver)
-//        lifecycleOwner.collectWhenStarted(flow = stateFlow, action = globalStampObserver)
     }
 }
 
@@ -47,7 +45,6 @@ fun DataSync.unsuccessfulSynchronization() {
 
 // Closures are used to change the data sync algorithm behavior in unit test
 fun DataSync.initClosures() {
-
     val defaultSetupObservableClosure: (suspend CoroutineScope.(value: GlobalStamp) -> Unit) -> Unit =
         { globalStampObserver ->
             setupCollect(globalStampObserver)

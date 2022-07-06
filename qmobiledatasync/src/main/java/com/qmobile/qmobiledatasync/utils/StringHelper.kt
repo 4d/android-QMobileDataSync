@@ -26,10 +26,11 @@ fun String.dataBindingAdjustment(): String =
         .joinToString("") { it.lowercase().replaceFirstChar { firstChar -> firstChar.uppercaseChar() } }
 
 private fun String.condense() =
-    if (!this.startsWith("Map<"))
+    if (!this.startsWith("Map<")) {
         this.replace("\\s".toRegex(), "")
-    else
+    } else {
         this
+    }
 
 private fun String.replaceSpecialChars(): String =
     when {
@@ -39,23 +40,25 @@ private fun String.replaceSpecialChars(): String =
     }
 
 private fun String.lowerCustomProperties() =
-    if (this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP"))
+    if (this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP")) {
         this
-    else if (this.startsWith("__") && this.endsWith("Key"))
+    } else if (this.startsWith("__") && this.endsWith("Key")) {
 //        this.removeSuffix("Key").lowercase() + "Key"
         this.removeSuffix("Key").replaceFirstChar { it.lowercaseChar() } + "Key"
-    else
+    } else {
 //        this.lowercase()
         this.replaceFirstChar { it.lowercaseChar() }
+    }
 
 private fun String.decapitalizeExceptID() =
     if (this == "ID") this.lowercase() else this.replaceFirstChar { it.lowercaseChar() }
 
 private fun String.firstCharForTable(): String =
-    if (this.startsWith("_"))
+    if (this.startsWith("_")) {
         "Q$this"
-    else
+    } else {
         this
+    }
 
 private val REGEX_UNACCENT = "\\p{InCombiningDiacriticalMarks}+".toRegex()
 

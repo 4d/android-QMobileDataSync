@@ -59,24 +59,24 @@ object RelationHelper {
             BaseApp.genericNavigationResolver.setupManyToOneRelationButtonOnClickAction(
                 viewDataBinding = binding,
                 relationName = relation.name,
-                roomEntity = roomEntity,
+                roomEntity = roomEntity
             )
         }
     }
 
     fun getRelationId(jsonString: String, relationName: String, fetchedFromRelation: Boolean): String? =
-        if (fetchedFromRelation)
+        if (fetchedFromRelation) {
             retrieveJSONObject(jsonString)?.getSafeObject(relationName)?.getSafeObject("__deferred")
                 ?.getSafeString("__KEY")
-        else
+        } else {
             retrieveJSONObject(jsonString)?.getSafeObject(relationName)?.getSafeString("__KEY")
+        }
 
     /**
      * Replace path alias by their own path
      * Returns a Pair of <nextTableSource, path>
      */
     private fun checkPath(pathPart: String, source: String, depth: Int): Pair<String?, String> {
-
         val relation = getRelationNullable(source, pathPart)
 
         return when {
@@ -85,10 +85,11 @@ object RelationHelper {
                 var composedPath = ""
                 relation.path.split(".").forEach { name ->
                     val dest = if (depth == 0) relation.source else relation.dest
-                    composedPath = if (composedPath.isEmpty())
+                    composedPath = if (composedPath.isEmpty()) {
                         checkPath(name, dest, depth + 1).second
-                    else
+                    } else {
                         composedPath + "." + checkPath(name, dest, depth + 1).second
+                    }
                 }
                 Pair(relation.dest, composedPath)
             }
@@ -102,10 +103,11 @@ object RelationHelper {
         path.split(".").forEach {
             val pair = checkPath(it, nextTableName, 0)
             nextTableName = pair.first ?: ""
-            newPath = if (newPath.isEmpty())
+            newPath = if (newPath.isEmpty()) {
                 pair.second
-            else
+            } else {
                 newPath + "." + pair.second
+            }
         }
         return newPath.removeSuffix(".")
     }
@@ -114,20 +116,22 @@ object RelationHelper {
         val relationList = mutableListOf<Relation>()
         var nextSource = ""
         unAliasPath(this.path, this.source).split(".").forEachIndexed { index, partName ->
-            val currentRelation = if (index == 0)
+            val currentRelation = if (index == 0) {
                 getRelation(this.source, partName)
-            else
+            } else {
                 getRelation(nextSource, partName)
+            }
             nextSource = currentRelation.dest
             relationList.add(currentRelation)
         }
 
         var newPath = ""
         relationList.reversed().forEach { partRelation ->
-            newPath = if (newPath.isEmpty())
+            newPath = if (newPath.isEmpty()) {
                 partRelation.name
-            else
+            } else {
                 newPath + "." + partRelation.name
+            }
         }
         return newPath
     }

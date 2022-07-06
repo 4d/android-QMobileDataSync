@@ -20,7 +20,6 @@ class EntityListViewModelFactory(
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-
         val key = tableName + LIST_VIEWMODEL_BASENAME
 
         return if (viewModelMap.containsKey(key)) {

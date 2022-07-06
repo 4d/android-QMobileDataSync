@@ -15,7 +15,6 @@ import java.lang.StringBuilder
 object RelationQueryBuilder {
 
     fun createQuery(relation: Relation, entity: EntityModel): SimpleSQLiteQuery {
-
         val path = relation.path.ifEmpty { relation.name }
         val newPath = RelationHelper.unAliasPath(path, relation.source)
         Timber.d("newPath: $newPath")
@@ -43,7 +42,6 @@ object RelationQueryBuilder {
     }
 
     private fun depthRelation(parent: Relation, path: List<String>, depth: Int, entity: EntityModel): String {
-
         val source = if (depth == 0) parent.source else parent.dest
         val relation = RelationHelper.getRelation(source, path[depth])
 
@@ -71,10 +69,11 @@ object RelationQueryBuilder {
 
     private fun partQuery(relation: Relation, depth: Int, isFinal: Boolean): String {
         val tName = if (isFinal) "T_FINAL" else "T${depth + 1}"
-        return if (relation.type == Relation.Type.MANY_TO_ONE)
+        return if (relation.type == Relation.Type.MANY_TO_ONE) {
             "SELECT * FROM ${relation.source} AS T$depth WHERE $tName.__KEY = T$depth.__${relation.name}Key"
-        else
+        } else {
             "SELECT * FROM ${relation.source} AS T$depth WHERE $tName.__${relation.inverse}Key = T$depth.__KEY"
+        }
     }
 
     private fun endCondition(relation: Relation, entity: EntityModel, isFinal: Boolean): String {

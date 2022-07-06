@@ -52,7 +52,6 @@ class DataSync(
     }
 
     fun perform() {
-
         resetDataSyncVariables()
 
         globalStampObserver = { globalStamp: GlobalStamp ->
@@ -62,7 +61,6 @@ class DataSync(
                     ?.dataSynchronized?.value
 
             if (globalStamp.dataSyncProcess && vmState != State.SYNCHRONIZED) {
-
                 Timber.d(
                     "[NEW] [Table : ${globalStamp.tableName}, " +
                         "GlobalStamp : ${globalStamp.stampValue}]"
@@ -75,7 +73,6 @@ class DataSync(
                 receivedSyncedTableGS.add(globalStamp)
 
                 if (received.incrementAndGet() == nbToReceive) {
-
                     analyzeGlobalStamps()
                 }
             }
@@ -90,7 +87,6 @@ class DataSync(
     }
 
     private fun analyzeGlobalStamps() {
-
         if (loginRequired.getAndSet(false)) {
             loginRequiredCallback?.invoke()
         } else {
