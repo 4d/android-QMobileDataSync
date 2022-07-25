@@ -35,7 +35,8 @@ open class RuntimeDataHolder(
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
     var tableActions: JSONObject,
-    var currentRecordActions: JSONObject
+    var currentRecordActions: JSONObject,
+    var defaultSortFields: JSONObject
 ) {
 
     companion object {
@@ -79,6 +80,9 @@ open class RuntimeDataHolder(
             val tableInfoJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "tableInfo.json"))
 
+            val defaultSortFieldsJsonObj =
+                JSONObject(readContentFromFile(application.baseContext, "default_sort_fields.json"))
+
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
             return RuntimeDataHolder(
@@ -98,7 +102,8 @@ open class RuntimeDataHolder(
                     EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
                 tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject(),
-                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject()
+                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject(),
+                defaultSortFields = defaultSortFieldsJsonObj
             )
         }
 
