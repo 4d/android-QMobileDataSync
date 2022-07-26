@@ -7,6 +7,7 @@
 package com.qmobile.qmobiledatasync.viewmodel
 
 import androidx.lifecycle.asFlow
+import androidx.lifecycle.viewModelScope
 import androidx.paging.LivePagedListBuilder
 import androidx.paging.PagedList
 import androidx.paging.PagingConfig
@@ -41,6 +42,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
@@ -136,38 +138,40 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun getEntities(
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
-        var iter = 0
-        var totalReceived = 0
+        viewModelScope.launch {
+            var iter = 0
+            var totalReceived = 0
 
-        _dataLoading.value = true
+            _dataLoading.value = true
 
-        fun paging(
-            onResult: (shouldSyncData: Boolean) -> Unit
-        ) {
-            performRequest(
-                iter = iter,
-                totalReceived = totalReceived
-            ) { isSuccess, hasFinished, receivedFromIter, shouldSyncData ->
+            fun paging(
+                onResult: (shouldSyncData: Boolean) -> Unit
+            ) {
+                performRequest(
+                    iter = iter,
+                    totalReceived = totalReceived
+                ) { isSuccess, hasFinished, receivedFromIter, shouldSyncData ->
 
-                if (isSuccess) {
-                    if (hasFinished) {
+                    if (isSuccess) {
+                        if (hasFinished) {
+                            onResult(shouldSyncData)
+                            _dataLoading.value = false
+                            return@performRequest
+                        } else {
+                            iter++
+                            totalReceived += receivedFromIter
+                            paging(onResult)
+                        }
+                    } else {
                         onResult(shouldSyncData)
                         _dataLoading.value = false
                         return@performRequest
-                    } else {
-                        iter++
-                        totalReceived += receivedFromIter
-                        paging(onResult)
                     }
-                } else {
-                    onResult(shouldSyncData)
-                    _dataLoading.value = false
-                    return@performRequest
                 }
             }
-        }
 
-        paging(onResult)
+            paging(onResult)
+        }
     }
 
     private fun performRequest(
