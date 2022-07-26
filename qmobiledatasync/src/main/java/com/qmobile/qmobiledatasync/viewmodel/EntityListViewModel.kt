@@ -304,4 +304,8 @@ abstract class EntityListViewModel<T : EntityModel>(
             dataSyncProcess = this.dataSynchronized.value == DataSync.State.SYNCHRONIZING ||
                 this.dataSynchronized.value == DataSync.State.RESYNC
         )
+
+    fun resetGlobalStamp() {
+        _globalStamp.value = newGlobalStamp(0)
+    }
 }

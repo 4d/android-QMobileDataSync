@@ -6,8 +6,8 @@
 
 package com.qmobile.qmobiledatasync.utils
 
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -17,5 +17,5 @@ import kotlinx.coroutines.CoroutineScope
  * @param coroutineScope null for production, injects TestCoroutineScope for unit tests
  * @return CoroutineScope to launch coroutines on
  */
-fun EntityListViewModel<*>.getViewModelScope(coroutineScope: CoroutineScope? = null) =
+fun AndroidViewModel.getViewModelScope(coroutineScope: CoroutineScope? = null) =
     coroutineScope ?: this.viewModelScope

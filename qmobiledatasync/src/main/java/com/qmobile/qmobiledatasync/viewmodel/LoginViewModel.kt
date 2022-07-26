@@ -15,6 +15,8 @@ import com.qmobile.qmobileapi.repository.AuthRepository
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.ToastMessage
+import com.qmobile.qmobiledatasync.viewmodel.factory.EntityListViewModelFactory
+import com.qmobile.qmobiledatasync.viewmodel.factory.EntityViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import timber.log.Timber
@@ -103,9 +105,12 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     fun disconnectUser(onResult: (success: Boolean) -> Unit) {
         authRepository.logout { isSuccess, response, error ->
             _dataLoading.value = false
-            _authenticationState.value = AuthenticationState.LOGOUT
             BaseApp.sharedPreferencesHolder.sessionToken = ""
+            BaseApp.sharedPreferencesHolder.globalStamp = 0
             BaseApp.sharedPreferencesHolder.clearCookies()
+            EntityListViewModelFactory.viewModelMap.clear()
+            EntityViewModelFactory.viewModelMap.clear()
+            _authenticationState.value = AuthenticationState.LOGOUT
             if (isSuccess) {
                 Timber.d("[ Logout request successful ]")
             } else {
