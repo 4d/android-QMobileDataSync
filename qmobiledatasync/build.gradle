@@ -25,7 +25,9 @@ dependencies {
     implementation Libs.kotlin_coroutines_core
 
     // Lifecycle
+    implementation Libs.lifecycle_livedata_ktx
     implementation Libs.lifecycle_runtime_ktx
+    implementation Libs.lifecycle_viewmodel_ktx
 
     // Jackson
     implementation Libs.jackson

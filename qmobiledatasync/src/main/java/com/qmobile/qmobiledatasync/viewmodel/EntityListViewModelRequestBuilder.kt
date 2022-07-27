@@ -53,13 +53,16 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject 
 }
 
 private fun JSONObject.addProperty(tableName: String, property: String) {
-    if (!property.endsWith(Relation.SUFFIX)) {
-        put(property, true)
-    } else if (BaseApp.runtimeDataHolder.relationAvailable) {
-        RelationHelper.getRelations(tableName).withoutAlias()
-            .find { it.name == property.removeSuffix(Relation.SUFFIX).fieldAdjustment() }?.let {
-                put(property.removeSuffix(Relation.SUFFIX), buildRelationQueryAndProperties(it.dest))
-            }
+    when {
+        !property.endsWith(Relation.SUFFIX) -> {
+            put(property, true)
+        }
+        BaseApp.runtimeDataHolder.relationAvailable -> {
+            RelationHelper.getRelations(tableName).withoutAlias()
+                .find { it.name == property.removeSuffix(Relation.SUFFIX).fieldAdjustment() }?.let {
+                    put(property.removeSuffix(Relation.SUFFIX), buildRelationQueryAndProperties(it.dest))
+                }
+        }
     }
 }
 

@@ -22,7 +22,7 @@ interface GenericTableFragmentHelper {
     /**
      * Provides the list form type
      */
-    fun layoutType(tableName: String): String
+    fun layoutType(tableName: String): LayoutType
 
     /**
      * Provides if horizontal swipe on items is allowed

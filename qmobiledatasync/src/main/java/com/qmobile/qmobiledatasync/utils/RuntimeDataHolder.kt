@@ -8,14 +8,14 @@ package com.qmobile.qmobiledatasync.utils
 
 import android.app.Application
 import com.qmobile.qmobileapi.model.entity.TableInfo
+import com.qmobile.qmobileapi.utils.FileHelper.listAssetFiles
+import com.qmobile.qmobileapi.utils.FileHelper.readContentFromFile
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeBoolean
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
-import com.qmobile.qmobileapi.utils.listAssetFiles
-import com.qmobile.qmobileapi.utils.readContentFromFile
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONObject
