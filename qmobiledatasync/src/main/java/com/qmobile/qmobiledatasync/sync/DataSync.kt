@@ -116,7 +116,7 @@ class DataSync(
     }
 
     private fun syncTables(reSync: Boolean = false) {
-        this.nbToReceive = entityListViewModelList.filter { it.isToSync.get() }.size
+        this.nbToReceive = entityListViewModelList.count { it.isToSync.get() }
         this.numberOfRequestMaxLimit = nbToReceive * FACTOR_OF_MAX_SUCCESSIVE_SYNC
         entityListViewModelList.filter { it.isToSync.get() }.forEach { syncRequired ->
             syncClosure(syncRequired, reSync)
