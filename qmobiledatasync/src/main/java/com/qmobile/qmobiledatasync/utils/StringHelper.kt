@@ -20,11 +20,6 @@ fun String.tableNameAdjustment() =
 fun String.fieldAdjustment() =
     this.condense().replaceSpecialChars().lowerCustomProperties().validateWordDecapitalized()
 
-fun String.dataBindingAdjustment(): String =
-    this.condense().replaceSpecialChars().firstCharForTable()
-        .split("_")
-        .joinToString("") { it.lowercase().replaceFirstChar { firstChar -> firstChar.uppercaseChar() } }
-
 private fun String.condense() =
     if (!this.startsWith("Map<")) {
         this.replace("\\s".toRegex(), "")
