@@ -38,6 +38,7 @@ private fun String.lowerCustomProperties() = when {
     this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP") -> this
     this.startsWith("__") && this.endsWith("Key") ->
         this.removeSuffix("Key").replaceFirstChar { it.lowercaseChar() } + "Key"
+    this == "ID" -> this
     else -> this.replaceFirstChar { it.lowercaseChar() }
 }
 
