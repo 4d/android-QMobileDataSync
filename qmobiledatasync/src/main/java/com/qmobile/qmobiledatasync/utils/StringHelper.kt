@@ -9,6 +9,7 @@
 package com.qmobile.qmobiledatasync.utils
 
 import java.text.Normalizer
+import java.util.*
 
 fun String.containsIgnoreCase(str: String): Boolean =
     this.lowercase().contains(str.lowercase())
@@ -43,7 +44,7 @@ private fun String.lowerCustomProperties() = when {
 }
 
 private fun String.decapitalizeExceptID() =
-    if (this == "ID") this.lowercase() else this.replaceFirstChar { it.lowercaseChar() }
+    if (this == "ID") this else this.replaceFirstChar { it.lowercaseChar() }
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_")) {
@@ -67,7 +68,11 @@ fun String.validateWord(): String {
 
 fun String.validateWordDecapitalized(): String {
     return this.decapitalizeExceptID().split(".").joinToString(".") {
-        if (reservedKeywords.contains(it)) "qmobile_$it" else it
+        when {
+            reservedKeywords.contains(it) -> "qmobile_$it"
+            it == "ID" -> "__ID"
+            else -> it
+        }
     }
 }
 
