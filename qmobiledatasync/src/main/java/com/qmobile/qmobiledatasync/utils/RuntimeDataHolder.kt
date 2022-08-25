@@ -25,7 +25,6 @@ open class RuntimeDataHolder(
     var initialGlobalStamp: Int,
     var guestLogin: Boolean,
     var remoteUrl: String,
-    var searchField: JSONObject,
     var sdkVersion: String,
     var logLevel: Int,
     var dumpedTables: List<String>,
@@ -35,8 +34,7 @@ open class RuntimeDataHolder(
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
     var tableActions: JSONObject,
-    var currentRecordActions: JSONObject,
-    var defaultSortFields: JSONObject
+    var currentRecordActions: JSONObject
 ) {
 
     companion object {
@@ -73,15 +71,10 @@ open class RuntimeDataHolder(
                 JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
             val customFormattersJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
-            val searchableFieldsJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "searchable_fields.json"))
             val actionsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "actions.json"))
             val tableInfoJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "tableInfo.json"))
-
-            val defaultSortFieldsJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "default_sort_fields.json"))
 
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
@@ -89,7 +82,6 @@ open class RuntimeDataHolder(
                 initialGlobalStamp = appInfoJsonObj.getSafeInt("initialGlobalStamp") ?: 0,
                 guestLogin = appInfoJsonObj.getSafeBoolean("guestLogin") ?: true,
                 remoteUrl = appInfoJsonObj.getSafeString("remoteUrl") ?: "",
-                searchField = searchableFieldsJsonObj,
                 sdkVersion = sdkVersion,
                 logLevel = appInfoJsonObj.getSafeInt("logLevel") ?: DEFAULT_LOG_LEVEL,
                 dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList(),
@@ -102,8 +94,7 @@ open class RuntimeDataHolder(
                     EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
                 tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject(),
-                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject(),
-                defaultSortFields = defaultSortFieldsJsonObj
+                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject()
             )
         }
 
@@ -114,7 +105,9 @@ open class RuntimeDataHolder(
                     val originalName = it.getSafeString("originalName") ?: ""
                     val query = it.getSafeString("query") ?: ""
                     val fields = it.getSafeString("fields")?.split(", ") ?: listOf()
-                    map[tableName] = TableInfo(originalName, query, fields)
+                    val searchField = it.getSafeString("searchFields")?.split(", ") ?: listOf()
+                    val defaultSortField = it.getSafeString("defaultSortField") ?: ""
+                    map[tableName] = TableInfo(originalName, query, fields, searchField, defaultSortField)
                 }
             }
             return map
