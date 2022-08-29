@@ -9,7 +9,6 @@
 package com.qmobile.qmobiledatasync.utils
 
 import java.text.Normalizer
-import java.util.*
 
 fun String.containsIgnoreCase(str: String): Boolean =
     this.lowercase().contains(str.lowercase())
