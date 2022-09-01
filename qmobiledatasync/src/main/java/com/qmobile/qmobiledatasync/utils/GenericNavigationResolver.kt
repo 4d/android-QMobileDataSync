@@ -23,9 +23,8 @@ interface GenericNavigationResolver {
         key: String,
         query: String,
         sourceTable: String,
-        destinationTable: String,
+        relationName: String,
         parentItemId: String,
-        parentTableName: String,
         path: String
     )
 
