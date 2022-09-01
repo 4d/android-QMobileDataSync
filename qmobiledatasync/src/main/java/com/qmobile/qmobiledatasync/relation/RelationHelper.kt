@@ -115,14 +115,16 @@ object RelationHelper {
     fun Relation.inverseAliasPath(): String {
         val relationList = mutableListOf<Relation>()
         var nextSource = ""
-        unAliasPath(this.path, this.source).split(".").forEachIndexed { index, partName ->
-            val currentRelation = if (index == 0) {
-                getRelation(this.source, partName)
-            } else {
-                getRelation(nextSource, partName)
+        if (this.path.isNotEmpty()) {
+            unAliasPath(this.path, this.source).split(".").forEachIndexed { index, partName ->
+                val currentRelation = if (index == 0) {
+                    getRelation(this.source, partName)
+                } else {
+                    getRelation(nextSource, partName)
+                }
+                nextSource = currentRelation.dest
+                relationList.add(currentRelation)
             }
-            nextSource = currentRelation.dest
-            relationList.add(currentRelation)
         }
 
         var newPath = ""
@@ -133,6 +135,6 @@ object RelationHelper {
                 newPath + "." + partRelation.name
             }
         }
-        return newPath
+        return newPath.ifEmpty { this.inverse }
     }
 }
