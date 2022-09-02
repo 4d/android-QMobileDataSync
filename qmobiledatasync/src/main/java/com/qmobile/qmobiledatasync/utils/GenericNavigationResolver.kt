@@ -71,5 +71,5 @@ interface GenericNavigationResolver {
      */
     fun navigateToPendingTasks(fragmentActivity: FragmentActivity, tableName: String, currentItemId: String)
 
-    fun navigateToActionWebView(viewDataBinding: ViewDataBinding, path: String)
+    fun navigateToActionWebView(viewDataBinding: ViewDataBinding, path: String, actionName: String, actionLabel: String?, actionShortLabel: String?)
 }
