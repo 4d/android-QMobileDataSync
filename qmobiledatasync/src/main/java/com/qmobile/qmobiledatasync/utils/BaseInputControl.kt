@@ -7,7 +7,10 @@
 package com.qmobile.qmobiledatasync.utils
 
 interface BaseInputControl {
-    fun onClick(outputCallback: (outputText: String) -> Unit)
+
+    val autocomplete: Boolean
+
+    fun process(inputValue: Any? = null, outputCallback: (output: Any) -> Unit)
 }
 
 annotation class InputControl
