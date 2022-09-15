@@ -10,6 +10,8 @@ interface BaseInputControl {
 
     val autocomplete: Boolean
 
+    fun getIconName() = ""
+
     fun process(inputValue: Any? = null, outputCallback: (output: Any) -> Unit)
 }
 
