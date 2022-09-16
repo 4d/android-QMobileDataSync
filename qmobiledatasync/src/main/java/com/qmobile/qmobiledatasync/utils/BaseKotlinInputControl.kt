@@ -6,7 +6,7 @@
 
 package com.qmobile.qmobiledatasync.utils
 
-interface BaseInputControl {
+interface BaseKotlinInputControl {
 
     val autocomplete: Boolean
 
@@ -15,4 +15,4 @@ interface BaseInputControl {
     fun process(inputValue: Any? = null, outputCallback: (output: Any) -> Unit)
 }
 
-annotation class InputControl
+annotation class KotlinInputControl

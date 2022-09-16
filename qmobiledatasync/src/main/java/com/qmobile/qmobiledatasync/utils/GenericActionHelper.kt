@@ -16,5 +16,5 @@ interface GenericActionHelper {
     /**
      * Gets the appropriate input control class
      */
-    fun getInputControl(itemView: View, format: String?): BaseInputControl?
+    fun getKotlinInputControl(itemView: View, format: String?): BaseKotlinInputControl?
 }
