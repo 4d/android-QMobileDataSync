@@ -70,7 +70,7 @@ open class RuntimeDataHolder(
             val appInfoJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
             val customFormattersJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "custom_formatters.json"))
+                JSONObject(readContentFromFile(application.baseContext, "formatters.json"))
             val actionsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "actions.json"))
             val tableInfoJsonObj =
