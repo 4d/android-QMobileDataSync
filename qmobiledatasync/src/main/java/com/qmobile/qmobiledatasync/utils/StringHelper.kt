@@ -15,7 +15,7 @@ fun String.containsIgnoreCase(str: String): Boolean =
 
 fun String.tableNameAdjustment() =
     this.condense().replaceFirstChar { it.uppercaseChar() }.replaceSpecialChars().firstCharForTable()
-        .validateWord()
+        .validateWord().replaceFirstChar { it.uppercaseChar() }
 
 fun String.fieldAdjustment() =
     this.condense().replaceSpecialChars().lowerCustomProperties().validateWordDecapitalized()
