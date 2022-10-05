@@ -74,7 +74,7 @@ interface GenericNavigationResolver {
      * Navigates to ActionWebViewFragment
      */
     fun navigateToActionWebView(
-        viewDataBinding: ViewDataBinding,
+        fragmentActivity: FragmentActivity,
         path: String,
         actionName: String,
         actionLabel: String?,
