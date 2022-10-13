@@ -107,6 +107,7 @@ abstract class BaseViewModel<T : Any>(
                 error?.let {
                     toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                 }
+                onResult(null)
             }
         }
     }
