@@ -37,13 +37,21 @@ private fun String.replaceSpecialChars(): String =
 private fun String.lowerCustomProperties() = when {
     this in arrayOf("__KEY", "__STAMP", "__GlobalStamp", "__TIMESTAMP") -> this
     this.startsWith("__") && this.endsWith("Key") ->
-        this.removeSuffix("Key").replaceFirstChar { it.lowercaseChar() } + "Key"
+        this.removeSuffix("Key").decapitalize2firstChars() + "Key"
     this == "ID" -> this
-    else -> this.replaceFirstChar { it.lowercaseChar() }
+    else -> this.decapitalize2firstChars()
+}
+
+private fun String.decapitalize2firstChars(): String {
+    return when (this.length) {
+        0 -> ""
+        1 -> this.lowercase()
+        else -> this.substring(0, 2).lowercase() + this.substring(2, this.length)
+    }
 }
 
 private fun String.decapitalizeExceptID() =
-    if (this == "ID") this else this.replaceFirstChar { it.lowercaseChar() }
+    if (this == "ID") this else this.decapitalize2firstChars()
 
 private fun String.firstCharForTable(): String =
     if (this.startsWith("_")) {
