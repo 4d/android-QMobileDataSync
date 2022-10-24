@@ -114,6 +114,19 @@ abstract class EntityListViewModel<T : EntityModel>(
                 Timber.e(throwable.localizedMessage)
             }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val entityListSharedFlow: SharedFlow<List<RoomEntity>> =
+        searchChanel
+            .filterNotNull()
+            .flatMapLatest {
+                // We use flatMapLatest as we don't want flows of flows and
+                // we only want to query the latest searched string.
+                roomRepository.getAllFlow(it)
+            }.catch { throwable ->
+                Timber.e("Error while getting entityListSharedFlow in EntityListViewModel of [$tableName]")
+                Timber.e(throwable.localizedMessage)
+            }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
 

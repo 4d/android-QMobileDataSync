@@ -81,4 +81,9 @@ interface GenericNavigationResolver {
         actionShortLabel: String?,
         base64EncodedContext: String
     )
+
+    /**
+     * Navigates to PushInputControlFragment
+     */
+    fun navigateToPushInputControl(viewDataBinding: ViewDataBinding, inputControlName: String, mandatory: Boolean)
 }

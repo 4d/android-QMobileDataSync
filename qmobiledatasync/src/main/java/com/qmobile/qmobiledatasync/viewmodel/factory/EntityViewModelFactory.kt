@@ -26,14 +26,7 @@ class EntityViewModelFactory(
         return if (viewModelMap.containsKey(key)) {
             viewModelMap[key] as T
         } else {
-            addViewModel(
-                key,
-                BaseApp.genericTableHelper.entityViewModelFromTable(
-                    tableName,
-                    id,
-                    apiService
-                )
-            )
+            addViewModel(key, BaseApp.genericTableHelper.entityViewModelFromTable(tableName, id, apiService))
             viewModelMap[key] as T
         }
     }
@@ -62,13 +55,6 @@ fun getEntityViewModel(
 ): EntityViewModel<EntityModel> {
     val clazz = EntityViewModel::class.java as Class<EntityViewModel<EntityModel>>
     viewModelStoreOwner?.run {
-        return ViewModelProvider(
-            this,
-            EntityViewModelFactory(
-                tableName,
-                itemId,
-                apiService
-            )
-        )[clazz]
+        return ViewModelProvider(this, EntityViewModelFactory(tableName, itemId, apiService))[clazz]
     } ?: throw IllegalStateException("Invalid Activity")
 }

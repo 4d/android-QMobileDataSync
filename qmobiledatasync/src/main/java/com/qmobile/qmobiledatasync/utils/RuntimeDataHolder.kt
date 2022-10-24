@@ -18,6 +18,7 @@ import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.relation.Relation
+import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 
@@ -34,7 +35,8 @@ open class RuntimeDataHolder(
     var customFormatters: Map<String, Map<String, FieldMapping>>, // Map<TableName, Map<FieldName, FieldMapping>>
     var embeddedFiles: List<String>,
     var tableActions: JSONObject,
-    var currentRecordActions: JSONObject
+    var currentRecordActions: JSONObject,
+    var inputControls: List<FieldMapping>
 ) {
 
     companion object {
@@ -68,13 +70,15 @@ open class RuntimeDataHolder(
 
         private fun build(application: Application): RuntimeDataHolder {
             val appInfoJsonObj =
-                JSONObject(readContentFromFile(application.baseContext, "app_info.json"))
+                JSONObject(readContentFromFile(application.baseContext, "appInfo.json"))
             val customFormattersJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "formatters.json"))
             val actionsJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "actions.json"))
             val tableInfoJsonObj =
                 JSONObject(readContentFromFile(application.baseContext, "tableInfo.json"))
+            val inputControlsJsonArray =
+                JSONArray(readContentFromFile(application.baseContext, "inputControls.json"))
 
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
@@ -94,7 +98,8 @@ open class RuntimeDataHolder(
                     EMBEDDED_PICTURES
                 ).filter { !it.endsWith(JSON_EXT) },
                 tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject(),
-                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject()
+                currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject(),
+                inputControls = FieldMapping.buildInputControlsBinding(inputControlsJsonArray)
             )
         }
 

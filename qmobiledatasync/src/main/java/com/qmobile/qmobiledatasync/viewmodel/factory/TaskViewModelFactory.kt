@@ -18,9 +18,7 @@ class TaskViewModelFactory(
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return TaskViewModel(
-            application
-        ) as T
+        return TaskViewModel(application) as T
     }
 }
 
@@ -28,9 +26,6 @@ fun getTaskViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?
 ): TaskViewModel {
     viewModelStoreOwner?.run {
-        return ViewModelProvider(
-            this,
-            TaskViewModelFactory(BaseApp.instance)
-        )[TaskViewModel::class.java]
+        return ViewModelProvider(this, TaskViewModelFactory(BaseApp.instance))[TaskViewModel::class.java]
     } ?: throw IllegalStateException("Invalid Activity")
 }
