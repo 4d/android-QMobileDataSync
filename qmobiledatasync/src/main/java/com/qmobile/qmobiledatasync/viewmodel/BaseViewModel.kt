@@ -115,6 +115,7 @@ abstract class BaseViewModel<T : Any>(
     fun uploadImage(
         imagesToUpload: Map<String, RequestBody?>,
         onImageUploaded: (parameterName: String, receivedId: String) -> Unit,
+        onError: () -> Unit,
         onAllUploadFinished: () -> Unit
     ) {
         restRepository.uploadImage(
@@ -136,6 +137,7 @@ abstract class BaseViewModel<T : Any>(
                     error?.let {
                         toastMessage.showMessage(it, getAssociatedTableName(), ToastMessage.Type.ERROR)
                     }
+                    onError()
                 }
             }
         ) {

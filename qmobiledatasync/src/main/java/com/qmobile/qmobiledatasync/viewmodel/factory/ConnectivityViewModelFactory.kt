@@ -22,11 +22,7 @@ class ConnectivityViewModelFactory(
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ConnectivityViewModel(
-            application,
-            connectivityManager,
-            accessibilityApiService
-        ) as T
+        return ConnectivityViewModel(application, connectivityManager, accessibilityApiService) as T
     }
 }
 
@@ -38,11 +34,7 @@ fun getConnectivityViewModel(
     viewModelStoreOwner?.run {
         return ViewModelProvider(
             this,
-            ConnectivityViewModelFactory(
-                BaseApp.instance,
-                connectivityManager,
-                accessibilityApiService
-            )
+            ConnectivityViewModelFactory(BaseApp.instance, connectivityManager, accessibilityApiService)
         )[ConnectivityViewModel::class.java]
     } ?: throw IllegalStateException("Invalid Activity")
 }

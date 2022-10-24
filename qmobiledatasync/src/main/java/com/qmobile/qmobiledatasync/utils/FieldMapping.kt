@@ -13,7 +13,9 @@ import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobileapi.utils.toStringMap
+import org.json.JSONArray
 import org.json.JSONObject
+import java.util.LinkedList
 
 data class FieldMapping(
     val binding: String?,
@@ -22,7 +24,8 @@ data class FieldMapping(
     val name: String?,
     val imageWidth: Int?, // currently not used, reading the one from layout
     val imageHeight: Int?, // currently not used, reading the one from layout
-    val tintable: Boolean?
+    val tintable: Boolean?,
+    val format: String?
 ) {
 
     companion object {
@@ -49,13 +52,23 @@ data class FieldMapping(
             return fieldMap
         }
 
+        fun buildInputControlsBinding(inputControls: JSONArray?): List<FieldMapping> {
+            val inputControlList: MutableList<FieldMapping> = mutableListOf()
+
+            if (inputControls != null) {
+                for (i in 0 until inputControls.length()) {
+                    inputControls.getSafeObject(i)?.let { fieldMappingJsonObject ->
+                        inputControlList.add(getFieldMapping(fieldMappingJsonObject))
+                    }
+                }
+            }
+            return inputControlList
+        }
+
         private fun getFieldMapping(fieldMappingJsonObject: JSONObject): FieldMapping =
             FieldMapping(
                 binding = fieldMappingJsonObject.getSafeString("binding"),
-                choiceList = fieldMappingJsonObject.getSafeObject("choiceList")
-                    ?.toStringMap()
-                    ?: fieldMappingJsonObject.getSafeArray("choiceList")
-                        .getStringList(), // choiceList can be a JSONObject or a JSONArray
+                choiceList = getChoiceList(fieldMappingJsonObject),
                 type = fieldMappingJsonObject.getSafeArray("type")
                     ?.getStringList() // type can be a JSONArray or a String
                     ?: fieldMappingJsonObject.getSafeString("type"),
@@ -64,14 +77,28 @@ data class FieldMapping(
                 imageWidth = fieldMappingJsonObject.getSafeInt("imageWidth"),
                 // currently not used, reading the one from layout
                 imageHeight = fieldMappingJsonObject.getSafeInt("imageHeight"),
-                tintable = fieldMappingJsonObject.getSafeBoolean("tintable")
+                tintable = fieldMappingJsonObject.getSafeBoolean("tintable"),
+                format = fieldMappingJsonObject.getSafeString("format")
             )
+
+        private fun getChoiceList(fieldMappingJsonObject: JSONObject): Any {
+            return if (fieldMappingJsonObject.getSafeObject("choiceList")?.getSafeObject("dataSource") != null) {
+                mapOf(
+                    "dataSource" to fieldMappingJsonObject.getSafeObject("choiceList")?.getSafeObject("dataSource")
+                        ?.toStringMap()
+                )
+            } else {
+                fieldMappingJsonObject.getSafeObject("choiceList")?.toStringMap()
+                    ?: fieldMappingJsonObject.getSafeArray("choiceList")
+                        .getStringList() // choiceList can be a JSONObject or a JSONArray
+            }
+        }
     }
 
-    fun getChoiceListString(text: String): String? {
+    fun getStringInChoiceList(text: String): String? {
         return when (choiceList) {
-            is Map<*, *> -> getMapValue(choiceList, text)
-            is List<*> -> getListValue(choiceList, text)
+            is Map<*, *> -> getStringInMap(choiceList, text)
+            is List<*> -> getStringInList(choiceList, text)
             else -> null
         }
     }
@@ -82,21 +109,21 @@ data class FieldMapping(
         else -> false
     }
 
-    private fun asBooleanStringToBooleanInt(text: String): String? = when (text.lowercase()) {
+    private fun booleanStringToBooleanInt(text: String): String? = when (text.lowercase()) {
         "false" -> "0"
         "true" -> "1"
         else -> null
     }
 
-    private fun getMapValue(choiceList: Map<*, *>, text: String): String? {
+    private fun getStringInMap(choiceList: Map<*, *>, text: String): String? {
         var value: String? = choiceList[text] as? String?
         if (value == null && hasBooleanType()) {
-            value = choiceList[asBooleanStringToBooleanInt(text)] as? String?
+            value = choiceList[booleanStringToBooleanInt(text)] as? String?
         }
         return value
     }
 
-    private fun getListValue(choiceList: List<*>, text: String): String? {
+    private fun getStringInList(choiceList: List<*>, text: String): String? {
         var value: String? = null
         text.toIntOrNull()?.let { index ->
             if (index < choiceList.size) {
@@ -104,12 +131,20 @@ data class FieldMapping(
             }
         }
         if (value == null && hasBooleanType()) {
-            asBooleanStringToBooleanInt(text)?.toIntOrNull()?.let { index ->
+            booleanStringToBooleanInt(text)?.toIntOrNull()?.let { index ->
                 if (index < choiceList.size) {
                     value = choiceList[index] as? String?
                 }
             }
         }
         return value
+    }
+
+    fun getChoiceList(): LinkedList<Any> {
+        return when (choiceList) {
+            is Map<*, *> -> LinkedList(choiceList.map { Pair(it.key, it.value) })
+            is List<*> -> LinkedList(choiceList)
+            else -> LinkedList()
+        }
     }
 }

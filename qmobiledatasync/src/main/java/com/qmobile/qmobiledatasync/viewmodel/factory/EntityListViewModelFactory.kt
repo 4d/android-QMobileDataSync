@@ -16,23 +16,20 @@ import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 
 class EntityListViewModelFactory(
     private val tableName: String,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val newInstance: Boolean
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         val key = tableName + LIST_VIEWMODEL_BASENAME
 
-        return if (viewModelMap.containsKey(key)) {
-            viewModelMap[key] as T
-        } else {
-            addViewModel(
-                key,
-                BaseApp.genericTableHelper.entityListViewModelFromTable(
-                    tableName,
-                    apiService
-                )
-            )
-            viewModelMap[key] as T
+        return when {
+            newInstance -> BaseApp.genericTableHelper.entityListViewModelFromTable(tableName, apiService) as T
+            viewModelMap.containsKey(key) -> viewModelMap[key] as T
+            else -> {
+                addViewModel(key, BaseApp.genericTableHelper.entityListViewModelFromTable(tableName, apiService))
+                viewModelMap[key] as T
+            }
         }
     }
 
@@ -54,16 +51,11 @@ class EntityListViewModelFactory(
 fun getEntityListViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?,
     tableName: String,
-    apiService: ApiService
+    apiService: ApiService,
+    newInstance: Boolean = false
 ): EntityListViewModel<EntityModel> {
     val clazz = BaseApp.genericTableHelper.entityListViewModelClassFromTable(tableName)
     viewModelStoreOwner?.run {
-        return ViewModelProvider(
-            this,
-            EntityListViewModelFactory(
-                tableName,
-                apiService
-            )
-        )[clazz]
+        return ViewModelProvider(this, EntityListViewModelFactory(tableName, apiService, newInstance))[clazz]
     } ?: throw IllegalStateException("Invalid Activity")
 }
