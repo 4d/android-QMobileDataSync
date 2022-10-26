@@ -274,7 +274,9 @@ abstract class EntityListViewModel<T : EntityModel>(
                 }
             }
         }
-        this.insertAll(parsedList)
+        if (parsedList.isNotEmpty()) {
+            this.insertAll(parsedList)
+        }
     }
 
     /**
