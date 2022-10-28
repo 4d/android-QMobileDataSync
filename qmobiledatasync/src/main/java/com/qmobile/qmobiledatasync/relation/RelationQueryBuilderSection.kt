@@ -4,8 +4,8 @@ package com.qmobile.qmobiledatasync.relation
 import androidx.sqlite.db.SimpleSQLiteQuery
 import java.lang.StringBuilder
 
-const val SOURCE_TABLE_SQL_NAME = "SOURCE"
-const val DESTINATION_TABLE_SQL_NAME = "DESTINATION"
+const val SOURCE_TABLE_SQL_NAME = "T1"
+const val DESTINATION_TABLE_SQL_NAME = "T2"
 
 object RelationQueryBuilderSection {
 
