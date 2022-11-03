@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.relation
 
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.qmobile.qmobileapi.model.entity.EntityModel
+import com.qmobile.qmobiledatastore.SqlUtils.toSql
 import com.qmobile.qmobiledatasync.app.BaseApp
 import timber.log.Timber
 import java.lang.StringBuilder
@@ -38,7 +39,7 @@ object RelationQueryBuilder {
             builder.append(" LIMIT 1")
         }
 
-        return SimpleSQLiteQuery(builder.toString())
+        return builder.toSql()
     }
 
     private fun depthRelation(parent: Relation, path: List<String>, depth: Int, entity: EntityModel): String {
