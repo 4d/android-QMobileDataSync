@@ -109,6 +109,12 @@ data class FieldMapping(
         else -> false
     }
 
+    fun hasTextType(): Boolean = when (type) {
+        is List<*> -> type.contains("text")
+        is String -> type == "text"
+        else -> false
+    }
+
     private fun booleanStringToBooleanInt(text: String): String? = when (text.lowercase()) {
         "false" -> "0"
         "true" -> "1"
