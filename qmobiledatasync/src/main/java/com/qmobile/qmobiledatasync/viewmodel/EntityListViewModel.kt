@@ -106,7 +106,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                     sqLiteQuery = query,
                     pagingConfig = PagingConfig(
                         pageSize = DEFAULT_ROOM_PAGE_SIZE,
-                        enablePlaceholders = false
+                        enablePlaceholders = true
                     )
                 )
             }.catch { throwable ->
