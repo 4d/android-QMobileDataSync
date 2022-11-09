@@ -6,7 +6,10 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.paging.LivePagedListBuilder
+import androidx.paging.PagedList
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.sqlite.db.SupportSQLiteQuery
@@ -73,6 +76,23 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun setSearchQuery(sqLiteQuery: SupportSQLiteQuery) {
         searchChanel.value = sqLiteQuery
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val entityListPagedListSharedFlow: SharedFlow<PagedList<RoomEntity>> =
+        searchChanel
+            .filterNotNull()
+            .flatMapLatest {
+                // We use flatMapLatest as we don't want flows of flows and
+                // we only want to query the latest searched string.
+                LivePagedListBuilder(
+                    roomRepository.getAllPagedList(it),
+                    DEFAULT_ROOM_PAGE_SIZE
+                )
+                    .build().asFlow()
+            }.catch { throwable ->
+                Timber.e("Error while getting entityListPagedListSharedFlow in EntityListViewModel of [$tableName]")
+                Timber.e(throwable.localizedMessage)
+            }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val entityListPagingDataFlow: Flow<PagingData<RoomEntity>> =
