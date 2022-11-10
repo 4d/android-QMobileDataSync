@@ -41,4 +41,9 @@ interface GenericTableFragmentHelper {
         tableName: String,
         binding: ViewDataBinding
     ): CustomEntityListFragment?
+
+    /**
+     * Provides drawable resources for navigation tabs
+     */
+    fun getNavIcon(tableName: String): Int?
 }
