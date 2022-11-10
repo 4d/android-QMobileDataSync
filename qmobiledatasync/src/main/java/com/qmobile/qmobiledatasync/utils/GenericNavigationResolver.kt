@@ -20,10 +20,10 @@ interface GenericNavigationResolver {
      */
     fun navigateFromListToViewPager(
         viewDataBinding: ViewDataBinding,
+        sourceTable: String,
         key: String,
         position: Int,
         query: String,
-        sourceTable: String,
         relationName: String,
         parentItemId: String,
         path: String
@@ -87,4 +87,9 @@ interface GenericNavigationResolver {
      * Navigates to PushInputControlFragment
      */
     fun navigateToPushInputControl(viewDataBinding: ViewDataBinding, inputControlName: String, mandatory: Boolean)
+
+    /**
+     * Navigates to SettingsFragment
+     */
+    fun navigateToSettings(fragmentActivity: FragmentActivity)
 }

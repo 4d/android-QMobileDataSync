@@ -38,9 +38,6 @@ open class BaseApp : MultiDexApplication() {
         // Provides the drawable resource id for login page logo
         var loginLogoDrawable: Int? = null
 
-        // Provides the menu resource id for bottom navigation
-        var bottomNavigationMenu: Int? = null
-
         // Provides navigation graphs id list for navigation
         lateinit var navGraphIds: List<Int>
 
