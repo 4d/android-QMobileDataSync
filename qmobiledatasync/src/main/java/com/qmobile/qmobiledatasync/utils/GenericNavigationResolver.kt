@@ -26,7 +26,8 @@ interface GenericNavigationResolver {
         query: String,
         relationName: String,
         parentItemId: String,
-        path: String
+        path: String,
+        navbarTitle: String
     )
 
     /**
