@@ -149,16 +149,13 @@ abstract class EntityListViewModel<T : EntityModel>(
      * Gets all entities more recent than current globalStamp
      */
     fun getEntities(
-        displayLoading: Boolean,
         onResult: (shouldSyncData: Boolean) -> Unit
     ) {
         viewModelScope.launch {
             var iter = 0
             var totalReceived = 0
 
-            if (displayLoading) {
-                _dataLoading.value = true
-            }
+            _dataLoading.value = true
 
             fun paging(
                 onResult: (shouldSyncData: Boolean) -> Unit
@@ -171,9 +168,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                     if (isSuccess) {
                         if (hasFinished) {
                             onResult(shouldSyncData)
-                            if (displayLoading) {
-                                _dataLoading.value = false
-                            }
+                            _dataLoading.value = false
                             return@performRequest
                         } else {
                             iter++
@@ -182,9 +177,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                         }
                     } else {
                         onResult(shouldSyncData)
-                        if (displayLoading) {
-                            _dataLoading.value = false
-                        }
+                        _dataLoading.value = false
                         return@performRequest
                     }
                 }
