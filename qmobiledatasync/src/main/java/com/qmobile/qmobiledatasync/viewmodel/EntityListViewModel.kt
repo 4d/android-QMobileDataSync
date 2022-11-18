@@ -293,12 +293,13 @@ abstract class EntityListViewModel<T : EntityModel>(
     fun checkRelations(entityJsonString: String) {
         RelationHelper.getRelations(getAssociatedTableName()).withoutAlias().forEach { relation ->
             JSONObject(entityJsonString).getSafeObject(relation.name)?.let { relatedJson ->
-                val jsonRelation = if (relatedJson.getSafeInt("__COUNT") == null) {
-                    JSONRelation(relatedJson, relation.dest, Relation.Type.MANY_TO_ONE)
-                } else {
-                    JSONRelation(relatedJson, relation.dest, Relation.Type.ONE_TO_MANY)
+                val count = relatedJson.getSafeInt("__COUNT") ?: -1
+                val jsonRelation = when {
+                    count == -1 -> JSONRelation(relatedJson, relation.dest, Relation.Type.MANY_TO_ONE)
+                    count > 0 -> JSONRelation(relatedJson, relation.dest, Relation.Type.ONE_TO_MANY)
+                    else -> null
                 }
-                _jsonRelation.tryEmit(jsonRelation)
+                jsonRelation?.let { _jsonRelation.tryEmit(it) }
             }
         }
     }
