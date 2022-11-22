@@ -8,7 +8,7 @@ package com.qmobile.qmobiledatasync.utils
 
 import com.qmobile.qmobileapi.model.entity.EntityModel
 import com.qmobile.qmobileapi.network.ApiService
-import com.qmobile.qmobiledatasync.section.SectionField
+import com.qmobile.qmobiledatasync.query.QueryField
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityViewModel
 
@@ -51,5 +51,7 @@ interface GenericTableHelper {
     /**
      * Provides the appropriate SectionField
      */
-    fun getSectionFieldForTable(tableName: String): SectionField?
-}
+    fun getSectionFieldForTable(tableName: String): QueryField?
+
+    fun getDefaultSortFieldForTable(tableName: String): QueryField?
+    }

@@ -116,8 +116,7 @@ open class RuntimeDataHolder(
                     } else {
                         searchFieldString.split(", ")
                     }
-                    val defaultSortField = it.getSafeString("defaultSortField") ?: ""
-                    map[tableName] = TableInfo(originalName, query, fields, searchField, defaultSortField)
+                    map[tableName] = TableInfo(originalName, query, fields, searchField)
                 }
             }
             return map
