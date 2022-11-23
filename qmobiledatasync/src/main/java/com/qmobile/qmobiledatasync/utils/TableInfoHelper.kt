@@ -15,15 +15,12 @@ object TableInfoHelper {
                 val query = it.getSafeString("query") ?: ""
                 val fields = it.getSafeString("fields")?.split(", ") ?: listOf()
                 val searchField = it.getSafeString("searchFields")?.split(", ") ?: listOf()
-                val defaultSortField = it.getSafeString("defaultSortField") ?: ""
 
                 map[tableName] = TableInfo(
                     originalName,
                     query,
                     fields,
-                    searchField,
-                    defaultSortField
-                )
+                    searchField)
             }
         }
         return map
