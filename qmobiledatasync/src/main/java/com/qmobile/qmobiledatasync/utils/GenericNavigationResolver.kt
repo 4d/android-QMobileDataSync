@@ -21,7 +21,6 @@ interface GenericNavigationResolver {
     fun navigateFromListToViewPager(
         viewDataBinding: ViewDataBinding,
         sourceTable: String,
-        key: String,
         position: Int,
         query: String,
         relationName: String,
