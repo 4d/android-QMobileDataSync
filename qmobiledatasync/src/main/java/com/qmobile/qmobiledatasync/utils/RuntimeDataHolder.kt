@@ -110,12 +110,7 @@ open class RuntimeDataHolder(
                     val originalName = it.getSafeString("originalName") ?: ""
                     val query = it.getSafeString("query") ?: ""
                     val fields = it.getSafeString("fields")?.split(", ") ?: listOf()
-                    val searchFieldString = it.getSafeString("searchFields") ?: ""
-                    val searchField = if (searchFieldString.isEmpty()) {
-                        listOf()
-                    } else {
-                        searchFieldString.split(", ")
-                    }
+                    val searchField = it.getSafeString("searchFields")?.split(", ") ?: listOf()
                     map[tableName] = TableInfo(originalName, query, fields, searchField)
                 }
             }
