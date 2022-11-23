@@ -49,9 +49,12 @@ interface GenericTableHelper {
     fun entityListViewModelClassFromTable(tableName: String): Class<EntityListViewModel<EntityModel>>
 
     /**
-     * Provides the appropriate SectionField
+     * Provides the appropriate section field
      */
     fun getSectionFieldForTable(tableName: String): QueryField?
 
+    /**
+     * Provides the appropriate default sort field
+     */
     fun getDefaultSortFieldForTable(tableName: String): QueryField?
-    }
+}
