@@ -13,9 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
 import com.qmobile.qmobiledatastore.db.DaoProvider
-import com.qmobile.qmobiledatasync.utils.GenericActionHelper
 import com.qmobile.qmobiledatasync.utils.GenericNavigationResolver
 import com.qmobile.qmobiledatasync.utils.GenericRelationHelper
+import com.qmobile.qmobiledatasync.utils.GenericResourceHelper
 import com.qmobile.qmobiledatasync.utils.GenericTableFragmentHelper
 import com.qmobile.qmobiledatasync.utils.GenericTableHelper
 import com.qmobile.qmobiledatasync.utils.RuntimeDataHolder
@@ -47,7 +47,7 @@ open class BaseApp : MultiDexApplication() {
         lateinit var genericRelationHelper: GenericRelationHelper
         lateinit var genericTableFragmentHelper: GenericTableFragmentHelper
         lateinit var genericNavigationResolver: GenericNavigationResolver
-        lateinit var genericActionHelper: GenericActionHelper
+        lateinit var genericResourceHelper: GenericResourceHelper
     }
 
     override fun onCreate() {

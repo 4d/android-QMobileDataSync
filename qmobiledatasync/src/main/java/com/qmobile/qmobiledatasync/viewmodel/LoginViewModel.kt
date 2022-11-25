@@ -37,9 +37,6 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
 
-    private val _emailValid = MutableStateFlow(false)
-    val emailValid: StateFlow<Boolean> = _emailValid
-
     var statusMessage = ""
 
     private val _authenticationState = MutableStateFlow(AuthenticationState.UNAUTHENTICATED)
@@ -74,8 +71,8 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         // Fill SharedPreferences with response details
                         if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
                             BaseApp.sharedPreferencesHolder.storeCookies(response)
-                            _authenticationState.value = AuthenticationState.AUTHENTICATED
                             onResult(true)
+                            _authenticationState.value = AuthenticationState.AUTHENTICATED
                             return@authenticate
                         } else {
                             response.let {
@@ -128,10 +125,6 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     override fun onCleared() {
         super.onCleared()
         authRepository.disposable.dispose()
-    }
-
-    fun setEmailValidState(isValid: Boolean) {
-        _emailValid.value = isValid
     }
 
     fun setAuthenticationState(value: AuthenticationState) {

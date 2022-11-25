@@ -7,14 +7,20 @@
 package com.qmobile.qmobiledatasync.utils
 
 import android.view.View
+import androidx.fragment.app.FragmentActivity
 
 /**
  * Interface providing different elements depending of the generated type
  */
-interface GenericActionHelper {
+interface GenericResourceHelper {
 
     /**
      * Gets the appropriate input control class
      */
     fun getKotlinInputControl(itemView: View, format: String?): BaseKotlinInputControl?
+
+    /**
+     * Gets the appropriate login form
+     */
+    fun getLoginForm(activity: FragmentActivity): LoginHandler
 }
