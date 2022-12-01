@@ -6,12 +6,12 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import com.qmobile.qmobileapi.auth.AuthenticationState
 import com.qmobile.qmobileapi.model.auth.AuthResponse
 import com.qmobile.qmobileapi.network.LoginApiService
 import com.qmobile.qmobileapi.repository.AuthRepository
+import com.qmobile.qmobileapi.utils.RequestErrorHelper
+import com.qmobile.qmobileapi.utils.RestErrorCode
 import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.ToastMessage
@@ -19,10 +19,12 @@ import com.qmobile.qmobiledatasync.viewmodel.factory.EntityListViewModelFactory
 import com.qmobile.qmobiledatasync.viewmodel.factory.EntityViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import okhttp3.ResponseBody
+import retrofit2.Response
 import timber.log.Timber
 
-class LoginViewModel(application: Application, loginApiService: LoginApiService) :
-    AndroidViewModel(application) {
+class LoginViewModel(loginApiService: LoginApiService) :
+    BaseViewModel() {
 
     init {
         Timber.v("LoginViewModel initializing...")
@@ -42,12 +44,14 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     private val _authenticationState = MutableStateFlow(AuthenticationState.UNAUTHENTICATED)
     val authenticationState: StateFlow<AuthenticationState> = _authenticationState
 
-    val toastMessage: ToastMessage = ToastMessage()
-
     /**
      * Authenticates
      */
-    fun login(email: String = "", password: String = "", onResult: (success: Boolean) -> Unit) {
+    fun login(
+        email: String = "",
+        password: String = "",
+        onResult: (success: Boolean, isMaxLicenseReached: Boolean) -> Unit
+    ) {
         _dataLoading.value = true
         // Builds the request body for $authenticate request
         val authRequestBody = BaseApp.sharedPreferencesHolder.buildAuthRequestBody(email, password)
@@ -71,7 +75,7 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         // Fill SharedPreferences with response details
                         if (BaseApp.sharedPreferencesHolder.handleLoginInfo(authResponse)) {
                             BaseApp.sharedPreferencesHolder.storeCookies(response)
-                            onResult(true)
+                            onResult(true, false)
                             _authenticationState.value = AuthenticationState.AUTHENTICATED
                             return@authenticate
                         } else {
@@ -85,12 +89,12 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
                         }
                     }
                 }
-                onResult(false)
+                onResult(false, false)
                 _authenticationState.value = AuthenticationState.INVALID_AUTHENTICATION
             } else {
-                response?.let { toastMessage.showMessage(it, "LoginViewModel", ToastMessage.Type.ERROR) }
-                error?.let { toastMessage.showMessage(it, "LoginViewModel", ToastMessage.Type.ERROR) }
-                onResult(false)
+                val maxLicenseReached = checkIfMaxLicenseReached(response)
+                treatFailure(response, error, "LoginViewModel", ToastMessage.Type.ERROR)
+                onResult(false, maxLicenseReached)
                 _authenticationState.value = AuthenticationState.INVALID_AUTHENTICATION
             }
         }
@@ -99,23 +103,27 @@ class LoginViewModel(application: Application, loginApiService: LoginApiService)
     /**
      * Logs out
      */
-    fun disconnectUser(onResult: (success: Boolean) -> Unit) {
+    fun disconnectUser(voluntaryLogout: Boolean, onResult: (success: Boolean) -> Unit) {
         authRepository.logout { isSuccess, response, error ->
             _dataLoading.value = false
             BaseApp.sharedPreferencesHolder.sessionToken = ""
-            BaseApp.sharedPreferencesHolder.globalStamp = 0
             BaseApp.sharedPreferencesHolder.clearCookies()
             EntityListViewModelFactory.viewModelMap.clear()
             EntityViewModelFactory.viewModelMap.clear()
             _authenticationState.value = AuthenticationState.LOGOUT
-            if (isSuccess) {
-                Timber.d("[ Logout request successful ]")
-            } else {
-                response?.let { toastMessage.showMessage(it, "LoginViewModel") }
-                error?.let { toastMessage.showMessage(it, "LoginViewModel") }
+            when {
+                isSuccess -> Timber.d("[ Logout request successful ]")
+                voluntaryLogout -> treatFailure(response, error, "LoginViewModel")
             }
             onResult(isSuccess)
         }
+    }
+
+    private fun checkIfMaxLicenseReached(response: Response<ResponseBody>?): Boolean {
+        return RequestErrorHelper.toErrorResponse(
+            response?.errorBody()?.string(),
+            BaseApp.mapper
+        )?.__ERRORS?.any { errorReason -> errorReason.errCode == RestErrorCode.guest_mode_no_license } ?: false
     }
 
     fun refreshAuthRepository(loginApiService: LoginApiService) {

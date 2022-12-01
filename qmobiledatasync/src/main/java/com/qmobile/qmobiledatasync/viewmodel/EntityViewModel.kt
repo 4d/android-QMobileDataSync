@@ -17,7 +17,7 @@ class EntityViewModel<T : EntityModel>(
     id: String,
     apiService: ApiService
 ) :
-    BaseViewModel<T>(tableName, apiService) {
+    BaseDataViewModel<T>(tableName, apiService) {
 
     init {
         Timber.v("EntityViewModel initializing... $tableName")

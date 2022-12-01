@@ -19,7 +19,7 @@ class DataSync(
     val lifecycleOwner: LifecycleOwner,
     val entityListViewModelList: List<EntityListViewModel<*>>,
     val sharedPreferencesHolder: SharedPreferencesHolder,
-    private val loginRequiredCallback: LoginRequiredCallback? = null
+    private val loginRequiredCallback: LoginRequiredCallback = {}
 ) {
 
     enum class State {
@@ -88,7 +88,7 @@ class DataSync(
 
     private fun analyzeGlobalStamps() {
         if (loginRequired.getAndSet(false)) {
-            loginRequiredCallback?.invoke()
+            loginRequiredCallback()
         } else {
             // Get the max globalStamp between received ones, and stored one
             maxGlobalStamp = getMaxGlobalStamp(receivedSyncedTableGS)
