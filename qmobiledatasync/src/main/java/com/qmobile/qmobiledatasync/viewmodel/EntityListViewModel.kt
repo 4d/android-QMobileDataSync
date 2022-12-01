@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 abstract class EntityListViewModel<T : EntityModel>(
     tableName: String,
     apiService: ApiService
-) : BaseViewModel<T>(tableName, apiService) {
+) : BaseDataViewModel<T>(tableName, apiService) {
 
     init {
         Timber.v("EntityListViewModel initializing... $tableName")
@@ -226,8 +226,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                             responseJson.getSafeInt("__COUNT")?.let { count ->
                                 if (count <= totalReceived + receivedFromIter) { // it's time to stop
 
-                                    val receivedGlobalStamp =
-                                        responseJson.getSafeInt("__GlobalStamp") ?: 0
+                                    val receivedGlobalStamp = responseJson.getSafeInt("__GlobalStamp") ?: 0
 
                                     _globalStamp.value = newGlobalStamp(receivedGlobalStamp)
 
@@ -248,8 +247,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             } else {
                 // send previous globalStamp value for data sync
                 _globalStamp.value = newGlobalStamp(0)
-                response?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
-                error?.let { toastMessage.showMessage(it, getAssociatedTableName()) }
+                treatFailure(response, error, getAssociatedTableName())
                 onResult(false, true, 0, false)
             }
         }

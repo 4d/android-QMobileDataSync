@@ -6,21 +6,18 @@
 
 package com.qmobile.qmobiledatasync.viewmodel.factory
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
 import com.qmobile.qmobileapi.network.LoginApiService
-import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.viewmodel.LoginViewModel
 
 class LoginViewModelFactory(
-    private val application: Application,
     private val apiService: LoginApiService
 ) : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return LoginViewModel(application, apiService) as T
+        return LoginViewModel(apiService) as T
     }
 }
 
@@ -33,7 +30,7 @@ fun getLoginViewModel(
     viewModelStoreOwner?.run {
         return ViewModelProvider(
             this,
-            LoginViewModelFactory(BaseApp.instance, loginApiService)
+            LoginViewModelFactory(loginApiService)
         )[LoginViewModel::class.java]
     } ?: throw IllegalStateException("Invalid Activity")
 }
