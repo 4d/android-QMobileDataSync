@@ -20,6 +20,7 @@ import com.qmobile.qmobiledatasync.viewmodel.factory.EntityViewModelFactory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import okhttp3.ResponseBody
+import org.json.JSONObject
 import retrofit2.Response
 import timber.log.Timber
 
@@ -50,11 +51,12 @@ class LoginViewModel(loginApiService: LoginApiService) :
     fun login(
         email: String = "",
         password: String = "",
+        parameters: JSONObject = JSONObject(),
         onResult: (success: Boolean, isMaxLicenseReached: Boolean) -> Unit
     ) {
         _dataLoading.value = true
         // Builds the request body for $authenticate request
-        val authRequestBody = BaseApp.sharedPreferencesHolder.buildAuthRequestBody(email, password)
+        val authRequestBody = BaseApp.sharedPreferencesHolder.buildAuthRequestBody(email, password, parameters)
         // Provides shouldRetryOnError to know if we should redirect the user to login page or
         // if we should retry silently
         val shouldRetryOnError = BaseApp.runtimeDataHolder.guestLogin
