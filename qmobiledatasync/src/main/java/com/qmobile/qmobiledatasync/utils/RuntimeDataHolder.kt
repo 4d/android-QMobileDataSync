@@ -111,7 +111,8 @@ open class RuntimeDataHolder(
                     val query = it.getSafeString("query") ?: ""
                     val fields = it.getSafeString("fields")?.split(", ") ?: listOf()
                     val searchField = it.getSafeString("searchFields")?.split(", ") ?: listOf()
-                    map[tableName] = TableInfo(originalName, query, fields, searchField)
+                    val searchableWithBarcode = it.getSafeBoolean("searchableWithBarcode") ?: false
+                    map[tableName] = TableInfo(originalName, query, fields, searchField, searchableWithBarcode)
                 }
             }
             return map
