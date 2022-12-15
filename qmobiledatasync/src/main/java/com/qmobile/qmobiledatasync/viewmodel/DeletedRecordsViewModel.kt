@@ -18,7 +18,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 
-class DeletedRecordsViewModel(apiService: ApiService) : BaseViewModel() {
+open class DeletedRecordsViewModel(apiService: ApiService) : BaseViewModel() {
 
     init {
         Timber.v("DeletedRecordsViewModel initializing...")
