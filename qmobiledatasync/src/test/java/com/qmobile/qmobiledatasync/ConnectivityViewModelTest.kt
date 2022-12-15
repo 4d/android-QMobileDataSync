@@ -11,7 +11,9 @@ import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import com.qmobile.qmobileapi.network.AccessibilityApiService
+import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.viewmodel.ConnectivityViewModel
+import io.mockk.mockkObject
 import io.reactivex.Single
 import org.junit.Assert
 import org.junit.Before
@@ -43,8 +45,9 @@ class ConnectivityViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
 
+        mockkObject(BaseApp)
+        BaseApp.instance = ApplicationProvider.getApplicationContext()
         connectivityViewModel = ConnectivityViewModel(
-            ApplicationProvider.getApplicationContext(),
             connectivityManager,
             mockedAccessibilityApiService
         )

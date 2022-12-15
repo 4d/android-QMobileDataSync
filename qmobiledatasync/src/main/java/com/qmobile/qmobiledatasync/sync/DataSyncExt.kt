@@ -8,6 +8,7 @@ package com.qmobile.qmobiledatasync.sync
 
 import androidx.lifecycle.Lifecycle
 import com.qmobile.qmobileapi.network.ApiClient
+import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.utils.launchAndCollectIn
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -28,10 +29,18 @@ fun DataSync.successfulSynchronization(
     sharedPreferencesHolder.globalStamp = maxGlobalStamp
     entityListViewModelList.notifyDataSynced()
     entityListViewModelList.startDataLoading()
-    entityListViewModelList.syncDeletedRecords()
+    syncDeletedRecords()
     entityListViewModelList.stopDataLoading()
     entityListViewModelList.scheduleRefresh()
     ApiClient.dataSyncFinished()
+}
+
+fun DataSync.syncDeletedRecords() {
+    deletedRecordsViewModel.getDeletedRecords { entitiesList ->
+        entitiesList.forEach { deletedRecordString ->
+            entityListViewModelList.deleteRecord(retrieveJSONObject(deletedRecordString))
+        }
+    }
 }
 
 fun DataSync.unsuccessfulSynchronization() {

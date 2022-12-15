@@ -17,10 +17,6 @@ import retrofit2.Response
 
 abstract class BaseViewModel : AndroidViewModel(BaseApp.instance) {
 
-    /**
-     * LiveData
-     */
-
     val toastMessage: ToastMessage = ToastMessage()
 
     private val _isUnauthorized = MutableStateFlow(false)

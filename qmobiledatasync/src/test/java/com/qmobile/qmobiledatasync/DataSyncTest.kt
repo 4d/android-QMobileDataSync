@@ -16,6 +16,7 @@ import com.qmobile.qmobiledatasync.sync.DataSync
 import com.qmobile.qmobiledatasync.sync.GlobalStamp
 import com.qmobile.qmobiledatasync.sync.resetIsToSync
 import com.qmobile.qmobiledatasync.utils.launchAndCollectIn
+import com.qmobile.qmobiledatasync.viewmodel.DeletedRecordsViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -91,6 +92,9 @@ class DataSyncTest {
     @Mock
     lateinit var entityListViewModelOffice: EntityListViewModelOffice
 
+    @Mock
+    lateinit var deletedRecordsViewModel: DeletedRecordsViewModel
+
 //    private val testDispatcher = TestCoroutineDispatcher()
 //    private val testScope = TestCoroutineScope(testDispatcher)
 
@@ -119,6 +123,7 @@ class DataSyncTest {
         dataSync = DataSync(
             activity,
             entityListViewModelList,
+            deletedRecordsViewModel,
             sharedPreferencesHolder
         )
 
@@ -165,6 +170,7 @@ class DataSyncTest {
         dataSync = DataSync(
             activity,
             entityListViewModelList,
+            deletedRecordsViewModel,
             sharedPreferencesHolder
         )
 
