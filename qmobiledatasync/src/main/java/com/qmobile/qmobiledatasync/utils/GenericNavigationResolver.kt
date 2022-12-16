@@ -92,4 +92,14 @@ interface GenericNavigationResolver {
      * Navigates to SettingsFragment
      */
     fun navigateToSettings(fragmentActivity: FragmentActivity)
+
+    /**
+     * Navigates to details from deepLink
+     */
+    fun navigateToDetailsFromDeepLink(
+        fragmentActivity: FragmentActivity,
+        tableName: String,
+        itemId: String,
+        navbarTitle: String
+    )
 }
