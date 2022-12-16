@@ -121,8 +121,12 @@ class LoginViewModel(loginApiService: LoginApiService) :
         }
     }
 
-    fun checkLicenses(onResult: (success: Boolean) -> Unit) {
+    fun checkLicenses(onResult: (isOk: Boolean) -> Unit) {
         authRepository.licenseCheck { isSuccess, response, error ->
+            if (isSuccess) {
+                response?.body()?.let { responseBody ->
+                }
+            }
             onResult(isSuccess)
         }
     }
