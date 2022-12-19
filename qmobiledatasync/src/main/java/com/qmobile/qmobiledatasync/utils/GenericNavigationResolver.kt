@@ -92,4 +92,9 @@ interface GenericNavigationResolver {
      * Navigates to SettingsFragment
      */
     fun navigateToSettings(fragmentActivity: FragmentActivity)
+
+    /**
+     * Navigates to FeedbackFragment
+     */
+    fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
 }
