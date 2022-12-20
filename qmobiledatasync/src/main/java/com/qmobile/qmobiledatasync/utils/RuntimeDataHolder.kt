@@ -17,6 +17,7 @@ import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobiledatasync.app.BaseApp
+import com.qmobile.qmobiledatasync.log.LogLevelController
 import com.qmobile.qmobiledatasync.relation.Relation
 import org.json.JSONArray
 import org.json.JSONObject
@@ -58,8 +59,7 @@ open class RuntimeDataHolder(
             }
 
             if (isDebug) {
-//            LogController.initialize(this)
-                LogLevelController.initialize(runtimeDataHolder.logLevel)
+                LogLevelController.initialize(application, runtimeDataHolder.logLevel)
                 Timber.i("[LOG LEVEL] ${runtimeDataHolder.logLevel}")
             }
 
