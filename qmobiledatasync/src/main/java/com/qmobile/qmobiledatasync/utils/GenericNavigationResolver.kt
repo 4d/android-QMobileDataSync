@@ -102,4 +102,8 @@ interface GenericNavigationResolver {
         itemId: String,
         navbarTitle: String
     )
+    /**
+     *  Navigates to FeedbackFragment
+     */
+    fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
 }

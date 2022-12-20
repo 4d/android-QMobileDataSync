@@ -6,7 +6,6 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobiledatastore.dao.ActionTask
@@ -15,8 +14,7 @@ import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.utils.getViewModelScope
 import kotlinx.coroutines.launch
 
-class TaskViewModel(application: Application) :
-    AndroidViewModel(application) {
+class TaskViewModel : AndroidViewModel(BaseApp.instance) {
 
     private val coroutineScope = getViewModelScope()
     private val dao = BaseApp.daoProvider.getActionTaskDao()

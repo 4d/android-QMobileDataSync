@@ -121,6 +121,16 @@ class LoginViewModel(loginApiService: LoginApiService) :
         }
     }
 
+    fun checkLicenses(onResult: (isOk: Boolean) -> Unit) {
+        authRepository.licenseCheck { isSuccess, response, error ->
+            if (isSuccess) {
+                response?.body()?.let { responseBody ->
+                }
+            }
+            onResult(isSuccess)
+        }
+    }
+
     private fun checkIfMaxLicenseReached(response: Response<ResponseBody>?): Boolean {
         return RequestErrorHelper.toErrorResponse(
             response?.errorBody()?.string(),

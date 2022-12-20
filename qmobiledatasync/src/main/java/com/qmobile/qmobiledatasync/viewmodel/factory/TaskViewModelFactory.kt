@@ -6,19 +6,15 @@
 
 package com.qmobile.qmobiledatasync.viewmodel.factory
 
-import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
-import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.viewmodel.TaskViewModel
 
-class TaskViewModelFactory(
-    private val application: Application
-) : ViewModelProvider.NewInstanceFactory() {
+class TaskViewModelFactory : ViewModelProvider.NewInstanceFactory() {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return TaskViewModel(application) as T
+        return TaskViewModel() as T
     }
 }
 
@@ -26,6 +22,6 @@ fun getTaskViewModel(
     viewModelStoreOwner: ViewModelStoreOwner?
 ): TaskViewModel {
     viewModelStoreOwner?.run {
-        return ViewModelProvider(this, TaskViewModelFactory(BaseApp.instance))[TaskViewModel::class.java]
+        return ViewModelProvider(this, TaskViewModelFactory())[TaskViewModel::class.java]
     } ?: throw IllegalStateException("Invalid Activity")
 }

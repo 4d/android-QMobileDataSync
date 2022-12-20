@@ -7,22 +7,11 @@
 package com.qmobile.qmobiledatasync.sync
 
 import com.qmobile.qmobileapi.utils.getSafeString
-import com.qmobile.qmobileapi.utils.retrieveJSONObject
 import com.qmobile.qmobiledatasync.utils.ScheduleRefresh
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import com.qmobile.qmobiledatasync.viewmodel.deleteOne
 import org.json.JSONObject
 import timber.log.Timber
-
-fun List<EntityListViewModel<*>>.syncDeletedRecords() {
-    // We pick first viewModel to perform a deletedRecords request, but it could be any viewModel.
-    // The goal is to get a RestRepository to perform the request.
-    this.firstOrNull()?.getDeletedRecords { entitiesList ->
-        entitiesList.forEach { deletedRecordString ->
-            this.deleteRecord(retrieveJSONObject(deletedRecordString))
-        }
-    }
-}
 
 fun List<EntityListViewModel<*>>.printGlobalStamp() {
     Timber.d("Current globalStamps list :")

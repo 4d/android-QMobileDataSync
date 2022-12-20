@@ -6,23 +6,22 @@
 
 package com.qmobile.qmobiledatasync.viewmodel
 
-import android.app.Application
 import android.net.ConnectivityManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import com.qmobile.qmobileapi.network.AccessibilityApiService
 import com.qmobile.qmobileapi.repository.AccessibilityRepository
+import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.network.NetworkState
 import com.qmobile.qmobiledatasync.network.NetworkStateMonitor
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import timber.log.Timber
 
 open class ConnectivityViewModel(
-    application: Application,
     connectivityManager: ConnectivityManager,
     accessibilityApiService: AccessibilityApiService
 ) :
-    AndroidViewModel(application) {
+    AndroidViewModel(BaseApp.instance) {
 
     init {
         Timber.v("ConnectivityViewModel initializing...")

@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.sync
 import androidx.lifecycle.LifecycleOwner
 import com.qmobile.qmobileapi.utils.LoginRequiredCallback
 import com.qmobile.qmobileapi.utils.SharedPreferencesHolder
+import com.qmobile.qmobiledatasync.viewmodel.DeletedRecordsViewModel
 import com.qmobile.qmobiledatasync.viewmodel.EntityListViewModel
 import kotlinx.coroutines.CoroutineScope
 import timber.log.Timber
@@ -18,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class DataSync(
     val lifecycleOwner: LifecycleOwner,
     val entityListViewModelList: List<EntityListViewModel<*>>,
+    val deletedRecordsViewModel: DeletedRecordsViewModel,
     val sharedPreferencesHolder: SharedPreferencesHolder,
     private val loginRequiredCallback: LoginRequiredCallback = {}
 ) {
