@@ -52,8 +52,7 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
             if (isSuccess) {
                 onResult(true)
             } else {
-                response?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
-                error?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
+                treatFailure(response, error, "FeedbackViewModel")
                 onResult(false)
             }
         }
@@ -64,8 +63,7 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
             if (isSuccess) {
                 onResult(true)
             } else {
-                response?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
-                error?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
+                treatFailure(response, error, "FeedbackViewModel")
                 onResult(false)
             }
         }
