@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.log
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import com.qmobile.qmobiledatasync.app.BaseApp
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -21,6 +22,7 @@ import java.util.zip.GZIPOutputStream
 @SuppressLint("LogNotTimber")
 object LogFileHelper {
 
+    const val sigCrashLogFileName = "sig_crash_log.txt"
     private const val crashLogFilePrefix = "crash_log_"
     private const val logsFolder = "logs"
     private const val zipFileName = "data.zip"
@@ -63,9 +65,15 @@ object LogFileHelper {
     }
 
     fun findCrashLogFile(context: Context): File? {
+        val path = getLogsDirectoryFromPathOrFallback(context.filesDir.absolutePath)
         return try {
-            File(getLogsDirectoryFromPathOrFallback(context.filesDir.absolutePath)).walkTopDown()
-                .firstOrNull { it.name.startsWith(crashLogFilePrefix) }
+            val file = File(path).walkTopDown().firstOrNull { it.name.startsWith(crashLogFilePrefix) }
+                ?: File(path, sigCrashLogFileName)
+            if (file.exists()) {
+                file
+            } else {
+                null
+            }
         } catch (ex: FileNotFoundException) {
             Log.e("LogFileHelper", ex.message.orEmpty())
             Log.e("LogFileHelper", "Could not find crash log file")
@@ -79,10 +87,15 @@ object LogFileHelper {
 
     fun cleanOlderCrashLogs(context: Context) {
         File(getLogsDirectoryFromPathOrFallback(context.filesDir.absolutePath)).walkTopDown()
-            .filter { it.name.startsWith(crashLogFilePrefix) || it.name == zipFileName }
+            .filter {
+                it.name.startsWith(crashLogFilePrefix) ||
+                    it.name == zipFileName ||
+                    it.name == sigCrashLogFileName
+            }
             .forEach { file ->
                 file.delete()
             }
+        BaseApp.sharedPreferencesHolder.crashLogSavedForLater = ""
     }
 
     fun compress(file: File): File? {
