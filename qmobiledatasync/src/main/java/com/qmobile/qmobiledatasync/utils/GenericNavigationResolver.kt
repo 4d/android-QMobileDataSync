@@ -106,4 +106,25 @@ interface GenericNavigationResolver {
      *  Navigates to FeedbackFragment
      */
     fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
-}
+
+    /**
+     * Navigates from detail form to (1>N) relation  when coming from deeplink
+     */
+    fun navigateToDeepLinkOneToManyRelation(
+        fragmentActivity: FragmentActivity,
+        viewDataBinding: ViewDataBinding,
+        relationName: String,
+        roomEntity: RoomEntity
+    )
+
+    /**
+     * Navigates from detail form to (N>1) relation  when coming from deeplink
+     */
+    fun navigateToDeepLinkManyToOneRelation(
+        fragmentActivity: FragmentActivity,
+        viewDataBinding: ViewDataBinding,
+        relationName: String,
+        roomEntity: RoomEntity
+    )
+
+    }
