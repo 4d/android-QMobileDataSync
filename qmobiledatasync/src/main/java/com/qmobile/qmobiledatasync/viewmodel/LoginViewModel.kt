@@ -123,9 +123,8 @@ class LoginViewModel(loginApiService: LoginApiService) :
 
     fun checkLicenses(onResult: (isOk: Boolean) -> Unit) {
         authRepository.licenseCheck { isSuccess, response, error ->
-            if (isSuccess) {
-                response?.body()?.let { responseBody ->
-                }
+            if (!isSuccess) {
+                treatFailure(response, error, "LoginViewModel", ToastMessage.Type.ERROR)
             }
             onResult(isSuccess)
         }

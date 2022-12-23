@@ -150,7 +150,7 @@ abstract class EntityListViewModel<T : EntityModel>(
      */
     fun getEntities(
         displayLoading: Boolean,
-        onResult: (shouldSyncData: Boolean) -> Unit
+        onResult: (isSuccess: Boolean, shouldSyncData: Boolean) -> Unit
     ) {
         viewModelScope.launch {
             var iter = 0
@@ -161,7 +161,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             }
 
             fun paging(
-                onResult: (shouldSyncData: Boolean) -> Unit
+                onResult: (isSuccess: Boolean, shouldSyncData: Boolean) -> Unit
             ) {
                 performRequest(
                     iter = iter,
@@ -170,7 +170,7 @@ abstract class EntityListViewModel<T : EntityModel>(
 
                     if (isSuccess) {
                         if (hasFinished) {
-                            onResult(shouldSyncData)
+                            onResult(true, shouldSyncData)
                             _dataLoading.value = false
                             return@performRequest
                         } else {
@@ -179,7 +179,7 @@ abstract class EntityListViewModel<T : EntityModel>(
                             paging(onResult)
                         }
                     } else {
-                        onResult(shouldSyncData)
+                        onResult(false, shouldSyncData)
                         _dataLoading.value = false
                         return@performRequest
                     }

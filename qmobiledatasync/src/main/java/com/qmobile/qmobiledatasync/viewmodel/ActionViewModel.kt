@@ -28,7 +28,7 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
     fun sendAction(
         actionName: String,
         actionContent: MutableMap<String, Any>,
-        onResult: (actionResponse: ActionResponse?) -> Unit
+        onResult: (isSuccess: Boolean, actionResponse: ActionResponse?) -> Unit
     ) {
         actionRepository.sendAction(
             actionName,
@@ -53,12 +53,12 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
                                 ToastMessage.Type.NEUTRAL
                             )
                         }
-                        onResult(actionResponse)
+                        onResult(true, actionResponse)
                     }
                 }
             } else {
                 treatFailure(response, error, "ActionViewModel", ToastMessage.Type.ERROR)
-                onResult(null)
+                onResult(false, null)
             }
         }
     }

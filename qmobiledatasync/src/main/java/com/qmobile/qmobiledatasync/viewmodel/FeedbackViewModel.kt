@@ -8,9 +8,14 @@ package com.qmobile.qmobiledatasync.viewmodel
 
 import com.qmobile.qmobileapi.network.FeedbackApiService
 import com.qmobile.qmobileapi.repository.FeedbackRepository
+import com.qmobile.qmobileapi.utils.APP_JSON
+import com.qmobile.qmobileapi.utils.UTF8_CHARSET
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
@@ -45,15 +50,16 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         }
     }
 
-    fun sendCrashReport(zipFile: File, onResult: (isSuccess: Boolean) -> Unit) {
-        val requestBody = zipFile.asRequestBody("multipart/form-data".toMediaType())
+    fun sendCrashReport(jsonBody: JSONObject, zipFile: File, onResult: (isSuccess: Boolean) -> Unit) {
+        val body = jsonBody.toString().toRequestBody("$APP_JSON; $UTF8_CHARSET".toMediaTypeOrNull())
+        val requestFile = zipFile.asRequestBody("multipart/form-data".toMediaType())
+        val filePart: MultipartBody.Part = MultipartBody.Part.createFormData("file", zipFile.name, requestFile)
 
-        feedbackRepository.sendCrashLogs(requestBody) { isSuccess, response, error ->
+        feedbackRepository.sendCrashLogs(body, filePart) { isSuccess, response, error ->
             if (isSuccess) {
                 onResult(true)
             } else {
-                response?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
-                error?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
+                treatFailure(response, error, "FeedbackViewModel")
                 onResult(false)
             }
         }
@@ -64,8 +70,7 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
             if (isSuccess) {
                 onResult(true)
             } else {
-                response?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
-                error?.let { toastMessage.showMessage(it, "FeedbackViewModel") }
+                treatFailure(response, error, "FeedbackViewModel")
                 onResult(false)
             }
         }
