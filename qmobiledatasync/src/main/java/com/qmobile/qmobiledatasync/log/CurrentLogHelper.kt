@@ -9,6 +9,7 @@ package com.qmobile.qmobiledatasync.log
 import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
+import com.qmobile.qmobiledatasync.log.LogFileHelper.compressLogFiles
 import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
@@ -39,6 +40,20 @@ object CurrentLogHelper {
     fun clearFiles(path: String) {
         clearCurrentLogFile(path)
         clearSavedLogFile(path)
+    }
+
+    fun getCurrentLogZip(context: Context): File? {
+        val logsDirPath =
+            File(LogFileHelper.getLogsDirectoryFromPathOrFallback(context.filesDir.absolutePath)).absolutePath
+
+        val logFiles = mutableListOf<File>()
+        findSavedLogFile(logsDirPath)?.let {
+            if (it.readText().isNotEmpty()) {
+                logFiles.add(it)
+            }
+        }
+        findCurrentLogFile(logsDirPath)?.let { logFiles.add(it) }
+        return compressLogFiles(logFiles)
     }
 
     @SuppressLint("LogNotTimber")

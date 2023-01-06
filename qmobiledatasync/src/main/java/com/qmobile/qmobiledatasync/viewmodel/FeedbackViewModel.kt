@@ -10,7 +10,9 @@ import com.qmobile.qmobileapi.network.FeedbackApiService
 import com.qmobile.qmobileapi.repository.FeedbackRepository
 import com.qmobile.qmobileapi.utils.APP_JSON
 import com.qmobile.qmobileapi.utils.UTF8_CHARSET
+import com.qmobile.qmobiledatasync.log.LogFileHelper
 import com.qmobile.qmobiledatasync.toast.ToastMessage
+import com.qmobile.qmobiledatasync.utils.FeedbackType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -50,31 +52,114 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         }
     }
 
-    fun sendCrashReport(jsonBody: JSONObject, zipFile: File, onResult: (isSuccess: Boolean) -> Unit) {
+    fun sendCrash(zipFile: File?, onResult: (isSuccess: Boolean) -> Unit) {
+        val jsonBody = buildRequestJson(type = FeedbackType.REPORT_PREVIOUS_CRASH, hasFile = zipFile != null)
+        sendFeedbackAndLogs(jsonBody, zipFile, onResult)
+    }
+
+    fun sendCurrentLogs(zipFile: File?, onResult: (isSuccess: Boolean) -> Unit) {
+        val jsonBody = buildRequestJson(type = FeedbackType.SHOW_CURRENT_LOG, hasFile = zipFile != null)
+        sendFeedbackAndLogs(jsonBody, zipFile, onResult)
+    }
+
+    fun sendFeedback(
+        type: FeedbackType,
+        email: String,
+        feedbackContent: String?,
+        zipFile: File?,
+        onResult: (isSuccess: Boolean) -> Unit
+    ) {
+        val jsonBody = buildRequestJson(type, email, feedbackContent, zipFile != null)
+        sendFeedbackAndLogs(jsonBody, zipFile, onResult)
+    }
+
+    @Suppress("UnusedPrivateMember")
+    private fun sendFeedbackAndLogs(jsonBody: JSONObject, zipFile: File?, onResult: (isSuccess: Boolean) -> Unit) {
         val body = jsonBody.toString().toRequestBody("$APP_JSON; $UTF8_CHARSET".toMediaTypeOrNull())
-        val requestFile = zipFile.asRequestBody("multipart/form-data".toMediaType())
-        val filePart: MultipartBody.Part = MultipartBody.Part.createFormData("file", zipFile.name, requestFile)
+        var filePart: MultipartBody.Part? = null
+        zipFile?.let {
+            val requestFile = zipFile.asRequestBody("multipart/form-data".toMediaType())
+            filePart = MultipartBody.Part.createFormData("file", zipFile.name, requestFile)
+        }
 
-        feedbackRepository.sendCrashLogs(body, filePart) { isSuccess, response, error ->
+        /*feedbackRepository.sendFeedbackAndLogs(body, filePart) { isSuccess, response, error ->
             if (isSuccess) {
                 onResult(true)
             } else {
                 treatFailure(response, error, "FeedbackViewModel")
                 onResult(false)
             }
+        }*/
+    }
+
+    private fun buildRequestJson(
+        type: FeedbackType,
+        email: String? = null,
+        feedbackContent: String? = null,
+        hasFile: Boolean
+    ): JSONObject {
+        return JSONObject().apply {
+            email?.let { put("email", it) }
+            feedbackContent?.let { put("summary", it) }
+            put("type", type.key)
+            put("fileName", if (hasFile) LogFileHelper.zipFileName else "")
+            put("SendDate", LogFileHelper.getCurrentDateTimeLogFormat())
+            put("isCrash", if (type == FeedbackType.REPORT_PREVIOUS_CRASH) "1" else "0")
+
+//            BaseApp.sharedPreferencesHolder.appInfo.getSafeString("id")?.let { put("Bundle_Identifier", it) }
+//            BaseApp.sharedPreferencesHolder.device.getSafeInt("version")?.let { put("Platform_Version", it.toString()) }
+//            BaseApp.sharedPreferencesHolder.team.getSafeString("id")?.let { put("Identifier_Prefix", it) }
         }
     }
 
-    fun sendFeedback(feedback: JSONObject, onResult: (isSuccess: Boolean) -> Unit) {
-        feedbackRepository.sendFeedback(feedback) { isSuccess, response, error ->
-            if (isSuccess) {
-                onResult(true)
-            } else {
-                treatFailure(response, error, "FeedbackViewModel")
-                onResult(false)
-            }
-        }
-    }
+    /*
+.appInfo {"id":"com.qmobile.Sample4DApp","name":"Sample4DApp","version":"1.0"}
+.device {"id":"dadd5cb49be9fb83","simulator":true,"description":"Simulator",
+    "version":"33 (Android TIRAMISU)","os":"Android"}
+.team {"id":""}
+.language {"id":"en_US","code":"en","region":"US"}
+
+CFBundleIdentifier => Bundle ID
+fileName => data.zip
+AppIdentifierPrefix
+email
+summary
+type
+CFBundleName
+DTPlatformVersion
+CFBundleShortVersionString
+build
+component
+ide
+sdk
+uuid
+device.description
+isCrash
+SendDate
+device.simulator
+
+    * {
+"Reference": "IOS0000206",
+"Bundle_Identifier": "com.myCompany.My-App",
+"Platform_Version": "16.2",
+"Date_Add": "2023-01-03",
+"File_Name": "empty.txt.zip",
+"Identifier_Prefix": "UTT7VDX8W5.",
+"Bundle_Name": "Staff",
+"Bundle_Short_VersionString": "1.0",
+"Build": "100058",
+"Component": "100058",
+"IDE": "1980",
+"SDK": "",
+"UUID": "7A33CADE808D4637B6DD960019AC18D0",
+"Device_Simulator": true,
+"Device_Description": "Simulator (iPhone14,7)",
+"Time_Add": 35730,
+"email": "",
+"summary": "here sugest improvement",
+"type": "Talk to us",
+"status": "Queued"
+}*/
 
     override fun onCleared() {
         super.onCleared()

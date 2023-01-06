@@ -10,6 +10,6 @@ enum class FeedbackType(val key: String) {
     TALK_TO_US("question"),
     SUGGEST_IMPROVEMENT("improvement"),
     SHOW_CURRENT_LOG("log"),
-    REPORT_A_PROBLEM("problem"),
+    REPORT_A_PROBLEM("bug"),
     REPORT_PREVIOUS_CRASH("crash")
 }

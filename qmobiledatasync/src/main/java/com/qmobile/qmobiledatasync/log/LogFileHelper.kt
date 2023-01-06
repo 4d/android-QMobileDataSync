@@ -10,6 +10,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import com.qmobile.qmobiledatasync.app.BaseApp
+import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -17,7 +19,8 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.zip.GZIPOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 @SuppressLint("LogNotTimber")
 object LogFileHelper {
@@ -25,8 +28,8 @@ object LogFileHelper {
     const val sigCrashLogFileName = "sig_crash_log.txt"
     private const val crashLogFilePrefix = "crash_log_"
     private const val logsFolder = "logs"
-    private const val zipFileName = "data.zip"
-    private const val gZIPBufferSize = 1024
+    const val zipFileName = "data.zip"
+    private const val zipBufferSize = 1024
     private val logFileTimeFormat = SimpleDateFormat("dd_MM_yyyy_HH_mm_ss", Locale.US)
 
     fun createLogFile(context: Context, content: String) {
@@ -98,35 +101,41 @@ object LogFileHelper {
         BaseApp.sharedPreferencesHolder.crashLogSavedForLater = ""
     }
 
+    fun compressLogFiles(files: List<File>): File? {
+        return try {
+            val compressed = File(files.firstOrNull()?.parentFile?.absolutePath, zipFileName)
+            zipFiles(files, compressed)
+            compressed
+        } catch (e: IOException) {
+            Log.e("LogFileHelper", e.message.orEmpty())
+            Log.e("LogFileHelper", "An error occurred while compressing log file into zip format")
+            null
+        }
+    }
+
     fun compress(file: File): File? {
         return try {
             // Create a new file for the compressed logs.
             val compressed = File(file.parentFile?.absolutePath, zipFileName)
-            write(file, compressed)
+            zipFiles(listOf(file), compressed)
             compressed
         } catch (e: IOException) {
             Log.e("LogFileHelper", e.message.orEmpty())
-            Log.e("LogFileHelper", "An error occurred while compressing log file into gzip format")
+            Log.e("LogFileHelper", "An error occurred while compressing log file into zip format")
             null
         }
     }
 
     @Suppress("NestedBlockDepth")
-    private fun write(file: File, compressed: File) {
-        FileInputStream(file).use { fis ->
-            FileOutputStream(compressed).use { fos ->
-                GZIPOutputStream(fos).use { gzos ->
-
-                    val buffer = ByteArray(gZIPBufferSize)
-                    var length = fis.read(buffer)
-
-                    while (length > 0) {
-                        gzos.write(buffer, 0, length)
-                        length = fis.read(buffer)
+    private fun zipFiles(files: List<File>, compressed: File) {
+        ZipOutputStream(BufferedOutputStream(FileOutputStream(compressed))).use { out ->
+            for (file in files) {
+                FileInputStream(file).use { fi ->
+                    BufferedInputStream(fi).use { origin ->
+                        val entry = ZipEntry(file.name)
+                        out.putNextEntry(entry)
+                        origin.copyTo(out, zipBufferSize)
                     }
-
-                    // Finish file compressing and close all streams.
-                    gzos.finish()
                 }
             }
         }
