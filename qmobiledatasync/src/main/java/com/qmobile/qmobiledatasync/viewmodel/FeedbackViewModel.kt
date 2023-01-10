@@ -11,17 +11,14 @@ import com.qmobile.qmobileapi.repository.FeedbackRepository
 import com.qmobile.qmobileapi.utils.APP_JSON
 import com.qmobile.qmobileapi.utils.UTF8_CHARSET
 import com.qmobile.qmobileapi.utils.getSafeBoolean
-import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.log.LogFileHelper
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import com.qmobile.qmobiledatasync.utils.FeedbackType
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -59,14 +56,16 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         }
     }
 
-    fun sendCrash(zipFile: File?, onResult: (isSuccess: Boolean) -> Unit) {
+    fun sendCrash(zipFile: File?, onResult: (isSuccess: Boolean, ticket: String?) -> Unit) {
         val jsonBody = buildRequestJson(type = FeedbackType.REPORT_PREVIOUS_CRASH, hasFile = zipFile != null)
         sendFeedbackAndLogs(jsonBody, zipFile, onResult)
     }
 
     fun sendCurrentLogs(zipFile: File?, onResult: (isSuccess: Boolean) -> Unit) {
         val jsonBody = buildRequestJson(type = FeedbackType.SHOW_CURRENT_LOG, hasFile = zipFile != null)
-        sendFeedbackAndLogs(jsonBody, zipFile, onResult)
+        sendFeedbackAndLogs(jsonBody, zipFile) { isSuccess, _ ->
+            onResult(isSuccess)
+        }
     }
 
     fun sendFeedback(
@@ -77,10 +76,12 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         onResult: (isSuccess: Boolean) -> Unit
     ) {
         val jsonBody = buildRequestJson(type, email, feedbackContent, zipFile != null)
-        sendFeedbackAndLogs(jsonBody, zipFile, onResult)
+        sendFeedbackAndLogs(jsonBody, zipFile) { isSuccess, _ ->
+            onResult(isSuccess)
+        }
     }
 
-    private fun sendFeedbackAndLogs(jsonBody: JSONObject, zipFile: File?, onResult: (isSuccess: Boolean) -> Unit) {
+    private fun sendFeedbackAndLogs(jsonBody: JSONObject, zipFile: File?, onResult: (isSuccess: Boolean, ticket: String?) -> Unit) {
         if (zipFile == null) {
             Timber.e("Cannot send crash log : zip file is null !")
             return
@@ -91,10 +92,10 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
 
         feedbackRepository.sendFeedbackAndLogs(body, filePart) { isSuccess, response, error ->
             if (isSuccess) {
-                onResult(true)
+                onResult(true, response?.body()?.string())
             } else {
                 treatFailure(response, error, "FeedbackViewModel")
-                onResult(false)
+                onResult(false, null)
             }
         }
     }
