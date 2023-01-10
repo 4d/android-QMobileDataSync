@@ -25,7 +25,6 @@ import org.json.JSONObject
 import timber.log.Timber
 import java.io.File
 
-
 class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel() {
 
     init {
@@ -81,7 +80,11 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         }
     }
 
-    private fun sendFeedbackAndLogs(jsonBody: JSONObject, zipFile: File?, onResult: (isSuccess: Boolean, ticket: String?) -> Unit) {
+    private fun sendFeedbackAndLogs(
+        jsonBody: JSONObject,
+        zipFile: File?,
+        onResult: (isSuccess: Boolean, ticket: String?) -> Unit
+    ) {
         if (zipFile == null) {
             Timber.e("Cannot send crash log : zip file is null !")
             return
