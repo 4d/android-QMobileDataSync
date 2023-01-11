@@ -103,6 +103,7 @@ interface GenericNavigationResolver {
         itemId: String,
         navbarTitle: String
     )
+
     /**
      *  Navigates to FeedbackFragment
      */
@@ -127,5 +128,4 @@ interface GenericNavigationResolver {
         relationName: String,
         roomEntity: RoomEntity
     )
-
-    }
+}
