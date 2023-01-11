@@ -13,6 +13,7 @@ import com.qmobile.qmobiledatastore.data.RoomEntity
 /**
  * Interface providing different elements depending of the generated type
  */
+@Suppress("TooManyFunctions")
 interface GenericNavigationResolver {
 
     /**
