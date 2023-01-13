@@ -36,12 +36,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
@@ -78,7 +76,7 @@ abstract class EntityListViewModel<T : EntityModel>(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val entityListPagedListSharedFlow: SharedFlow<PagedList<RoomEntity>> =
+    val entityListPagedListSharedFlow: Flow<PagedList<RoomEntity>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest {
@@ -92,7 +90,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             }.catch { throwable ->
                 Timber.e("Error while getting entityListPagedListSharedFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
-            }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+            }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val entityListPagingDataFlow: Flow<PagingData<RoomEntity>> =
@@ -115,7 +113,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val entityListSharedFlow: SharedFlow<List<RoomEntity>> =
+    val entityListSharedFlow: Flow<List<RoomEntity>> =
         searchChanel
             .filterNotNull()
             .flatMapLatest {
@@ -125,7 +123,7 @@ abstract class EntityListViewModel<T : EntityModel>(
             }.catch { throwable ->
                 Timber.e("Error while getting entityListSharedFlow in EntityListViewModel of [$tableName]")
                 Timber.e(throwable.localizedMessage)
-            }.shareIn(coroutineScope, SharingStarted.WhileSubscribed())
+            }
 
     private val _dataLoading = MutableStateFlow(false)
     val dataLoading: StateFlow<Boolean> = _dataLoading
