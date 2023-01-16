@@ -112,6 +112,7 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         return stringData.toRequestBody("text/plain".toMediaTypeOrNull())
     }
 
+    @Suppress("ComplexMethod")
     private fun buildRequest(
         type: FeedbackType,
         email: String? = null,
@@ -141,6 +142,11 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
                 ?.let { put("device.simulator", createPartFromString(it.toString())) }
             BaseApp.sharedPreferencesHolder.team.getSafeString("id")
                 ?.let { put("AppIdentifierPrefix", createPartFromString(it)) }
+
+            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("component")
+                ?.let { put("", createPartFromString(it)) }
+            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("build")?.let { put("", createPartFromString(it)) }
+            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("ide")?.let { put("", createPartFromString(it)) }
 
             put("sdk", createPartFromString(BaseApp.runtimeDataHolder.sdkVersion))
         }
