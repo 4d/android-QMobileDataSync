@@ -30,6 +30,7 @@ open class RuntimeDataHolder(
     var sdkVersion: String,
     var logLevel: Int,
     var crashLogs: Boolean,
+    var logServer: String,
     var dumpedTables: List<String>,
     var relationAvailable: Boolean = true,
     var relations: List<Relation>,
@@ -83,13 +84,17 @@ open class RuntimeDataHolder(
 
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
+            val logServer = appInfoJsonObj.getSafeString("logServer") ?: ""
+            val crashLogs = (appInfoJsonObj.getSafeBoolean("crashLogs") ?: true) && logServer.isNotEmpty()
+
             return RuntimeDataHolder(
                 initialGlobalStamp = appInfoJsonObj.getSafeInt("initialGlobalStamp") ?: 0,
                 guestLogin = appInfoJsonObj.getSafeBoolean("guestLogin") ?: true,
                 remoteUrl = appInfoJsonObj.getSafeString("remoteUrl") ?: "",
                 sdkVersion = sdkVersion,
                 logLevel = appInfoJsonObj.getSafeInt("logLevel") ?: DEFAULT_LOG_LEVEL,
-                crashLogs = appInfoJsonObj.getSafeBoolean("crashLogs") ?: true,
+                crashLogs = crashLogs,
+                logServer = logServer,
                 dumpedTables = appInfoJsonObj.getSafeArray("dumpedTables").getStringList(),
                 relationAvailable = appInfoJsonObj.getSafeBoolean("relations") ?: true,
                 relations = BaseApp.genericRelationHelper.getRelations(),
