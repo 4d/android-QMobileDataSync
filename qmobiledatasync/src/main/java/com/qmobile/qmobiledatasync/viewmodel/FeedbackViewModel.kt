@@ -86,7 +86,7 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
     ) {
         var filePart: MultipartBody.Part? = null
         zipFile?.let {
-            val requestFile = it.asRequestBody("multipart/form-data".toMediaType())
+            val requestFile = it.asRequestBody("application/zip".toMediaType())
             filePart = MultipartBody.Part.createFormData("file", it.name, requestFile)
         }
 
@@ -120,7 +120,8 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
         hasFile: Boolean
     ): MutableMap<String, RequestBody> {
         return mutableMapOf<String, RequestBody>().apply {
-            email?.let { put("email", createPartFromString(it)) }
+            val emailToSend = email ?: BaseApp.sharedPreferencesHolder.lastLoginMail
+            put("email", createPartFromString(emailToSend))
             feedbackContent?.let { put("summary", createPartFromString(it)) }
             put("type", createPartFromString(type.key))
             put("fileName", createPartFromString(if (hasFile) LogFileHelper.zipFileName else ""))
@@ -139,7 +140,7 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
             BaseApp.sharedPreferencesHolder.device.getSafeString("description")
                 ?.let { put("device.description", createPartFromString(it)) }
             BaseApp.sharedPreferencesHolder.device.getSafeBoolean("simulator")
-                ?.let { put("device.simulator", createPartFromString(it.toString())) }
+                ?.let { put("device.simulator", createPartFromString(if (it) "yes" else "no")) }
             BaseApp.sharedPreferencesHolder.team.getSafeString("id")
                 ?.let { put("AppIdentifierPrefix", createPartFromString(it)) }
 
