@@ -62,10 +62,15 @@ open class RuntimeDataHolder(
 
             if (isDebug) {
                 LogLevelController.initialize(application, runtimeDataHolder.logLevel)
-                Timber.i("[LOG LEVEL] ${runtimeDataHolder.logLevel}")
             }
 
+            Timber.i("[LOG LEVEL] ${runtimeDataHolder.logLevel}")
             Timber.i("[SDK VERSION] ${runtimeDataHolder.sdkVersion}")
+            BaseApp.sharedPreferencesHolder.buildInfo.apply {
+                Timber.i("[COMPONENT VERSION] ${this.getSafeString("componentBuild")}")
+                Timber.i("[IDE BUILD VERSION] ${this.getSafeString("ideBuildVersion")}")
+                Timber.i("[IDE VERSION] ${this.getSafeString("ideVersion")}")
+            }
 
             return runtimeDataHolder
         }

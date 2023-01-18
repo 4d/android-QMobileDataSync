@@ -144,10 +144,12 @@ class FeedbackViewModel(feedbackApiService: FeedbackApiService) : BaseViewModel(
             BaseApp.sharedPreferencesHolder.team.getSafeString("id")
                 ?.let { put("AppIdentifierPrefix", createPartFromString(it)) }
 
-            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("component")
-                ?.let { put("", createPartFromString(it)) }
-            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("build")?.let { put("", createPartFromString(it)) }
-            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("ide")?.let { put("", createPartFromString(it)) }
+            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("componentBuild")
+                ?.let { put("component", createPartFromString(it)) }
+            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("ideBuildVersion")
+                ?.let { put("build", createPartFromString(it)) }
+            BaseApp.sharedPreferencesHolder.buildInfo.getSafeString("ideVersion")
+                ?.let { put("ide", createPartFromString(it)) }
 
             put("sdk", createPartFromString(BaseApp.runtimeDataHolder.sdkVersion))
         }
