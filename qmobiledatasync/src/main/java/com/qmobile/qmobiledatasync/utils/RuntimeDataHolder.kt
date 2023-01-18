@@ -89,8 +89,8 @@ open class RuntimeDataHolder(
 
             val sdkVersion = readContentFromFile(application.baseContext, "sdkVersion")
 
-            val logServer = appInfoJsonObj.getSafeString("logServer") ?: ""
-            val crashLogs = (appInfoJsonObj.getSafeBoolean("crashLogs") ?: true) && logServer.isNotEmpty()
+            val logServer = appInfoJsonObj.getSafeString("crash.server.url") ?: ""
+            val crashLogs = (appInfoJsonObj.getSafeBoolean("crash.manage") ?: true) && logServer.isNotEmpty()
 
             return RuntimeDataHolder(
                 initialGlobalStamp = appInfoJsonObj.getSafeInt("initialGlobalStamp") ?: 0,
