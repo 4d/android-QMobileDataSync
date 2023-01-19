@@ -58,7 +58,27 @@ object LogLevelController {
         this.level = level
         logsDirPath = LogFileHelper.getLogsDirectoryFromPathOrFallback(context.filesDir.absolutePath)
         CurrentLogHelper.clearFiles(context.filesDir.absolutePath)
-        Timber.plant(FileTree())
+        Timber.plant(
+            CustomDebugTree(),
+            FileTree()
+        )
+    }
+
+    open class CustomDebugTree : Timber.DebugTree() {
+
+        override fun createStackElementTag(element: StackTraceElement): String {
+            return String.format(
+                locale = Locale.getDefault(),
+                format = "Class:%s: Line: %s, Method: %s",
+                super.createStackElementTag(element),
+                element.lineNumber,
+                element.methodName
+            )
+        }
+
+        override fun isLoggable(tag: String?, priority: Int): Boolean {
+            return level <= priority
+        }
     }
 
     /**
@@ -66,7 +86,7 @@ object LogLevelController {
      * It's role is to buffer logs and periodically write them to disk.
      */
     @SuppressLint("CheckResult")
-    class FileTree : Timber.DebugTree() {
+    class FileTree : CustomDebugTree() {
 
         companion object {
             private const val INTERVAL_SIGNAL_MINUTES: Long = 5
@@ -157,20 +177,6 @@ object LogLevelController {
                     message
                 )
             )
-        }
-
-        override fun createStackElementTag(element: StackTraceElement): String {
-            return String.format(
-                locale = Locale.getDefault(),
-                format = "Class:%s: Line: %s, Method: %s",
-                super.createStackElementTag(element),
-                element.lineNumber,
-                element.methodName
-            )
-        }
-
-        override fun isLoggable(tag: String?, priority: Int): Boolean {
-            return level <= priority
         }
     }
 
