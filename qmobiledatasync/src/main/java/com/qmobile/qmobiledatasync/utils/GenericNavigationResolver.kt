@@ -13,6 +13,7 @@ import com.qmobile.qmobiledatastore.data.RoomEntity
 /**
  * Interface providing different elements depending of the generated type
  */
+@Suppress("TooManyFunctions")
 interface GenericNavigationResolver {
 
     /**
@@ -94,7 +95,37 @@ interface GenericNavigationResolver {
     fun navigateToSettings(fragmentActivity: FragmentActivity)
 
     /**
-     * Navigates to FeedbackFragment
+     * Navigates to details from deepLink
+     */
+    fun navigateToDetailsFromDeepLink(
+        fragmentActivity: FragmentActivity,
+        tableName: String,
+        itemId: String,
+        navbarTitle: String
+    )
+
+    /**
+     *  Navigates to FeedbackFragment
      */
     fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
+
+    /**
+     * Navigates from detail form to (1>N) relation  when coming from deeplink
+     */
+    fun navigateToDeepLinkOneToManyRelation(
+        fragmentActivity: FragmentActivity,
+        viewDataBinding: ViewDataBinding,
+        relationName: String,
+        roomEntity: RoomEntity
+    )
+
+    /**
+     * Navigates from detail form to (N>1) relation  when coming from deeplink
+     */
+    fun navigateToDeepLinkManyToOneRelation(
+        fragmentActivity: FragmentActivity,
+        viewDataBinding: ViewDataBinding,
+        relationName: String,
+        roomEntity: RoomEntity
+    )
 }
