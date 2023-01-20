@@ -100,9 +100,9 @@ interface GenericNavigationResolver {
     fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
 
     /**
-     * Navigates to details from deepLink
+     * Navigates to detail form from deepLink
      */
-    fun navigateToDetailsFromDeepLink(
+    fun navigateToDetailFromDeepLink(
         fragmentActivity: FragmentActivity,
         tableName: String,
         itemId: String,
@@ -110,7 +110,7 @@ interface GenericNavigationResolver {
     )
 
     /**
-     * Navigates from detail form to (1>N) relation  when coming from deeplink
+     * Navigates from detail form to (1>N) relation when coming from deeplink
      */
     fun navigateToDeepLinkOneToManyRelation(
         fragmentActivity: FragmentActivity,
@@ -120,7 +120,7 @@ interface GenericNavigationResolver {
     )
 
     /**
-     * Navigates from detail form to (N>1) relation  when coming from deeplink
+     * Navigates from detail form to (N>1) relation when coming from deeplink
      */
     fun navigateToDeepLinkManyToOneRelation(
         fragmentActivity: FragmentActivity,
