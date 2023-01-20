@@ -95,6 +95,11 @@ interface GenericNavigationResolver {
     fun navigateToSettings(fragmentActivity: FragmentActivity)
 
     /**
+     *  Navigates to FeedbackFragment
+     */
+    fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
+
+    /**
      * Navigates to details from deepLink
      */
     fun navigateToDetailsFromDeepLink(
@@ -103,11 +108,6 @@ interface GenericNavigationResolver {
         itemId: String,
         navbarTitle: String
     )
-
-    /**
-     *  Navigates to FeedbackFragment
-     */
-    fun navigateToFeedback(fragmentActivity: FragmentActivity, type: FeedbackType)
 
     /**
      * Navigates from detail form to (1>N) relation  when coming from deeplink
