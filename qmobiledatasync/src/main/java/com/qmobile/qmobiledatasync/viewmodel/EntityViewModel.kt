@@ -28,4 +28,6 @@ class EntityViewModel<T : EntityModel>(
      */
 
     val entity: LiveData<RoomEntity> = roomRepository.getOne(id)
+
+    val doesEntityExist: LiveData<Boolean> = roomRepository.doesEntityExist(id)
 }
