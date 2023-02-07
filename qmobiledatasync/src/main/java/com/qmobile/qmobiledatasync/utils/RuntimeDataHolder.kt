@@ -121,8 +121,10 @@ open class RuntimeDataHolder(
                 tableInfoJsonObj.getSafeObject(tableName)?.let {
                     val originalName = it.getSafeString("originalName") ?: ""
                     val query = it.getSafeString("query") ?: ""
-                    val fields = it.getSafeString("fields")?.split(", ") ?: listOf()
-                    val searchField = it.getSafeString("searchFields")?.split(", ") ?: listOf()
+                    val fields = it.getSafeString("fields")?.split(", ")
+                        ?.filter { field -> field.isNotEmpty() } ?: listOf()
+                    val searchField = it.getSafeString("searchFields")?.split(", ")
+                        ?.filter { field -> field.isNotEmpty() } ?: listOf()
                     val searchableWithBarcode = it.getSafeBoolean("searchableWithBarcode") ?: false
                     map[tableName] = TableInfo(originalName, query, fields, searchField, searchableWithBarcode)
                 }
