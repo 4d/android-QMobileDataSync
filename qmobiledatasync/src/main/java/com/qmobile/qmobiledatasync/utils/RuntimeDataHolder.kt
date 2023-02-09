@@ -15,6 +15,7 @@ import com.qmobile.qmobileapi.utils.getSafeBoolean
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
+import com.qmobile.qmobileapi.utils.toStringMap
 import com.qmobile.qmobileapi.utils.getStringList
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.log.LogLevelController
@@ -121,12 +122,20 @@ open class RuntimeDataHolder(
                 tableInfoJsonObj.getSafeObject(tableName)?.let {
                     val originalName = it.getSafeString("originalName") ?: ""
                     val query = it.getSafeString("query") ?: ""
-                    val fields = it.getSafeString("fields")?.split(", ")
-                        ?.filter { field -> field.isNotEmpty() } ?: listOf()
+                    val fields = it.getSafeObject("fields")?.toStringMap()
+                        ?.filter { entry -> entry.value.toString().isNotEmpty() }
+                        ?.mapValues { entry -> entry.value.toString() }
+
                     val searchField = it.getSafeString("searchFields")?.split(", ")
                         ?.filter { field -> field.isNotEmpty() } ?: listOf()
                     val searchableWithBarcode = it.getSafeBoolean("searchableWithBarcode") ?: false
-                    map[tableName] = TableInfo(originalName, query, fields, searchField, searchableWithBarcode)
+                    map[tableName] = TableInfo(
+                        originalName,
+                        query,
+                        fields ?: emptyMap(),
+                        searchField,
+                        searchableWithBarcode
+                    )
                 }
             }
             return map
