@@ -45,7 +45,7 @@ fun <T : EntityModel> EntityListViewModel<T>.buildPredicate(): String? {
 fun <T : EntityModel> EntityListViewModel<T>.buildPostRequestBody(): JSONObject {
     return JSONObject().apply {
         // Adding properties
-        val properties = BaseApp.runtimeDataHolder.tableInfo[getAssociatedTableName()]?.fields
+        val properties = BaseApp.runtimeDataHolder.tableInfo[getAssociatedTableName()]?.fields?.values
         properties?.forEach { property ->
             addProperty(getAssociatedTableName(), property)
         }
@@ -68,7 +68,7 @@ private fun JSONObject.addProperty(tableName: String, property: String) {
 
 private fun buildRelationQueryAndProperties(dest: String): JSONObject {
     return JSONObject().apply {
-        val relationProperties = BaseApp.runtimeDataHolder.tableInfo[dest]?.fields
+        val relationProperties = BaseApp.runtimeDataHolder.tableInfo[dest]?.fields?.values
         relationProperties?.forEach { relationProperty ->
             put(relationProperty.removeSuffix(Relation.SUFFIX), true)
         }
