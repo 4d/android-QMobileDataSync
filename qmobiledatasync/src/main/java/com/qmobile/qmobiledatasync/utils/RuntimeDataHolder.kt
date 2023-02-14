@@ -15,8 +15,8 @@ import com.qmobile.qmobileapi.utils.getSafeBoolean
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
-import com.qmobile.qmobileapi.utils.toStringMap
 import com.qmobile.qmobileapi.utils.getStringList
+import com.qmobile.qmobileapi.utils.toStringMap
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.log.LogLevelController
 import com.qmobile.qmobiledatasync.relation.Relation
@@ -41,6 +41,7 @@ open class RuntimeDataHolder(
     var embeddedFiles: List<String>,
     var tableActions: JSONObject,
     var currentRecordActions: JSONObject,
+    var globalActions: JSONObject,
     var inputControls: List<FieldMapping>
 ) {
 
@@ -114,6 +115,7 @@ open class RuntimeDataHolder(
                 ).filter { !it.endsWith(JSON_EXT) },
                 tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject(),
                 currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject(),
+                globalActions = actionsJsonObj.getSafeObject("global") ?: JSONObject(),
                 inputControls = FieldMapping.buildInputControlsBinding(inputControlsJsonArray)
             )
         }
