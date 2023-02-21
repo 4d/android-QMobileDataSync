@@ -125,6 +125,7 @@ open class RuntimeDataHolder(
             tableInfoJsonObj.keys().forEach { tableName ->
                 tableInfoJsonObj.getSafeObject(tableName)?.let {
                     val originalName = it.getSafeString("originalName") ?: ""
+                    val label = it.getSafeString("label") ?: ""
                     val query = it.getSafeString("query") ?: ""
                     val fields = it.getSafeObject("fields")?.toStringMap()
                         ?.filter { entry -> entry.value.toString().isNotEmpty() }
@@ -135,6 +136,7 @@ open class RuntimeDataHolder(
                     val searchableWithBarcode = it.getSafeBoolean("searchableWithBarcode") ?: false
                     map[tableName] = TableInfo(
                         originalName,
+                        label,
                         query,
                         fields ?: emptyMap(),
                         searchField,
