@@ -109,6 +109,7 @@ class LoginViewModel(loginApiService: LoginApiService) :
         authRepository.logout { isSuccess, response, error ->
             _dataLoading.value = false
             BaseApp.sharedPreferencesHolder.sessionToken = ""
+            BaseApp.sharedPreferencesHolder.fcmToken = ""
             BaseApp.sharedPreferencesHolder.clearCookies()
             EntityListViewModelFactory.viewModelMap.clear()
             EntityViewModelFactory.viewModelMap.clear()
