@@ -55,9 +55,12 @@ echo "🔎 Dependencies"
 
 modules="QMobileAPI QMobileDataStore" # CLEAN:get from other conf file, gradle ones?
 
-if [ -d "../androids-QMobileAPI/qmobileapi" ]; then  # CLEAN: & QMobileDataSync 
+module=$(echo  ${modules%% *})
+module_lower=$(echo "$module" | tr '[:upper:]' '[:lower:]')
+
+if [ -d "../android-$module/$module_lower" ]; then  # CLEAN: check all modules
   export DEPS_PATH="../android-"
-elif [ -d "../QMobileAPI/qmobileapi" ]; then  # CLEAN: & QMobileDataSync 
+elif [ -d "../$module/$module_lower" ]; then  # CLEAN: check all modules
   export DEPS_PATH="../"
 else
   export DEPS_PATH="./.checkout/android-"
