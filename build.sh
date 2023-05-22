@@ -66,8 +66,9 @@ else
   export DEPS_PATH="./.checkout/android-"
   mkdir -p ".checkout"
 
-  # url="https://github.com/4d/android-"
-  url="git@github.com:4d/android-"
+  url="https://github.com/4d/android-"
+  # url="git@github.com:4d/android-"
+  # ssh -vT git@github.com # if git url scheme ensure we could connect
 
   for module in $modules; do
     module_lower=$(echo "$module" | tr '[:upper:]' '[:lower:]')
