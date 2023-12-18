@@ -54,6 +54,10 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
                             )
                         }
                         onResult(true, actionResponse)
+                    }?: {
+                        // Failed to decode
+                        //   treatFailure(response, error, "ActionViewModel", ToastMessage.Type.ERROR)
+                        onResult( false, null)
                     }
                 }
             } else {
