@@ -42,7 +42,8 @@ open class RuntimeDataHolder(
     var tableActions: JSONObject,
     var currentRecordActions: JSONObject,
     var globalActions: JSONObject,
-    var inputControls: List<FieldMapping>
+    var inputControls: List<FieldMapping>,
+    var editActionHasUniqueTask: Boolean
 ) {
 
     companion object {
@@ -95,6 +96,8 @@ open class RuntimeDataHolder(
             val logServer = appInfoJsonObj.getSafeString("crash.server.url") ?: ""
             val crashLogs = (appInfoJsonObj.getSafeBoolean("crash.manage") ?: true) && logServer.isNotEmpty()
 
+            val editActionHasUniqueTask = appInfoJsonObj.getSafeBoolean("action.edit.hasUnitTask") ?: false
+
             return RuntimeDataHolder(
                 initialGlobalStamp = appInfoJsonObj.getSafeInt("initialGlobalStamp") ?: 0,
                 guestLogin = appInfoJsonObj.getSafeBoolean("guestLogin") ?: true,
@@ -116,7 +119,8 @@ open class RuntimeDataHolder(
                 tableActions = actionsJsonObj.getSafeObject("table")?.addActionId() ?: JSONObject(),
                 currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject(),
                 globalActions = actionsJsonObj.getSafeObject("global") ?: JSONObject(),
-                inputControls = FieldMapping.buildInputControlsBinding(inputControlsJsonArray)
+                inputControls = FieldMapping.buildInputControlsBinding(inputControlsJsonArray),
+                editActionHasUniqueTask = editActionHasUniqueTask
             )
         }
 
