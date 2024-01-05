@@ -20,6 +20,7 @@ import java.util.LinkedList
 data class FieldMapping(
     val binding: String?,
     val choiceList: Any?, // choiceList can be a JSONObject or a JSONArray
+    var choiceListComputed: Map<String, Any>?,
     val type: Any?, // type can be a String or a JSONArray
     val name: String?,
     val imageWidth: Int?, // currently not used, reading the one from layout
@@ -69,6 +70,7 @@ data class FieldMapping(
             FieldMapping(
                 binding = fieldMappingJsonObject.getSafeString("binding"),
                 choiceList = getChoiceList(fieldMappingJsonObject),
+                choiceListComputed = null,
                 type = fieldMappingJsonObject.getSafeArray("type")
                     ?.getStringList() // type can be a JSONArray or a String
                     ?: fieldMappingJsonObject.getSafeString("type"),
@@ -147,6 +149,10 @@ data class FieldMapping(
     }
 
     fun getChoiceList(): LinkedList<Any> {
+        return getChoiceList (choiceList)
+    }
+
+    fun getChoiceList(choiceList: Any?): LinkedList<Any> {
         return when (choiceList) {
             is Map<*, *> -> LinkedList(choiceList.map { Pair(it.key, it.value) })
             is List<*> -> LinkedList(choiceList)
