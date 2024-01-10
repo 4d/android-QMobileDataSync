@@ -96,7 +96,7 @@ open class RuntimeDataHolder(
             val logServer = appInfoJsonObj.getSafeString("crash.server.url") ?: ""
             val crashLogs = (appInfoJsonObj.getSafeBoolean("crash.manage") ?: true) && logServer.isNotEmpty()
 
-            val editActionHasUniqueTask = appInfoJsonObj.getSafeBoolean("action.edit.hasUnitTask") ?: false
+            val editActionHasUniqueTask = appInfoJsonObj.getSafeBoolean("action.edit.hasUniqueTask") ?: false
 
             return RuntimeDataHolder(
                 initialGlobalStamp = appInfoJsonObj.getSafeInt("initialGlobalStamp") ?: 0,
