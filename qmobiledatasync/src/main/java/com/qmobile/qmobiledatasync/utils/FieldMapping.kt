@@ -98,7 +98,10 @@ data class FieldMapping(
     }
 
     fun getStringInChoiceList(text: String): String? {
-        return when (choiceList) {
+        return when (val choiceListComputed = this.choiceListComputed) {
+            is Map<*, *> -> getStringInMap(choiceListComputed, text)
+            else -> null
+        }?: when (choiceList) {
             is Map<*, *> -> getStringInMap(choiceList, text)
             is List<*> -> getStringInList(choiceList, text)
             else -> null
