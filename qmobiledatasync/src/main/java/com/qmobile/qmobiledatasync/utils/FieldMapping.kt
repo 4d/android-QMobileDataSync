@@ -6,16 +6,24 @@
 
 package com.qmobile.qmobiledatasync.utils
 
+import com.fasterxml.jackson.databind.MapperFeature
+import com.fasterxml.jackson.databind.json.JsonMapper
+import com.qmobile.qmobileapi.utils.getSafeAny
 import com.qmobile.qmobileapi.utils.getSafeArray
 import com.qmobile.qmobileapi.utils.getSafeBoolean
 import com.qmobile.qmobileapi.utils.getSafeInt
 import com.qmobile.qmobileapi.utils.getSafeObject
 import com.qmobile.qmobileapi.utils.getSafeString
 import com.qmobile.qmobileapi.utils.getStringList
+import com.qmobile.qmobileapi.utils.parseToString
 import com.qmobile.qmobileapi.utils.toStringMap
+import com.qmobile.qmobiledatastore.data.RoomEntity
+import com.qmobile.qmobiledatasync.app.BaseApp
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.LinkedList
+
+private val noJsonPropertyMapper = JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build()
 
 data class FieldMapping(
     val binding: String?,
@@ -100,7 +108,7 @@ data class FieldMapping(
     fun getStringInChoiceList(text: String): String? {
         return when (val choiceListComputed = this.choiceListComputed) {
             is Map<*, *> -> getStringInMap(choiceListComputed, text)
-            else -> null
+            else -> null // ""? to stop
         }?: when (choiceList) {
             is Map<*, *> -> getStringInMap(choiceList, text)
             is List<*> -> getStringInList(choiceList, text)
@@ -161,5 +169,38 @@ data class FieldMapping(
             is List<*> -> LinkedList(choiceList)
             else -> LinkedList()
         }
+    }
+
+    private fun getInstanceProperty(instance: RoomEntity, propertyName: String): Any? {
+        return if (propertyName.contains(".")) {
+            var tmpInstance: Any? = instance
+            propertyName.split(".").forEach { part ->
+                val subTmpInstance = tmpInstance
+                tmpInstance = when {
+                    subTmpInstance is JSONObject -> subTmpInstance.getSafeAny(part)
+                    subTmpInstance != null && subTmpInstance.toString() != "null" -> JSONObject(
+                        BaseApp.mapper.parseToString(
+                            subTmpInstance
+                        )
+                    ).getSafeAny(part)
+                    else -> null
+                }
+            }
+            tmpInstance
+        } else {
+            JSONObject(noJsonPropertyMapper.parseToString(instance.__entity)).getSafeAny(
+                propertyName
+            )
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun checkChoiceList(entity: RoomEntity) {
+        val dataSource = ((this.choiceList as? Map<String, Any>)?.get("dataSource")) as? Map<String, Any> ?: return
+        if (dataSource["currentEntity"] as? Boolean != true) return
+        this.choiceListComputed = null
+        val fieldName = (dataSource["field"] as? String) ?: return
+        val choiceList = (getInstanceProperty(entity, fieldName) as? JSONObject) ?: return
+        this.choiceListComputed = choiceList.toStringMap()
     }
 }
