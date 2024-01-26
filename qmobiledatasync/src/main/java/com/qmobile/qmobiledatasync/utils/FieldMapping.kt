@@ -199,7 +199,8 @@ data class FieldMapping(
         val dataSource = ((this.choiceList as? Map<String, Any>)?.get("dataSource")) as? Map<String, Any> ?: return
         if (dataSource["currentEntity"] as? Boolean != true) return
         this.choiceListComputed = null
-        val fieldName = (dataSource["field"] as? String) ?: return
+        var fieldName = (dataSource["field"] as? String) ?: return
+        if (reservedKeywords.contains(fieldName)) fieldName = "qmobile_$fieldName"
         val choiceList = (getInstanceProperty(entity, fieldName) as? JSONObject) ?: return
         this.choiceListComputed = choiceList.toStringMap()
     }
