@@ -68,8 +68,9 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
     }
 
     fun uploadImage(
-        imagesToUpload: Map<String, RequestBody?>,
+        imagesToUpload: Map<String, Result<RequestBody>>,
         onImageUploaded: (parameterName: String, receivedId: String) -> Unit,
+        onImageFailed: (parameterName: String, throwable: Throwable) -> Unit,
         onError: () -> Unit,
         onAllUploadFinished: () -> Unit
     ) {
@@ -86,6 +87,9 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
                         }
                     }
                 } else {
+                    error?.let {
+                        onImageFailed(parameterName, it)
+                    }
                     treatFailure(response, error, "ActionViewModel", ToastMessage.Type.ERROR)
                     onError()
                 }
