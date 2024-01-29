@@ -71,7 +71,6 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
         imagesToUpload: Map<String, Result<RequestBody>>,
         onImageUploaded: (parameterName: String, receivedId: String) -> Unit,
         onImageFailed: (parameterName: String, throwable: Throwable) -> Unit,
-        onError: () -> Unit,
         onAllUploadFinished: () -> Unit
     ) {
         actionRepository.uploadImage(
@@ -87,11 +86,8 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
                         }
                     }
                 } else {
-                    error?.let {
-                        onImageFailed(parameterName, it)
-                    }
+                    onImageFailed(parameterName, error ?: UnknownError("Failed to upload image without any known error"))
                     treatFailure(response, error, "ActionViewModel", ToastMessage.Type.ERROR)
-                    onError()
                 }
             }
         ) {
