@@ -15,6 +15,7 @@ import com.qmobile.qmobileapi.utils.retrieveResponseObject
 import com.qmobile.qmobiledatasync.app.BaseApp
 import com.qmobile.qmobiledatasync.toast.ToastMessage
 import okhttp3.RequestBody
+import org.json.JSONException
 import timber.log.Timber
 
 class ActionViewModel(apiService: ApiService) : BaseViewModel() {
@@ -77,11 +78,18 @@ class ActionViewModel(apiService: ApiService) : BaseViewModel() {
             imagesToUpload,
             { isSuccess, parameterName, response, error ->
                 if (isSuccess) {
-                    response?.body()?.let { responseBody ->
-
-                        retrieveJSONObject(responseBody.string())?.let { responseJson ->
-                            responseJson.getSafeString("ID")?.let { id ->
-                                onImageUploaded(parameterName, id)
+                    when(val responseBody = response?.body()) {
+                        null -> onImageFailed(parameterName, JSONException("Failed to get image upload ID from null server response"))
+                        else -> {
+                            val responseBodyString = responseBody.string()
+                            when (val responseJson = retrieveJSONObject(responseBodyString)) {
+                                null -> onImageFailed(parameterName, JSONException("Failed to get image upload ID from expected JSON response $responseBodyString"))
+                                else -> {
+                                    when(val id = responseJson.getSafeString("ID")) {
+                                        null -> onImageFailed(parameterName, JSONException("Failed to get image upload ID from response $responseJson"))
+                                        else -> onImageUploaded(parameterName, id)
+                                    }
+                                }
                             }
                         }
                     }
