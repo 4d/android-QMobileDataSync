@@ -6,6 +6,7 @@
 
 package com.qmobile.qmobiledatasync.toast
 
+import android.content.Context
 import com.qmobile.qmobileapi.utils.HttpCode
 import com.qmobile.qmobileapi.utils.getSafeString
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,6 +19,10 @@ import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 
 class ToastMessage {
+
+    companion object {
+        var context: Context? = null
+    }
 
     enum class Type {
         NEUTRAL, SUCCESS, WARNING, ERROR
@@ -70,22 +75,23 @@ class ToastMessage {
                 }
             }
         }
-
+        val context = ToastMessage.context
         if (message.isNotEmpty()) {
             emitMessage(message, Type.WARNING)
         } else {
-            HttpCode.reason(code)?.let { reason ->
-                message = "$reason ($code)"
-            } ?: kotlin.run {
-                message = "${HttpCode.message(code)} ($code)"
-            }
+            val resourceId = HttpCode.reason(code) ?: HttpCode.message(code)
+            message = if (resourceId == null || context == null) "" else context.getString(resourceId)
+            message = "$message ($code)"
             emitMessage(message, type)
         }
     }
 
     private fun handleErrorThrowable(entry: Throwable, type: Type) {
         if (entry is SocketTimeoutException) {
-            emitMessage(HttpCode.message(HttpCode.requestTimeout), type)
+            val resourceId = HttpCode.message(HttpCode.requestTimeout)
+            val context = ToastMessage.context
+            val message = if (resourceId == null || context == null) "" else context.getString(resourceId)
+            emitMessage(message, type)
         } else {
             entry.localizedMessage?.let { message ->
                 emitMessage(message, type)
