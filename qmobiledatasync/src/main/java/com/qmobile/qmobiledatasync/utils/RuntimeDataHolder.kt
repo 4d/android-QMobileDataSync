@@ -43,7 +43,8 @@ open class RuntimeDataHolder(
     var currentRecordActions: JSONObject,
     var globalActions: JSONObject,
     var inputControls: List<FieldMapping>,
-    var editActionHasUniqueTask: Boolean
+    var editActionHasUniqueTask: Boolean,
+    var lockOrientation: Boolean
 ) {
 
     companion object {
@@ -120,7 +121,8 @@ open class RuntimeDataHolder(
                 currentRecordActions = actionsJsonObj.getSafeObject("currentRecord")?.addActionId() ?: JSONObject(),
                 globalActions = actionsJsonObj.getSafeObject("global") ?: JSONObject(),
                 inputControls = FieldMapping.buildInputControlsBinding(inputControlsJsonArray),
-                editActionHasUniqueTask = editActionHasUniqueTask
+                editActionHasUniqueTask = editActionHasUniqueTask,
+                lockOrientation = appInfoJsonObj.getSafeBoolean("lockOrientation") ?: false
             )
         }
 
