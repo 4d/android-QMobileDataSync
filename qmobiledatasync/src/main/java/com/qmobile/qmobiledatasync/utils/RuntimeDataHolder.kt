@@ -44,7 +44,8 @@ open class RuntimeDataHolder(
     var globalActions: JSONObject,
     var inputControls: List<FieldMapping>,
     var editActionHasUniqueTask: Boolean,
-    var lockOrientation: Boolean
+    var lockOrientation: Boolean,
+    var maxPendingActionTask: Int
 ) {
 
     companion object {
@@ -98,6 +99,7 @@ open class RuntimeDataHolder(
             val crashLogs = (appInfoJsonObj.getSafeBoolean("crash.manage") ?: true) && logServer.isNotEmpty()
 
             val editActionHasUniqueTask = appInfoJsonObj.getSafeBoolean("action.edit.hasUniqueTask") ?: false
+            val maxPendingActionTask = appInfoJsonObj.getSafeInt("action.pending.maxTask") ?: 10
 
             return RuntimeDataHolder(
                 initialGlobalStamp = appInfoJsonObj.getSafeInt("initialGlobalStamp") ?: 0,
@@ -122,7 +124,8 @@ open class RuntimeDataHolder(
                 globalActions = actionsJsonObj.getSafeObject("global") ?: JSONObject(),
                 inputControls = FieldMapping.buildInputControlsBinding(inputControlsJsonArray),
                 editActionHasUniqueTask = editActionHasUniqueTask,
-                lockOrientation = appInfoJsonObj.getSafeBoolean("lockOrientation") ?: false
+                lockOrientation = appInfoJsonObj.getSafeBoolean("lockOrientation") ?: false,
+                maxPendingActionTask = maxPendingActionTask
             )
         }
 
